@@ -26,12 +26,14 @@ import com.example.cognilink.R
 import com.example.cognilink.ui.theme.CogniLinkTheme
 import com.example.cognilink.ui.theme.DarkGray
 import com.example.cognilink.ui.theme.DarkNavyBlue
+import com.example.cognilink.ui.theme.LightNavyBlue
+import com.example.cognilink.ui.theme.VeryLightGray
 
 @Composable
-fun AuthFooter() {
+fun Footer() {
 
     Surface(modifier = Modifier,
-        color = Color(0xFFF3F3F3),
+        color = VeryLightGray,
         shape = RoundedCornerShape(
             topStart = 24.dp,
             topEnd = 24.dp,
@@ -43,7 +45,7 @@ fun AuthFooter() {
         ) {
             Surface(shape = RoundedCornerShape(24.dp)) {
                 Row(modifier = Modifier
-                    .background(Color(0xFFE0E0FF))
+                    .background(LightNavyBlue)
                     .padding(horizontal = 10.dp, vertical = 5.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(5.dp)
@@ -91,8 +93,8 @@ fun AuthFooter() {
 
 @Preview
 @Composable
-private fun AuthFooterPreview() {
+private fun FooterPreview() {
     CogniLinkTheme {
-        AuthFooter()
+        Footer()
     }
 }

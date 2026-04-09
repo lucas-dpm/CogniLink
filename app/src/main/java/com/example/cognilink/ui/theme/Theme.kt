@@ -1,6 +1,5 @@
 package com.example.cognilink.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -13,13 +12,13 @@ import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
     primary = DarkNavyBlue,
-    secondary = BlueGray,
+    secondary = MutedBlue,
     tertiary = VividCyan
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = DarkNavyBlue,
-    secondary = BlueGray,
+    secondary = MutedBlue,
     tertiary = VividCyan,
     background = OffWhite,
 

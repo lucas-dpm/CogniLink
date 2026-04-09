@@ -22,12 +22,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.cognilink.ui.theme.CogniLinkTheme
 import com.example.cognilink.ui.theme.DarkGray
+import com.example.cognilink.ui.theme.LightGray
 import com.example.cognilink.ui.theme.White
 
 @Composable
-fun NameTextField(name: String,
-                  onNameChange: (String) -> Unit,
-                  modifier: Modifier = Modifier) {
+fun TextInput(modifier: Modifier = Modifier,
+              inputValue: String,
+              onInputValueChange: (String) -> Unit,
+              label: String,
+              placeholder: String,
+              keyboardType: KeyboardType = KeyboardType.Text
+) {
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.Start,
@@ -35,21 +41,23 @@ fun NameTextField(name: String,
     )
     {
         Text(
-            text = "NOME",
+            text = label,
             style = MaterialTheme.typography.titleMedium.copy(
                 fontWeight = FontWeight.Bold
             ),
             color = DarkGray
         )
-        Surface(modifier = modifier,shape = RoundedCornerShape(24.dp),border = BorderStroke(1.dp, Color(0xFFC6C5D4)))
+        Surface(modifier = modifier,shape = RoundedCornerShape(24.dp),border = BorderStroke(1.5.dp, LightGray))
         {
             Row(modifier = Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically)
             {
                 OutlinedTextField(
-                    value = name, onValueChange = onNameChange,
+                    value = inputValue,
+                    onValueChange = onInputValueChange,
                     modifier = Modifier
                         .weight(1f),
-                    textStyle = MaterialTheme.typography.titleLarge,
+                    textStyle = MaterialTheme.typography.titleMedium,
+                    keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color.Transparent,
                         unfocusedBorderColor = Color.Transparent,
@@ -59,10 +67,10 @@ fun NameTextField(name: String,
                     ),
                     placeholder = {
                         Text(
-                            text = "seu nome",
+                            text = placeholder,
                             modifier = Modifier.fillMaxWidth(),
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                color = LightGray
                             )
                         )
                     }
@@ -75,8 +83,8 @@ fun NameTextField(name: String,
 
 @Preview
 @Composable
-private fun NameTextFieldPreview() {
+private fun TextInputPreview() {
     CogniLinkTheme{
-        NameTextField(name = "", onNameChange = {})
+        TextInput(inputValue = "", onInputValueChange = {}, label = "Nome", placeholder = "Seu nome")
     }
 }

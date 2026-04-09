@@ -25,21 +25,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.cognilink.R
 import com.example.cognilink.ui.theme.CogniLinkTheme
 import com.example.cognilink.ui.theme.DarkGray
 import com.example.cognilink.ui.theme.DarkNavyBlue
+import com.example.cognilink.ui.theme.LightGray
+import com.example.cognilink.ui.theme.White
 
 @Composable
-fun LoginLayout(modifier: Modifier = Modifier) {
+fun LoginContent(modifier: Modifier = Modifier,
+                 onSignUpClick: () -> Unit = {}) {
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        EmailTextField(email = email, onEmailChange = { email = it })
+
+        TextInput(label = "E-MAIL", placeholder = "seu@email.com", keyboardType = KeyboardType.Email, inputValue = email, onInputValueChange = { email = it })
+
         Column(
             modifier = modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.Start,
@@ -68,7 +74,7 @@ fun LoginLayout(modifier: Modifier = Modifier) {
                     }
                 )
             }
-            PasswordTextField(password = password, onPasswordChange = { password = it })
+            PasswordInput(password = password, onPasswordChange = { password = it })
         }
 
         Button(
@@ -100,15 +106,15 @@ fun LoginLayout(modifier: Modifier = Modifier) {
             .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "Ainda não tem uma conta?", modifier = Modifier.padding(end = 10.dp))
+            Text(text = "Ainda não tem uma conta?", modifier = Modifier.padding(end = 10.dp), color = DarkGray)
             Text(text = "Cadastre-se",
                 color =  DarkNavyBlue,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.clickable(
                     interactionSource = remember { MutableInteractionSource() },
-                    indication = null
+                    indication = null,
                 ) {
-                    /* TODO */
+                    onSignUpClick()
                 })
         }
 
@@ -128,7 +134,7 @@ fun LoginLayout(modifier: Modifier = Modifier) {
                 shape = RoundedCornerShape(24.dp),
                 modifier = Modifier.weight(1f).height(50.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White
+                    containerColor = White
                 )
             ) {
                 Icon(painter = painterResource(id = R.drawable.ic_google),
@@ -141,7 +147,7 @@ fun LoginLayout(modifier: Modifier = Modifier) {
                 shape = RoundedCornerShape(24.dp),
                 modifier = Modifier.weight(1f).height(50.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White
+                    containerColor = White
                 )
             ) {
                 Icon(painter = painterResource(id = R.drawable.ic_apple_inc),
@@ -156,8 +162,8 @@ fun LoginLayout(modifier: Modifier = Modifier) {
 
 @Preview
 @Composable
-private fun LoginLayoutPreview() {
+private fun LoginContentPreview() {
     CogniLinkTheme{
-        LoginLayout()
+        LoginContent()
     }
 }

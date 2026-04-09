@@ -22,7 +22,7 @@ import com.example.cognilink.ui.theme.CogniLinkTheme
 import com.example.cognilink.ui.theme.White
 
 @Composable
-fun AuthHeader() {
+fun Header() {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -75,8 +75,8 @@ fun AuthHeader() {
 
 @Preview
 @Composable
-private fun AuthHeaderPreview() {
+private fun HeaderPreview() {
     CogniLinkTheme {
-        AuthHeader()
+        Header()
     }
 }

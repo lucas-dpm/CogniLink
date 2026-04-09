@@ -4,9 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -27,14 +30,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.cognilink.ui.components.auth.AuthFooter
-import com.example.cognilink.ui.components.auth.AuthHeader
-import com.example.cognilink.ui.components.auth.LoginLayout
-import com.example.cognilink.ui.components.auth.SignUpLayout
+import com.example.cognilink.ui.components.auth.Footer
+import com.example.cognilink.ui.components.auth.Header
+import com.example.cognilink.ui.components.auth.LoginContent
+import com.example.cognilink.ui.components.auth.SignUpContent
 import com.example.cognilink.ui.theme.CogniLinkTheme
 import com.example.cognilink.ui.theme.DarkGray
 import com.example.cognilink.ui.theme.DarkNavyBlue
 import com.example.cognilink.ui.theme.OffWhite
+import com.example.cognilink.ui.theme.VeryLightGray
 
 @Composable
 fun AuthScreen() {
@@ -43,11 +47,11 @@ fun AuthScreen() {
 
 @Composable
 fun AuthContent(
-    authOption: Boolean = false,
-    onAuthOptionChange: (Boolean) -> Unit = {}
+    authOption: Boolean = false
 ) {
     var optionState by remember { mutableStateOf(authOption) }
-    // 1. Criar o estado da rolagem
+
+    // Cria o estado da rolagem
     val scrollState = rememberScrollState()
 
     Column(
@@ -55,7 +59,7 @@ fun AuthContent(
             .fillMaxSize()
             .background(color = OffWhite),
     ) {
-        AuthHeader()
+        Header()
 
         // Seletor (Entrar / Cadastrar)
         Box(
@@ -66,19 +70,20 @@ fun AuthContent(
             contentAlignment = Alignment.Center
         ) {
             Surface(
-                color = Color(0xFFF1F1F1),
+                color = VeryLightGray,
                 shape = RoundedCornerShape(24.dp),
                 shadowElevation = 4.dp
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(6.dp),
+                        .padding(6.dp)
+                        .height(IntrinsicSize.Min),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Button(
                         onClick = { optionState = false },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (!optionState) Color.White else Color.Transparent
                         )
@@ -87,7 +92,7 @@ fun AuthContent(
                     }
                     Button(
                         onClick = { optionState = true },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (optionState) Color.White else Color.Transparent
                         )
@@ -112,15 +117,15 @@ fun AuthContent(
                     .padding(horizontal = 20.dp),
             ) {
                 if (optionState) {
-                    SignUpLayout()
+                    SignUpContent()
                 } else {
-                    LoginLayout()
+                    LoginContent(onSignUpClick = { optionState = true })
                 }
             }
         }
 
         //Footer fica fora da área de scroll para estar sempre visível
-        AuthFooter()
+        Footer()
     }
 }
 

@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.unit.dp
 import com.example.cognilink.ui.components.auth.EmailTextField
-import com.example.cognilink.ui.components.auth.PasswordTextField
+import com.example.cognilink.ui.components.auth.PasswordInput
 
 @androidx.compose.runtime.Composable
 fun LoginComponent(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier.Companion) {
@@ -55,7 +55,7 @@ fun LoginComponent(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.
                     }
                 )
             }
-            PasswordTextField(password = password, onPasswordChange = { password = it })
+            PasswordInput(password = password, onPasswordChange = { password = it })
         }
 
         _root_ide_package_.androidx.compose.material3.Button(

@@ -22,10 +22,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.cognilink.R
 import com.example.cognilink.ui.theme.CogniLinkTheme
-import com.example.cognilink.ui.theme.DarkGray
+
 
 @Composable
-fun SignUpLayout(
+fun SignUpContent(
+    modifier: Modifier = Modifier,
     email: String = "",
     onEmailChange: (String) -> Unit = {},
     password: String = "",
@@ -34,25 +35,25 @@ fun SignUpLayout(
     onConfirmPasswordChange: (String) -> Unit = {},
     name: String = "",
     onNameChange: (String) -> Unit = {},
-    modifier: Modifier = Modifier
 ) {
 
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf(email) }
+    var password by remember { mutableStateOf(password) }
+    var confirmPassword by remember { mutableStateOf(confirmPassword) }
+    var name by remember { mutableStateOf(name) }
 
 
     Column(modifier = Modifier,verticalArrangement = Arrangement.spacedBy(20.dp))
     {
-        NameTextField(name = name, onNameChange = { name = it })
-        EmailTextField(email = email, onEmailChange = { email = it })
+        TextInput(label = "NOME", placeholder = "Seu nome", inputValue = name, onInputValueChange = { name = it })
 
-        PasswordTextField(label = "CRIAR SENHA",password = password, onPasswordChange = { password = it })
+        TextInput(label = "E-MAIL", placeholder = "seu@email.com", inputValue = email, onInputValueChange = { email = it })
 
-        PasswordTextField(label = "CONFIRMAR SENHA",password = confirmPassword, onPasswordChange = { confirmPassword = it })
+        PasswordInput(label = "CRIAR SENHA",password = password, onPasswordChange = { password = it })
 
-        TermsAndPrivacyCheckbox()
+        PasswordInput(label = "CONFIRMAR SENHA",password = confirmPassword, onPasswordChange = { confirmPassword = it })
+
+        TermsCheckbox()
 
         Button(
             onClick = { /*TODO*/ },
@@ -82,8 +83,8 @@ fun SignUpLayout(
 
 @Preview
 @Composable
-private fun SignUpLayoutPreview() {
+private fun SignUpContentPreview() {
     CogniLinkTheme {
-        SignUpLayout()
+        SignUpContent()
     }
 }

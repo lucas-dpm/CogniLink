@@ -26,7 +26,7 @@ import com.example.cognilink.ui.theme.CogniLinkTheme
 import com.example.cognilink.ui.theme.DarkNavyBlue
 
 @Composable
-fun TermsAndPrivacyCheckbox() {
+fun TermsCheckbox() {
     var checkedState by remember { mutableStateOf(false) }
 
     val annotatedString = buildAnnotatedString {
@@ -75,8 +75,8 @@ fun TermsAndPrivacyCheckbox() {
 
 @Preview
 @Composable
-private fun TermsAndPrivacyCheckboxPreview() {
+private fun TermsCheckboxPreview() {
     CogniLinkTheme {
-        TermsAndPrivacyCheckbox()
+        TermsCheckbox()
     }
 }
