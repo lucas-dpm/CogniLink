@@ -88,7 +88,7 @@ fun HomeScreen(modifier: Modifier = Modifier,
 
             }
             Box(modifier = Modifier
-                .offset(y = (-30).dp)
+                .offset(y = (-35).dp)
                 .size(70.dp)
             ) {
                 NeonFAB(neonColor = LavenderBlue,
@@ -109,14 +109,14 @@ fun HomeScreen(modifier: Modifier = Modifier,
                     fontSize = 24.sp,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .offset(y = (-18).dp)
+                        .offset(y = (-25).dp)
                 )
 
                 Text(text = welcomePhrase,
                     color =  DarkGray,
                     fontWeight = FontWeight.Normal,
                     fontSize = 14.sp,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth().offset(y = (-8).dp)
                 )
 
                 SearchField(modifier = Modifier

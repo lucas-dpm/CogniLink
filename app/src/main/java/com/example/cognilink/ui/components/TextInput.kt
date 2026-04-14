@@ -1,4 +1,4 @@
-package com.example.cognilink.ui.components.auth
+package com.example.cognilink.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -47,7 +47,10 @@ fun TextInput(modifier: Modifier = Modifier,
             ),
             color = DarkGray
         )
-        Surface(modifier = modifier,shape = RoundedCornerShape(24.dp),border = BorderStroke(1.5.dp, LightGray))
+        Surface(modifier = modifier,
+            shape = RoundedCornerShape(24.dp),
+            border = BorderStroke(1.5.dp, LightGray),
+            shadowElevation = 2.dp)
         {
             Row(modifier = Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically)
             {

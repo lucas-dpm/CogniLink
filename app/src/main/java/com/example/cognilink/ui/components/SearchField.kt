@@ -35,7 +35,8 @@ fun SearchField(modifier: Modifier = Modifier.fillMaxWidth(),
     Surface(modifier = modifier,
         shape = RoundedCornerShape(24.dp),
         color = White,
-        border = BorderStroke(1.5.dp,LightGray)
+        border = BorderStroke(1.5.dp,LightGray),
+        shadowElevation = 2.dp,
     ){
         Row(modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically) {

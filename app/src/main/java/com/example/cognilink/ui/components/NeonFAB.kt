@@ -79,7 +79,7 @@ fun NeonFAB(
             shape = CircleShape,
             color = backgroundColor,
             border = BorderStroke(2.dp, neonColor),
-            shadowElevation = 0.dp
+            shadowElevation = 0.dp,
         ) {
             Box(
                 modifier = Modifier.size(56.dp),

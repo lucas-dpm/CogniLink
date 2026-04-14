@@ -29,6 +29,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.cognilink.R
+import com.example.cognilink.ui.components.TextInput
 import com.example.cognilink.ui.theme.CogniLinkTheme
 import com.example.cognilink.ui.theme.DarkGray
 import com.example.cognilink.ui.theme.DarkNavyBlue
@@ -43,7 +44,12 @@ fun LoginContent(modifier: Modifier = Modifier,
 
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
 
-        TextInput(label = "E-MAIL", placeholder = "seu@email.com", keyboardType = KeyboardType.Email, inputValue = email, onInputValueChange = { email = it })
+        TextInput(
+            label = "E-MAIL",
+            placeholder = "seu@email.com",
+            keyboardType = KeyboardType.Email,
+            inputValue = email,
+            onInputValueChange = { email = it })
 
         Column(
             modifier = modifier.fillMaxWidth(),

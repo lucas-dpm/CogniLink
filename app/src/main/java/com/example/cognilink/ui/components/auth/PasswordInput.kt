@@ -60,7 +60,11 @@ fun PasswordInput(modifier: Modifier = Modifier,
                 ),
                 color = DarkGray
             )
-        Surface(modifier = modifier, shape = RoundedCornerShape(24.dp), color = White, border = BorderStroke(1.5.dp,LightGray)
+        Surface(modifier = modifier,
+            shape = RoundedCornerShape(24.dp),
+            color = White,
+            border = BorderStroke(1.5.dp,LightGray),
+            shadowElevation = 2.dp
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
