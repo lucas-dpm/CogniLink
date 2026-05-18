@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.cognilink.R
 import com.example.cognilink.ui.components.input.CustomTextField
+import com.example.cognilink.ui.components.utils.labels.CustomLabel
+import com.example.cognilink.ui.theme.DarkGray
 import com.example.cognilink.ui.theme.DarkNavyBlue
 import com.example.cognilink.ui.theme.MutedBlue
 
@@ -32,7 +34,7 @@ fun EditDeckContent(
     onNameChange: (String) -> Unit,
     categories: List<String>,
     onCategoryClickRemove: (String) -> Unit,
-    onCategoryClickAdd: (String) -> Unit,
+    onCategoryClickAdd: () -> Unit,
     onCategoryClickEdit: (String) -> Unit,
     description:String,
     onDescriptionChange: (String) -> Unit
@@ -41,27 +43,33 @@ fun EditDeckContent(
         CustomTextField(
             inputValue = name,
             onInputValueChange = onNameChange,
-            label = "NOME DO BARALHO",
-            labelColor = DarkNavyBlue,
+            label = {
+                CustomLabel(
+                    text = "Nome do baralho",
+                    textColor = DarkGray,
+
+                )
+            },
             placeholder = "Nome do baralho"
         )
         CustomTextField(
             inputValue = description,
             onInputValueChange = onDescriptionChange,
-            label = "DESCRIÇÃO",
-            labelColor = DarkNavyBlue,
+            label = {
+                CustomLabel(
+                    text = "Descrição",
+                    textColor = DarkGray
+                )
+            },
             placeholder = "Descrição do baralho"
         )
         Column(
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ){
-            Text(
-                text = "CATEGORIA",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold
-                ),
-                color = DarkNavyBlue
+            CustomLabel(
+                text = "Categorias",
+                textColor = DarkGray
             )
 
             Row(
@@ -100,7 +108,7 @@ fun EditDeckContent(
 
                 if (categories.size < 3){
                     IconButton(
-                        onClick = { onCategoryClickAdd("Nova") },
+                        onClick = onCategoryClickAdd,
                         modifier = Modifier.size(32.dp)
                     ) {
                         Icon(

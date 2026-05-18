@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.example.cognilink.R
-import com.example.cognilink.data.DifficultyLevel
+import com.example.cognilink.domain.DifficultyLevel
 import com.example.cognilink.ui.components.utils.GradientSurface
 import com.example.cognilink.ui.components.utils.ProgressBar
 import com.example.cognilink.ui.theme.DarkGray
@@ -36,22 +36,22 @@ import com.example.cognilink.ui.theme.tertiaryColor
 
 @Composable
 fun ViewDeckContent(
-    categories: List<String>,
+    categories: List<String>?,
     difficulty: DifficultyLevel?,
-    name: String,
-    description:String,
-    mastery: Float,
-    totalCards: Int,
-    cardToReview: Int,
+    name: String?,
+    description: String?,
+    mastery: Float?,
+    totalCards: Int?,
+    cardToReview: Int?,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp))
     {
-        if (categories.isNotEmpty() || difficulty != null)
+        if (categories != null || difficulty != null)
         {
             Row(Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                if(categories.isNotEmpty())
+                if(categories!!.isNotEmpty())
                     Surface(
                         color = MutedBlue,
                         shape = RoundedCornerShape(9999.dp)
@@ -91,14 +91,14 @@ fun ViewDeckContent(
         }
 
         Text(
-            text = name,
+            text = name ?: "Carregando...",
             color = DarkNavyBlue,
             fontWeight = FontWeight.ExtraBold,
             fontSize = 44.sp,
             lineHeight = 1.em
         )
 
-        if(description.isNotEmpty()){
+        if(description!!.isNotEmpty()){
             Text(
                 text = description,
                 fontSize = 18.sp,
@@ -121,18 +121,18 @@ fun ViewDeckContent(
                     fontSize = 10.sp
                 )
                 Text(
-                    text = "${(mastery * 100).toInt()}%",
+                    text = "${if (mastery != null ) (mastery * 100).toInt() else 0}%",
                     color = White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 32.sp
                 )
                 ProgressBar(
                     progressColor = White,
-                    progress = mastery,
+                    progress = mastery ?: 0f,
                     modifier = Modifier.height(8.dp)
                 )
             }
-            if(mastery == 0f){
+            if(mastery == null || mastery == 0f){
                 Text(
                     text = "Estude com flashcards nesse baralho para aumentar seu domínio",
                     color = White,
@@ -166,7 +166,7 @@ fun ViewDeckContent(
                         color = DarkGray.copy(alpha = 0.8f)
                     )
                     Text(
-                        text = "$totalCards",
+                        text = "${totalCards ?: 0}",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = DarkNavyBlue
@@ -193,7 +193,7 @@ fun ViewDeckContent(
                         color = DarkGray.copy(alpha = 0.8f)
                     )
                     Text(
-                        text = "$cardToReview",
+                        text = "${cardToReview ?: 0}",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = DarkNavyBlue

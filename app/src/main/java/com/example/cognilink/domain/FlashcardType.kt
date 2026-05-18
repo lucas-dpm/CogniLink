@@ -1,4 +1,4 @@
-package com.example.cognilink.data
+package com.example.cognilink.domain
 
 import com.example.cognilink.R
 

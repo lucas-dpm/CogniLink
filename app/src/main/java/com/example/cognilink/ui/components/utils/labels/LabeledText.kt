@@ -21,7 +21,8 @@ fun LabeledText(
     text: String,
     labelColor: Color = DarkNavyBlue,
     textColor: Color = DarkGray,
-    textSize: TextUnit = 12.sp
+    textSize: TextUnit = 12.sp,
+    lineHeight: TextUnit = 14.sp
 ) {
     val annotatedString = buildAnnotatedString {
         withStyle(style = SpanStyle(color = labelColor, fontWeight = FontWeight.Bold)) {
@@ -33,6 +34,7 @@ fun LabeledText(
         text = annotatedString,
         color = textColor,
         fontSize = textSize,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth(),
+        lineHeight = lineHeight
     )
 }

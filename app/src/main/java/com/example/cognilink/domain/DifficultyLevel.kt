@@ -1,10 +1,10 @@
-package com.example.cognilink.data
+package com.example.cognilink.domain
 
 enum class DifficultyLevel(val weight: Int) {
-    EAZY(1), MEDIUM(2), HARD(3);
+    EASY(1), MEDIUM(2), HARD(3);
 
     fun toDisplayName() = when(this) {
-        EAZY -> "FÁCIL"
+        EASY -> "FÁCIL"
         MEDIUM -> "MÉDIO"
         HARD -> "DIFÍCIL"
     }
@@ -16,7 +16,7 @@ enum class DifficultyLevel(val weight: Int) {
         
         fun fromAverage(average: Float): DifficultyLevel {
             return when {
-                average <= 1.5f -> EAZY
+                average <= 1.5f -> EASY
                 average <= 2.5f -> MEDIUM
                 else -> HARD
             }

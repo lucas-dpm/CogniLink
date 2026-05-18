@@ -27,7 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.cognilink.R
-import com.example.cognilink.data.DifficultyLevel
+import com.example.cognilink.domain.DifficultyLevel
 import com.example.cognilink.ui.theme.CogniLinkTheme
 import com.example.cognilink.ui.theme.DarkNavyBlue
 import com.example.cognilink.ui.theme.LightGray
@@ -122,10 +122,10 @@ fun DifficultySelector(
 @Composable
 private fun DifficultySelectorPreview() {
     CogniLinkTheme {
-        var selectedDifficulty by remember { mutableStateOf<DifficultyLevel?>(DifficultyLevel.EAZY) }
+        var selectedDifficulty by remember { mutableStateOf<DifficultyLevel?>(DifficultyLevel.EASY) }
 
         DifficultySelector(
-            difficultyLevels = listOf(DifficultyLevel.EAZY, DifficultyLevel.MEDIUM,DifficultyLevel.HARD),
+            difficultyLevels = listOf(DifficultyLevel.EASY, DifficultyLevel.MEDIUM,DifficultyLevel.HARD),
             selectedDifficulty = selectedDifficulty,
             onDifficultySelected = { selectedDifficulty = it},
             includeAllOption = true

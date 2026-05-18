@@ -32,6 +32,7 @@ import com.example.cognilink.R
 import com.example.cognilink.ui.components.input.PasswordTextField
 import com.example.cognilink.ui.components.input.CustomTextField
 import com.example.cognilink.ui.components.utils.buttons.SimpleGradientButton
+import com.example.cognilink.ui.components.utils.labels.CustomLabel
 import com.example.cognilink.ui.theme.CogniLinkTheme
 import com.example.cognilink.ui.theme.DarkGray
 import com.example.cognilink.ui.theme.DarkNavyBlue
@@ -50,7 +51,12 @@ fun SignInContent(
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
 
         CustomTextField(
-            label = "E-MAIL",
+            label = {
+                CustomLabel(
+                    text = "E-MAIL",
+                    textColor = DarkGray
+                )
+            },
             placeholder = "seu@email.com",
             keyboardType = KeyboardType.Email,
             inputValue = email,
@@ -62,15 +68,9 @@ fun SignInContent(
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = "SENHA",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
-                    color = DarkGray,
-                    modifier = Modifier.weight(1f)
-                )
+            Row(modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween) {
+                CustomLabel("SENHA")
                 Text(
                     text = "ESQUECEU A SENHA?",
                     style = MaterialTheme.typography.titleMedium.copy(
@@ -129,7 +129,9 @@ fun SignInContent(
             Button(
                 onClick = {/*TODO*/},
                 shape = RoundedCornerShape(24.dp),
-                modifier = Modifier.weight(1f).height(50.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = White),
                 elevation = ButtonDefaults.buttonElevation()
             ) {
@@ -144,7 +146,9 @@ fun SignInContent(
             Button(
                 onClick = {/*TODO*/},
                 shape = RoundedCornerShape(24.dp),
-                modifier = Modifier.weight(1f).height(50.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = White)
             ) {
                 Icon(

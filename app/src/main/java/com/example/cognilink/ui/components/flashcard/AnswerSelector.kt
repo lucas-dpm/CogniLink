@@ -17,7 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.cognilink.data.Answer
+import com.example.cognilink.domain.Answer
 import com.example.cognilink.ui.theme.CogniLinkTheme
 import com.example.cognilink.ui.theme.DarkNavyBlue
 import com.example.cognilink.ui.theme.Green
@@ -132,18 +132,15 @@ private fun AnswerSelectorPreview() {
             AnswerSelector(
                 answerOptions = listaTeste,
                 getVisualState = { answer ->
-                    val userChoice = selectedAnswersMap[answer] // "V" ou "F" ou null
-                    val isAnswerCorrectType = answer.isCorrect // Supondo que a propriedade indique se a afirmação é verdadeira ou falsa
+                    val userChoice = selectedAnswersMap[answer]
+                    val isAnswerCorrectType = answer.isCorrect
 
                     if (toogleCorrect) {
                         when {
-                            // Usuário acertou (Ex: era verdadeiro e ele marcou "V", ou era falso e ele marcou "F")
                             (userChoice == "V" && isAnswerCorrectType) || (userChoice == "F" && !isAnswerCorrectType) -> {
                                 AnswerVisualState.Correct
                             }
-                            // Usuário errou (Marcou algo, mas não bateu com o gabarito)
                             userChoice != null -> AnswerVisualState.Incorrect
-                            // Não respondeu
                             else -> AnswerVisualState.Default
                         }
                     } else {
@@ -155,7 +152,6 @@ private fun AnswerSelectorPreview() {
                         TrueFalseToggle(
                             currentValue = selectedAnswersMap[answer],
                             onToggle = { choice ->
-                                // Atualiza o mapa: se já existia, substitui. Se não, adiciona.
                                 selectedAnswersMap = selectedAnswersMap + (answer to choice)
                             },
                             enabled = !toogleCorrect

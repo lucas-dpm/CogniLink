@@ -63,7 +63,7 @@ fun TypeItem(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = typeName, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                Text(text = typeDefinition, fontSize = 11.sp, color = Color.DarkGray)
+                Text(text = typeDefinition, fontSize = 11.sp, color = Color.DarkGray, lineHeight = 14.sp)
             }
 
             RadioButton(

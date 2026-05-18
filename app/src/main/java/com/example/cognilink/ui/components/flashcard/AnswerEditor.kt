@@ -5,17 +5,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,7 +25,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.cognilink.R
-import com.example.cognilink.data.Answer
+import com.example.cognilink.domain.Answer
+import com.example.cognilink.ui.components.utils.GradientSurface
 import com.example.cognilink.ui.components.utils.buttons.DeleteButton
 import com.example.cognilink.ui.theme.CogniLinkTheme
 import com.example.cognilink.ui.theme.DarkNavyBlue
@@ -35,7 +34,6 @@ import com.example.cognilink.ui.theme.Green
 import com.example.cognilink.ui.theme.MutedBlue
 import com.example.cognilink.ui.theme.OffWhite
 import com.example.cognilink.ui.theme.Red
-import com.example.cognilink.ui.theme.VividCyan
 import com.example.cognilink.ui.theme.White
 
 @Composable
@@ -97,26 +95,28 @@ fun AnswerEditor(
         }
 
         if (answerOptions.size < limit) {
-            OutlinedButton(
-                onClick = {
-                    val newList = answerOptions.toMutableList()
-                    newList.add(Answer("", false))
-                    onAnswerOptionsUpdate(newList)
-                },
-                modifier = Modifier.padding(top = 8.dp),
+            GradientSurface(
                 shape = RoundedCornerShape(50),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = White,
-                    containerColor = DarkNavyBlue
-                )
+                shadowElevation = 1
             ) {
-                Icon(painter = painterResource(id = R.drawable.ic_add),
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                    tint = VividCyan
-                )
-                Spacer(Modifier.width(8.dp))
-                Text("Adicionar opção de resposta (${answerOptions.size + 1}/$limit)")
+                TextButton(
+                    onClick = {
+                        val newList = answerOptions.toMutableList()
+                        newList.add(Answer("", false))
+                        onAnswerOptionsUpdate(newList)
+                    },
+                    shape = RoundedCornerShape(50),
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_add),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = White
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Adicionar opção de resposta (${answerOptions.size + 1}/$limit)",
+                        color = White)
+                }
             }
         }
     }

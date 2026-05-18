@@ -15,10 +15,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.cognilink.ui.components.utils.labels.CustomLabel
 import com.example.cognilink.ui.theme.CogniLinkTheme
 import com.example.cognilink.ui.theme.DarkGray
 import com.example.cognilink.ui.theme.LightGray
@@ -28,8 +28,7 @@ import com.example.cognilink.ui.theme.White
 fun CustomTextField(modifier: Modifier = Modifier,
                     inputValue: String,
                     onInputValueChange: (String) -> Unit,
-                    label: String = "",
-                    labelColor: Color = DarkGray,
+                    label: @Composable (() -> Unit)? = null,
                     placeholder: String,
                     minLines: Int = 1,
                     enabled: Boolean = true,
@@ -38,27 +37,19 @@ fun CustomTextField(modifier: Modifier = Modifier,
 
     Column(
         horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
     )
     {
-        if (label.isNotEmpty()){
-            Text(
-                text = label,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold
-                ),
-                color = labelColor
-            )
+        if (label != null) {
+            label()
         }
 
         Surface(
             shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.fillMaxWidth(),
             shadowElevation = 2.dp,
             color = White
         )
         {
-            Row(modifier = Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically)
+            Row(verticalAlignment = Alignment.CenterVertically)
             {
                 OutlinedTextField(
                     value = inputValue,
@@ -96,6 +87,9 @@ fun CustomTextField(modifier: Modifier = Modifier,
 @Composable
 private fun CustomTextFieldPreview() {
     CogniLinkTheme{
-        CustomTextField(inputValue = "", onInputValueChange = {}, label = "Nome", placeholder = "Seu nome")
+        CustomTextField(
+            inputValue = "", onInputValueChange = {},
+            label = { CustomLabel(text = "Nome", textColor = DarkGray) },
+            placeholder = "Seu nome")
     }
 }

@@ -27,7 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.cognilink.R
-import com.example.cognilink.data.DifficultyLevel
+import com.example.cognilink.domain.DifficultyLevel
 import com.example.cognilink.ui.components.utils.buttons.NeonFAB
 import com.example.cognilink.ui.components.input.SearchTextField
 import com.example.cognilink.ui.components.home.DeckCard
@@ -38,7 +38,7 @@ import com.example.cognilink.ui.theme.DarkNavyBlue
 import com.example.cognilink.ui.theme.White
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier,
+fun HomeContent(modifier: Modifier = Modifier,
                userName: String = "João Silva",
                welcomePhrase: String = "Pronto para subir de nível no seu conhecimento hoje?",
                searchInput: String = "",
@@ -125,7 +125,7 @@ fun HomeScreen(modifier: Modifier = Modifier,
                     onSearchValueChange = { searchValue = it }
                 )
 
-                Text(text = "BARALHOS ATIVOS",
+                Text(text = "SEUS BARALHOS",
                     color =  DarkGray,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 12.sp,
@@ -136,7 +136,7 @@ fun HomeScreen(modifier: Modifier = Modifier,
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     DeckCard(
-                        difficulty = DifficultyLevel.EAZY,
+                        difficulty = DifficultyLevel.EASY,
                         deckName = "Química Orgânica Básica",
                         category = "Ciência",
                         totalCards = 129,
@@ -165,10 +165,10 @@ fun HomeScreen(modifier: Modifier = Modifier,
     }
 }
 
-@Preview
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
-private fun HomeScreenPreview() {
+private fun HomeContentPreview() {
     CogniLinkTheme {
-        HomeScreen()
+        HomeContent()
     }
 }

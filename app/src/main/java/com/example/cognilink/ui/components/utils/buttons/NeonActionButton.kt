@@ -35,11 +35,11 @@ fun NeonActionButton(
     onClickButton: () -> Unit,
 ) {
     GradientSurface(
-        modifier = Modifier.height(height),
+        modifier = modifier.height(height),
         shape = RoundedCornerShape(26.dp),
     ) {
         Row(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = onClickButton),
             verticalAlignment = CenterVertically,

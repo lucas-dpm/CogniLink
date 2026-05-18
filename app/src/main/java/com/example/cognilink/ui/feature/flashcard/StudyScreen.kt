@@ -14,6 +14,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -31,12 +33,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cognilink.R
-import com.example.cognilink.data.Answer
-import com.example.cognilink.data.DifficultyLevel
-import com.example.cognilink.data.FlashcardType
+import com.example.cognilink.domain.Answer
+import com.example.cognilink.domain.Flashcard
+import com.example.cognilink.domain.FlashcardType
+import com.example.cognilink.domain.flashcard1
+import com.example.cognilink.ui.components.flashcard.AnswerSelector
+import com.example.cognilink.ui.components.flashcard.AnswerVisualState
 import com.example.cognilink.ui.components.flashcard.Header
 import com.example.cognilink.ui.components.flashcard.HintReveal
+import com.example.cognilink.ui.components.flashcard.TrueFalseToggle
+import com.example.cognilink.ui.components.input.CustomTextField
 import com.example.cognilink.ui.components.utils.buttons.SimpleGradientButton
 import com.example.cognilink.ui.theme.CogniLinkTheme
 import com.example.cognilink.ui.theme.DarkGray
@@ -44,7 +53,8 @@ import com.example.cognilink.ui.theme.DarkNavyBlue
 import com.example.cognilink.ui.theme.OffWhite
 import com.example.cognilink.ui.theme.VeryLightGray
 import com.example.cognilink.ui.theme.White
-import com.example.cognilink.viewModel.FlashcardViewModel
+import com.example.cognilink.viewmodel.FlashcardPlayerUiState
+import com.example.cognilink.viewmodel.FlashcardPlayerViewModel
 import kotlinx.coroutines.delay
 
 @SuppressLint("DefaultLocale")
@@ -57,13 +67,32 @@ fun formatSeconds(seconds: Long): String {
 }
 
 @Composable
-fun FlashcardStudyContent(
+fun StudyScreen(
+    viewModel: FlashcardPlayerViewModel = viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    uiState.currentFlashcard?.let { flashcard ->
+        StudyContent(
+            flashcard = flashcard,
+            selectedAnswers = uiState.selectedAnswers,
+            onSelectAnswer = viewModel::onSelectAnswer,
+            isQuestionAnswered = uiState.isQuestionAnswered,
+            isQuestionVerified = uiState.isQuestionVerified,
+            onClickToVerifyQuestion = viewModel::verifyQuestion,
+            onClickToNextFlashcard = { /* TODO: Implementar lógica de próximo */ }
+        )
+    }
+}
+
+@Composable
+fun StudyContent(
     modifier: Modifier = Modifier,
-    flashcardQuestion: String = "Qual organela é conhecida como a 'central elétrica' da célula?",
-    answerControl: @Composable () -> Unit = {},
+    flashcard: Flashcard,
+    selectedAnswers: Map<Answer, String> = mapOf(),
+    onSelectAnswer: (Answer, String) -> Unit = { _, _ -> },
     isQuestionAnswered: Boolean = false,
     isQuestionVerified: Boolean = false,
-    flashcardHints: List<String> = listOf(),
     onClickToVerifyQuestion: () -> Unit = {},
     onClickToNextFlashcard: () -> Unit = {}
     ) {
@@ -72,11 +101,9 @@ fun FlashcardStudyContent(
 
     var sequenceHits by remember { mutableIntStateOf(0) }
 
-    // LaunchedEffect inicia quando o componente entra na tela
-    // O 'Unit' garante que ele rode apenas uma vez e não reinicie sozinho
     LaunchedEffect(Unit) {
         while (true) {
-            delay(1000L) // Espera 1 segundo
+            delay(1000L)
             secondsElapsed++
         }
     }
@@ -174,7 +201,7 @@ fun FlashcardStudyContent(
                 shadowElevation = 2.dp,
                 color = White
             ) {
-                Text(text = flashcardQuestion,
+                Text(text = flashcard.question,
                     fontWeight = FontWeight.ExtraBold,
                     color = DarkNavyBlue,
                     fontSize = 24.sp,
@@ -184,9 +211,85 @@ fun FlashcardStudyContent(
                     )
             }
 
-            answerControl()
+            when (flashcard.cardType) {
+                FlashcardType.BASIC -> {
+                    CustomTextField(
+                        inputValue = selectedAnswers.values.firstOrNull() ?: "",
+                        onInputValueChange = { newAnswer ->
+                            onSelectAnswer(Answer(newAnswer, false),"")
+                        },
+                        placeholder = "Sua resposta",
+                        minLines = 3
+                    )
+                }
+                FlashcardType.TRUE_OR_FALSE -> {
+                    AnswerSelector(
+                        answerOptions = flashcard.answerOptions,
+                        getVisualState = { answer ->
+                            val userChoice = selectedAnswers[answer] // "T" ou "F" ou null
+                            val isAnswerCorrectType = answer.isCorrect
 
-            HintReveal(hints = flashcardHints)
+                            if (isQuestionVerified) {
+                                when {
+                                    (userChoice == "T" && isAnswerCorrectType) || (userChoice == "F" && !isAnswerCorrectType) -> {
+                                        AnswerVisualState.Correct
+                                    }
+                                    userChoice != null -> AnswerVisualState.Incorrect
+                                    else -> AnswerVisualState.Default
+                                }
+                            } else {
+                                if (userChoice != null) AnswerVisualState.Selected else AnswerVisualState.Default
+                            }
+                        },
+                        selectionControl = { answer, _ ->
+                            if(!isQuestionVerified) {
+                                TrueFalseToggle(
+                                    currentValue = selectedAnswers[answer],
+                                    onToggle = { choice ->
+                                        onSelectAnswer(answer, choice)
+                                    },
+                                    enabled = !isQuestionVerified
+                                )
+                            }
+                        },
+                    )
+
+                }
+                FlashcardType.MULTIPLE_CHOICE -> {
+                    AnswerSelector(
+                        answerOptions = flashcard.answerOptions,
+                        getVisualState = { answer ->
+                            val isSelected = selectedAnswers.contains(answer)
+                            if (isQuestionVerified) {
+                                if (answer.isCorrect) AnswerVisualState.Correct
+                                else if (isSelected) AnswerVisualState.Incorrect
+                                else AnswerVisualState.Default
+                            } else {
+                                if (isSelected) AnswerVisualState.Selected else AnswerVisualState.Default
+                            }
+                        },
+                        selectionControl = { answer, _ ->
+                            if (!isQuestionVerified) {
+                                RadioButton(
+                                    selected = (selectedAnswers.contains(answer)),
+                                    onClick = { onSelectAnswer(answer, "") },
+                                    enabled = !isQuestionVerified,
+                                    colors = RadioButtonDefaults.colors(selectedColor = DarkNavyBlue),
+                                )
+                            }
+                        }
+                    )
+
+                }
+                FlashcardType.OMISSION -> {
+
+                }
+                FlashcardType.CHAT_FEYNMAN -> {
+
+                }
+            }
+
+            HintReveal(hints = flashcard.hints)
 
         }
     }
@@ -194,28 +297,17 @@ fun FlashcardStudyContent(
 }
 
 @SuppressLint("ViewModelConstructorInComposable")
-@Preview
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
-private fun FlashcardStudyContentPreview() {
+private fun StudyContentPreview() {
     CogniLinkTheme {
-        val previewViewModel = remember {
-            FlashcardViewModel()
-                .apply {
-                    onQuestionTextChange("Qual é a capital da França?")
-                    onDifficultyChange(DifficultyLevel.MEDIUM)
-                    onTypeChange(FlashcardType.MULTIPLE_CHOICE)
-                    updateAnswers(listOf(Answer("Paris", true), Answer("Londres", false), Answer("Roma", false)))
-                    updateHints(listOf("Dica 1", "Dica 2"))
-                }
-        }
-
-        FlashcardStudyContent(
-            flashcardQuestion = "Qual é a capital da França?",
-            answerControl = previewViewModel.viewAnswerControl(),
-            isQuestionAnswered = previewViewModel.isQuestionAnswered,
-            isQuestionVerified = previewViewModel.isQuestionVerified,
-            flashcardHints = listOf("Dica 1", "Dica 2"),
-            onClickToVerifyQuestion = { previewViewModel.verifyQuestion() },
+        StudyContent(
+            flashcard = flashcard1,
+            selectedAnswers = emptyMap(),
+            onSelectAnswer = { _, _ -> },
+            isQuestionAnswered = false,
+            isQuestionVerified = false,
+            onClickToVerifyQuestion = { },
             onClickToNextFlashcard = {},
         )
     }

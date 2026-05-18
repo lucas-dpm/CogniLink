@@ -1,7 +1,7 @@
 package com.example.cognilink.ui.theme
 
 import androidx.compose.ui.graphics.Color
-import com.example.cognilink.data.DifficultyLevel
+import com.example.cognilink.domain.DifficultyLevel
 
 val DarkNavyBlue = Color(0xFF1A237E)
 
@@ -51,21 +51,21 @@ val VeryLightYellow = Color(0xFFFFFBDA)
 
 val DifficultyLevel.primaryColor: Color
     get() = when (this) {
-        DifficultyLevel.EAZY -> DarkGreen
+        DifficultyLevel.EASY -> DarkGreen
         DifficultyLevel.MEDIUM -> DarkYellow
         DifficultyLevel.HARD -> DarkRed
     }
 
 val DifficultyLevel.secondaryColor: Color
     get() = when (this) {
-        DifficultyLevel.EAZY -> Green
+        DifficultyLevel.EASY -> Green
         DifficultyLevel.MEDIUM -> Yellow
         DifficultyLevel.HARD -> Red
     }
 
 val DifficultyLevel.tertiaryColor: Color
     get() = when (this) {
-        DifficultyLevel.EAZY -> VeryLightGreen
+        DifficultyLevel.EASY -> VeryLightGreen
         DifficultyLevel.MEDIUM -> VeryLightYellow
         DifficultyLevel.HARD -> VeryLightRed
     }

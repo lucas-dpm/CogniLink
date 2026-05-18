@@ -1,55 +1,61 @@
 package com.example.cognilink.ui.feature.auth
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cognilink.ui.components.auth.Footer
 import com.example.cognilink.ui.components.auth.Header
 import com.example.cognilink.ui.components.auth.SignInContent
 import com.example.cognilink.ui.components.auth.SignUpContent
-import com.example.cognilink.ui.theme.CogniLinkTheme
-import com.example.cognilink.ui.theme.DarkGray
-import com.example.cognilink.ui.theme.DarkNavyBlue
-import com.example.cognilink.ui.theme.OffWhite
-import com.example.cognilink.ui.theme.VeryLightGray
-import com.example.cognilink.viewModel.AuthViewModel
+import com.example.cognilink.ui.theme.*
+import com.example.cognilink.viewmodel.AuthUiState
+import com.example.cognilink.viewmodel.AuthViewModel
 
 @Composable
 fun AuthScreen(viewModel: AuthViewModel = viewModel()) {
-    AuthContent(viewModel = viewModel)
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    
+    AuthContent(
+        uiState = uiState,
+        onModeChange = viewModel::onModeChange,
+        onSignInEmailChange = viewModel::onSignInEmailChange,
+        onSignInPasswordChange = viewModel::onSignInPasswordChange,
+        onSignInClick = viewModel::onSignInClick,
+        onSignUpNameChange = viewModel::onSignUpNameChange,
+        onSignUpEmailChange = viewModel::onSignUpEmailChange,
+        onSignUpPasswordChange = viewModel::onSignUpPasswordChange,
+        onSignUpConfirmPasswordChange = viewModel::onSignUpConfirmPasswordChange,
+        onTermsAcceptedChange = viewModel::onTermsAcceptedChange,
+        onSignUpClick = viewModel::onSignUpClick
+    )
 }
 
 @Composable
 fun AuthContent(
-    viewModel: AuthViewModel
+    uiState: AuthUiState,
+    onModeChange: (Boolean) -> Unit,
+    onSignInEmailChange: (String) -> Unit,
+    onSignInPasswordChange: (String) -> Unit,
+    onSignInClick: () -> Unit,
+    onSignUpNameChange: (String) -> Unit,
+    onSignUpEmailChange: (String) -> Unit,
+    onSignUpPasswordChange: (String) -> Unit,
+    onSignUpConfirmPasswordChange: (String) -> Unit,
+    onTermsAcceptedChange: (Boolean) -> Unit,
+    onSignUpClick: () -> Unit
 ) {
-
-    // Cria o estado da rolagem
     val scrollState = rememberScrollState()
 
     Column(
@@ -59,7 +65,6 @@ fun AuthContent(
     ) {
         Header()
 
-        // Seletor (Entrar / Cadastrar)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -80,76 +85,71 @@ fun AuthContent(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Button(
-                        onClick = { viewModel.onModeChange(false) },
+                        onClick = { onModeChange(false) },
                         modifier = Modifier.weight(1f).fillMaxHeight(),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (!viewModel.isSignUpMode) Color.White else Color.Transparent
+                            containerColor = if (!uiState.isSignUpMode) Color.White else Color.Transparent
                         )
                     ) {
                         Text(
                             "ENTRAR",
                             fontWeight = FontWeight.Bold,
-                            color = if (!viewModel.isSignUpMode) DarkNavyBlue else DarkGray
+                            color = if (!uiState.isSignUpMode) DarkNavyBlue else DarkGray
                         )
                     }
                     Button(
-                        onClick = { viewModel.onModeChange(true) },
+                        onClick = { onModeChange(true) },
                         modifier = Modifier.weight(1f).fillMaxHeight(),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (viewModel.isSignUpMode) Color.White else Color.Transparent
+                            containerColor = if (uiState.isSignUpMode) Color.White else Color.Transparent
                         )
                     ) {
                         Text(
                             "CADASTRAR",
                             fontWeight = FontWeight.Bold,
-                            color = if (viewModel.isSignUpMode) DarkNavyBlue else DarkGray
+                            color = if (uiState.isSignUpMode) DarkNavyBlue else DarkGray
                         )
                     }
                 }
             }
         }
 
-        //Column interna que ocupará o espaço restante e terá scroll
         Column(
             modifier = Modifier
-                .weight(1f) // Faz esta coluna ocupar todo o espaço entre Header e Footer
-                .verticalScroll(scrollState) // Habilita a rolagem vertical
+                .weight(1f)
+                .verticalScroll(scrollState)
         ) {
-
-            // Layouts de Login/Cadastro
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp),
             ) {
-                if (viewModel.isSignUpMode) {
+                if (uiState.isSignUpMode) {
                     SignUpContent(
-                        name = viewModel.signUpName,
-                        onNameChange = viewModel::onSignUpNameChange,
-                        email = viewModel.signUpEmail,
-                        onEmailChange = viewModel::onSignUpEmailChange,
-                        password = viewModel.signUpPassword,
-                        onPasswordChange = viewModel::onSignUpPasswordChange,
-                        confirmPassword = viewModel.signUpConfirmPassword,
-                        onConfirmPasswordChange = viewModel::onSignUpConfirmPasswordChange,
-                        isTermsAccepted = viewModel.isTermsAccepted,
-                        onTermsAcceptedChange = viewModel::onTermsAcceptedChange,
-                        onSignUpClick = viewModel::onSignUpClick
+                        name = uiState.signUpName,
+                        onNameChange = onSignUpNameChange,
+                        email = uiState.signUpEmail,
+                        onEmailChange = onSignUpEmailChange,
+                        password = uiState.signUpPassword,
+                        onPasswordChange = onSignUpPasswordChange,
+                        confirmPassword = uiState.signUpConfirmPassword,
+                        onConfirmPasswordChange = onSignUpConfirmPasswordChange,
+                        isTermsAccepted = uiState.isTermsAccepted,
+                        onTermsAcceptedChange = onTermsAcceptedChange,
+                        onSignUpClick = onSignUpClick
                     )
                 } else {
                     SignInContent(
-                        email = viewModel.signInEmail,
-                        onEmailChange = viewModel::onSignInEmailChange,
-                        password = viewModel.signInPassword,
-                        onPasswordChange = viewModel::onSignInPasswordChange,
-                        onSignInClick = viewModel::onSignInClick,
-                        onSignUpClick = { viewModel.onModeChange(true) }
+                        email = uiState.signInEmail,
+                        onEmailChange = onSignInEmailChange,
+                        password = uiState.signInPassword,
+                        onPasswordChange = onSignInPasswordChange,
+                        onSignInClick = onSignInClick,
+                        onSignUpClick = { onModeChange(true) }
                     )
                 }
             }
         }
-
-        //Footer fica fora da área de scroll para estar sempre visível
         Footer()
     }
 }
@@ -158,7 +158,20 @@ fun AuthContent(
 @Composable
 private fun AuthScreenPreview() {
     CogniLinkTheme {
-        val viewModel = remember { AuthViewModel() }
-        AuthContent(viewModel = viewModel)
+        var state by remember { mutableStateOf(AuthUiState()) }
+        
+        AuthContent(
+            uiState = state,
+            onModeChange = { state = state.copy(isSignUpMode = it) },
+            onSignInEmailChange = { state = state.copy(signInEmail = it) },
+            onSignInPasswordChange = { state = state.copy(signInPassword = it) },
+            onSignInClick = { /* No-op in preview */ },
+            onSignUpNameChange = { state = state.copy(signUpName = it) },
+            onSignUpEmailChange = { state = state.copy(signUpEmail = it) },
+            onSignUpPasswordChange = { state = state.copy(signUpPassword = it) },
+            onSignUpConfirmPasswordChange = { state = state.copy(signUpConfirmPassword = it) },
+            onTermsAcceptedChange = { state = state.copy(isTermsAccepted = it) },
+            onSignUpClick = { /* No-op in preview */ }
+        )
     }
 }

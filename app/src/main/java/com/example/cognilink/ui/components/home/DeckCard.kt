@@ -17,9 +17,10 @@ import androidx.compose.ui.Modifier
 import com.example.cognilink.R
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.cognilink.data.DifficultyLevel
+import com.example.cognilink.domain.DifficultyLevel
 import com.example.cognilink.ui.components.utils.ProgressBar
 import com.example.cognilink.ui.theme.CogniLinkTheme
 import com.example.cognilink.ui.theme.DarkGray
@@ -80,7 +81,9 @@ fun DeckCard(
                         Text(text = deckName,
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.ExtraBold
-                            ),color = DarkNavyBlue
+                            ),color = DarkNavyBlue,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically){

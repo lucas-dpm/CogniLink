@@ -21,7 +21,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.cognilink.R
-import com.example.cognilink.data.FlashCard
+import com.example.cognilink.domain.FlashcardType
 import com.example.cognilink.ui.theme.DarkGray
 import com.example.cognilink.ui.theme.DarkNavyBlue
 import com.example.cognilink.ui.theme.LightGray
@@ -32,7 +32,9 @@ import com.example.cognilink.ui.theme.White
 @Composable
 fun DeckCardItem(
     modifier: Modifier = Modifier,
-    flashCard: FlashCard,
+    flashcardType: FlashcardType,
+    flashcardQuestion: String,
+    nextReview: String,
     onSelectCard: () -> Unit
 ) {
     Surface(
@@ -52,7 +54,7 @@ fun DeckCardItem(
                 modifier = Modifier.padding(end = 16.dp)
             ) {
                 Icon(
-                    painter = painterResource(id = flashCard.cardType.getIcon()),
+                    painter = painterResource(id = flashcardType.getIcon()),
                     contentDescription = null,
                     modifier = Modifier
                         .padding(8.dp)
@@ -63,7 +65,7 @@ fun DeckCardItem(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = flashCard.question,
+                    text = flashcardQuestion,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp,
                     color = VeryDarkGray,
@@ -72,7 +74,7 @@ fun DeckCardItem(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "Revisão necessária em ${flashCard.nextReview} dias",
+                    text = "Revisão necessária em $nextReview dias",
                     fontSize = 14.sp,
                     color = DarkGray,
                     modifier = Modifier.fillMaxWidth(),

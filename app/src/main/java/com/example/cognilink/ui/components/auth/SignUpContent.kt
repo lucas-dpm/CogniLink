@@ -14,7 +14,9 @@ import com.example.cognilink.R
 import com.example.cognilink.ui.components.input.PasswordTextField
 import com.example.cognilink.ui.components.input.CustomTextField
 import com.example.cognilink.ui.components.utils.buttons.SimpleGradientButton
+import com.example.cognilink.ui.components.utils.labels.CustomLabel
 import com.example.cognilink.ui.theme.CogniLinkTheme
+import com.example.cognilink.ui.theme.DarkGray
 
 @Composable
 fun SignUpContent(
@@ -33,14 +35,24 @@ fun SignUpContent(
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(20.dp)) {
         CustomTextField(
-            label = "NOME",
+            label = {
+                CustomLabel(
+                    text = "NOME",
+                    textColor = DarkGray
+                )
+            },
             placeholder = "Seu nome",
             inputValue = name,
             onInputValueChange = onNameChange
         )
 
         CustomTextField(
-            label = "E-MAIL",
+            label = {
+                CustomLabel(
+                    text = "E-MAIL",
+                    textColor = DarkGray
+                )
+            },
             placeholder = "seu@email.com",
             inputValue = email,
             onInputValueChange = onEmailChange

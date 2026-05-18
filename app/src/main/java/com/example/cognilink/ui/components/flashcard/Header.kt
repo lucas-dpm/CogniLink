@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.cognilink.R
+import com.example.cognilink.ui.components.utils.GradientSurface
 import com.example.cognilink.ui.components.utils.ProgressBar
 import com.example.cognilink.ui.theme.CogniLinkTheme
 import com.example.cognilink.ui.theme.VividCyan
@@ -39,26 +40,12 @@ fun Header(modifier: Modifier = Modifier,
            onCloseClick: () -> Unit = {},
 ) {
 
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color(0xFF000666), // Cor inicial
-                        Color(0xFF1222B0)  // Cor final
-                    ),
-                    // Opcional: define a direção (padrão é da esquerda-topo para direita-baixo)
-                    start = Offset(0f, 0f),
-                    end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
-                )
-            ),
-        color = Color.Transparent,
-    ) {
+    GradientSurface()
+    {
         Row(
             modifier = modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 16.dp)
                 .height(64.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -72,7 +59,7 @@ fun Header(modifier: Modifier = Modifier,
                     Icon(
                         painter = painterResource(id = R.drawable.ic_close),
                         contentDescription = "Fechar",
-                        tint = VividCyan,
+                        tint = White,
                         modifier = Modifier.size(24.dp)
                     )
                 }

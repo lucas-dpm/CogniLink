@@ -31,14 +31,14 @@ fun TrueFalseToggle(
     enabled: Boolean = true
 ) {
     val backgroundColor = when (currentValue) {
-        "V" -> Green
+        "T" -> Green
         "F" -> Red
         else -> Color.LightGray.copy(alpha = 0.5f)
     }
 
 
     val icon = when (currentValue) {
-        "V" -> R.drawable.ic_check
+        "T" -> R.drawable.ic_check
         "F" -> R.drawable.ic_close
         else -> null
     }
@@ -50,7 +50,7 @@ fun TrueFalseToggle(
             .background(backgroundColor)
             .clickable {
                 if (!enabled) return@clickable
-                val nextValue = if (currentValue == "V") "F" else "V"
+                val nextValue = if (currentValue == "T") "F" else "T"
                 onToggle(nextValue)
             },
         contentAlignment = Alignment.Center,
@@ -81,7 +81,7 @@ private fun TrueFalseTogglePreview() {
 
     TrueFalseToggle(
         currentValue,
-        onToggle = { currentValue = if (currentValue == "V") "F" else "V" }
+        onToggle = { currentValue = if (currentValue == "T") "F" else "T" }
     )
 
 
