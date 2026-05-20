@@ -15,7 +15,6 @@ data class User(
 data class UserGamification(
     val currentStreak: Int,
     val longestStreak: Int,
-    val dailyGoalCards: Int,
     val lastActiveDate: Date?
 )
 

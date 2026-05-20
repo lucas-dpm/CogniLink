@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.example.cognilink.R
 import com.example.cognilink.ui.theme.CogniLinkTheme
 import com.example.cognilink.ui.theme.DarkNavyBlue
+import com.example.cognilink.ui.theme.White
 
 @Composable
 fun NavigationHeader(modifier: Modifier = Modifier,
@@ -33,7 +34,8 @@ fun NavigationHeader(modifier: Modifier = Modifier,
 
     Surface(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(),
+        color = White
         ) {
             Row(
                 modifier = modifier.fillMaxWidth().height(64.dp),
