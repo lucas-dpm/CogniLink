@@ -15,9 +15,9 @@ data class UserStats(
     val flashcardStatistics: List<FlashcardStatistics>,
     val totalFlashcardsMisses: Int,
     val totalFlashcardsHits: Int,
-    val daysSinceLastReview: Long,
+    val lastReview: Long,
     val totalStudyTime: Long,
-    val totalFlashcards: Int,
+    val totalFlashcardsDone: Int,
     val totalFlashcardsReviewed: Int,
 
     /**
@@ -142,9 +142,9 @@ val fakeUserStats = UserStats(
     flashcardStatistics = fakeFlashcardStatistics,
     totalFlashcardsMisses = 11,
     totalFlashcardsHits = 20,
-    daysSinceLastReview = 0L,
+    lastReview = 0L,
     totalStudyTime = 420000L,
-    totalFlashcards = 100,
+    totalFlashcardsDone = 100,
     totalFlashcardsReviewed = 31,
     overallMastery = 0.65f,
     retentionRate = 0.64f,

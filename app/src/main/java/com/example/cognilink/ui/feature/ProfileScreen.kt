@@ -1,11 +1,16 @@
 package com.example.cognilink.ui.feature
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -19,26 +24,54 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterHorizontally
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.cognilink.R
 import com.example.cognilink.domain.UserStats
 import com.example.cognilink.domain.fakeUser
 import com.example.cognilink.ui.components.utils.GradientSurface
 import com.example.cognilink.ui.components.utils.NavigationHeader
+import com.example.cognilink.ui.components.utils.ProgressBar
+import com.example.cognilink.ui.components.utils.buttons.NeonActionButton
 import com.example.cognilink.ui.theme.DarkGray
 import com.example.cognilink.ui.theme.DarkNavyBlue
+import com.example.cognilink.ui.theme.DarkRed
+import com.example.cognilink.ui.theme.Green
 import com.example.cognilink.ui.theme.LavenderBlue
 import com.example.cognilink.ui.theme.MutedBlue
 import com.example.cognilink.ui.theme.OffWhite
+import com.example.cognilink.ui.theme.Red
 import com.example.cognilink.ui.theme.VeryLightRed
 import com.example.cognilink.ui.theme.White
+import com.example.cognilink.viewmodel.ProfileViewModel
+
+@Composable
+fun ProfileScreen(
+    viewModel: ProfileViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    uiState.userStats?.let { stats ->
+        ProfileContent(
+            userName = uiState.userName,
+            userRank = uiState.userRank,
+            userStats = stats,
+            cognitiveEfficiencyText = uiState.cognitiveEfficiencyText
+        )
+    }
+}
 
 @Composable
 fun ProfileContent(
@@ -72,7 +105,7 @@ fun ProfileContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = CenterHorizontally
                 ) {
                     Text(
                         text = userName,
@@ -82,7 +115,7 @@ fun ProfileContent(
                     )
                     Surface(color = MutedBlue, shape = RoundedCornerShape(32.dp)) {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
+                            verticalAlignment = CenterVertically,
                             modifier = Modifier.padding(vertical = 6.dp, horizontal = 10.dp)
                         ) {
                             Icon(
@@ -109,7 +142,7 @@ fun ProfileContent(
                             .fillMaxWidth()
                             .padding(24.dp),
                         verticalArrangement = Arrangement.spacedBy(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = CenterHorizontally
                     ) {
                         GradientSurface(shape = CircleShape) {
                             Surface(
@@ -120,7 +153,7 @@ fun ProfileContent(
                                     .size(110.dp) // Ou .aspectRatio(1f) para ser dinâmico
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Column(horizontalAlignment = CenterHorizontally) {
                                         Text(
                                             text = "${userStats.cognitiveEfficiencyIndex}",
                                             fontSize = 48.sp,
@@ -141,7 +174,7 @@ fun ProfileContent(
                         Column(
                             Modifier.fillMaxWidth(),
                             verticalArrangement = Arrangement.spacedBy(8.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                            horizontalAlignment = CenterHorizontally
                         ) {
                             Text(
                                 text = "Eficiência Cognitiva",
@@ -164,7 +197,7 @@ fun ProfileContent(
                     Column(
                         verticalArrangement = Arrangement.spacedBy(18.dp),
                         modifier = Modifier.padding(18.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = CenterHorizontally
                     ) {
                         Surface(
                             shape = CircleShape,
@@ -199,9 +232,91 @@ fun ProfileContent(
                     fontWeight = FontWeight.Bold
                 )
 
-                Row(){
-                    Column(){
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(180.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(24.dp),
+                        color = White,
+                        modifier = Modifier.weight(0.5f)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "DOMÍNIO GERAL", color = DarkGray,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .padding(12.dp)
+                                    .size(120.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Canvas(modifier = Modifier.fillMaxSize()) {
+                                    val strokeWidth = 8.dp.toPx()
+                                    val arcLength = 35f
+                                    val color = DarkNavyBlue
+                                    listOf(0f, 90f, 180f, 270f).forEach { angle ->
+                                        drawArc(
+                                            color = color,
+                                            startAngle = angle - arcLength / 2,
+                                            sweepAngle = arcLength,
+                                            useCenter = false,
+                                            style = Stroke(
+                                                width = strokeWidth,
+                                                cap = StrokeCap.Round
+                                            )
+                                        )
+                                    }
+                                }
+                                Text(
+                                    text = "${(userStats.overallMastery * 100).toInt()}%",
+                                    fontSize = 28.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = DarkNavyBlue,
+                                )
+                            }
+                        }
+                    }
+                    Surface(
+                        shape = RoundedCornerShape(24.dp),
+                        color = White,
+                        modifier = Modifier
+                            .weight(0.5f)
+                            .fillMaxHeight()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            verticalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "TAXA DE RETENÇÃO", color = DarkGray,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Column()
+                            {
+                                Text(
+                                    text = "${(userStats.retentionRate * 100).toInt()}%",
+                                    fontSize = 60.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = DarkNavyBlue,
+                                )
+                                //TODO: Texto persolizado
+                                Text(
+                                    text = "Acima da média", color = DarkGray,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
 
+                        }
                     }
                 }
 
@@ -213,33 +328,11 @@ fun ProfileContent(
                         modifier = Modifier.padding(24.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Surface(
-                                color = VeryLightRed,
-                                shape = CircleShape
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_fire),
-                                    contentDescription = null,
-                                    modifier = Modifier.padding(8.dp)
-                                )
-                            }
-                            Column() {
-                                Text(
-                                    text = " dias", color = DarkGray,
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = "Ofenciva", color = DarkGray.copy(alpha = 0.7f),
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Normal
-                                )
-                            }
-                        }
+                        Text(
+                            text = "Volumetria", color = DarkNavyBlue,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                         Row(
                             Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -251,17 +344,18 @@ fun ProfileContent(
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_trophy),
                                     contentDescription = null,
-                                    modifier = Modifier.padding(8.dp)
+                                    modifier = Modifier.padding(8.dp),
+                                    tint = DarkNavyBlue
                                 )
                             }
-                            Column() {
+                            Column {
                                 Text(
-                                    text = "dias", color = DarkGray,
+                                    text = "${userStats.totalFlashcardsDone}", color = DarkGray,
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Text(
-                                    text = "Maior Ofenciva", color = DarkGray.copy(alpha = 0.7f),
+                                    text = "Flashcards feitos", color = DarkGray.copy(alpha = 0.7f),
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Normal
                                 )
@@ -271,24 +365,27 @@ fun ProfileContent(
                             Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
+
                             Surface(
-                                color = OffWhite,
+                                color = MutedBlue,
                                 shape = CircleShape
                             ) {
                                 Icon(
-                                    painter = painterResource(id = R.drawable.ic_calendar),
+                                    painter = painterResource(id = R.drawable.ic_fire),
                                     contentDescription = null,
-                                    modifier = Modifier.padding(8.dp)
+                                    modifier = Modifier.padding(8.dp),
+                                    tint = DarkNavyBlue
                                 )
                             }
-                            Column() {
+                            Column {
                                 Text(
-                                    text = "", color = DarkGray,
+                                    text = "${userStats.totalFlashcardsReviewed}", color = DarkGray,
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Text(
-                                    text = "Último acesso", color = DarkGray.copy(alpha = 0.7f),
+                                    text = "Flashcards revisados",
+                                    color = DarkGray.copy(alpha = 0.7f),
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Normal
                                 )
@@ -296,44 +393,199 @@ fun ProfileContent(
                         }
                     }
                 }
-                Surface(color = White) {
+
+
+                Surface(
+                    color = VeryLightRed.copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(24.dp),
+                    border = BorderStroke(2.dp, VeryLightRed)
+                ) {
                     Column(
-                        modifier = Modifier.padding(24.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        horizontalAlignment = CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier.fillMaxWidth()
+                            horizontalArrangement = Arrangement.spacedBy(24.dp),
+                            verticalAlignment = CenterVertically
                         ) {
-                            Surface(color = MutedBlue, shape = RoundedCornerShape(12.dp)) {
+                            Surface(
+                                color = VeryLightRed,
+                                shape = CircleShape
+                            ) {
                                 Icon(
-                                    painter = painterResource(id = R.drawable.ic_file),
-                                    tint = DarkNavyBlue,
+                                    painter = painterResource(id = R.drawable.ic_warning),
                                     contentDescription = null,
-                                    modifier = Modifier.padding(10.dp)
+                                    modifier = Modifier.padding(16.dp),
+                                    tint = DarkRed
+                                )
+                            }
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(
+                                    text = "Sanguessugas Detectadas",
+                                    color = DarkRed,
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "Há ${userStats.activeLeechesCount} conceitos travados no limbo. Eles precisam ser reestruturados para evitar a queda na taxa de rentenção",
+                                    color = DarkGray,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Normal
+                                )
+                            }
+                        }
+                        Column(modifier = Modifier.width(200.dp)) {
+                            NeonActionButton(
+                                text = "Rever Sanguessugas",
+                                height = 60.dp,
+                                onClickButton = {}
+                            )
+                        }
+                    }
+                }
+                Surface(color = White, shape = RoundedCornerShape(24.dp)) {
+                    Column(
+                        Modifier.padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Surface(
+                                color = MutedBlue,
+                                shape = RoundedCornerShape(16.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_performance),
+                                    contentDescription = null,
+                                    modifier = Modifier.padding(10.dp),
+                                    tint = DarkNavyBlue
                                 )
                             }
                             Text(
-                                text = "VOLUME DE CARDS",
-                                color = DarkGray,
-                                fontWeight = FontWeight.W700,
+                                text = "DESEMPENHO",
+                                color = DarkGray.copy(alpha = 0.7f),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.W700
                             )
                         }
                         Row(
+                            Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.Bottom
+                            verticalAlignment = CenterVertically
                         ) {
+                            Row(
+                                verticalAlignment = CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .background(Green, CircleShape)
+                                )
+                                Text(
+                                    text = "ACERTOS",
+                                    color = DarkGray,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.W700
+                                )
+                            }
                             Text(
-                                text = "${userStats.totalFlashcards}",
-                                fontWeight = FontWeight.ExtraBold,
-                                fontSize = 30.sp
+                                text = "${userStats.totalFlashcardsHits}",
+                                color = DarkGray,
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold
                             )
+                        }
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = CenterVertically
+                        ) {
+                            Row(
+                                verticalAlignment = CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .background(Red, CircleShape)
+                                )
+                                Text(
+                                    text = "ERROS",
+                                    color = DarkGray,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.W700
+                                )
+                            }
                             Text(
-                                text = "Total",
-                                fontSize = 18.sp,
-                                color = DarkGray
+                                text = "${userStats.totalFlashcardsMisses}",
+                                color = DarkGray,
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold
                             )
+                        }
+                        ProgressBar(
+                            progressColor = Green,
+                            progress = (userStats.totalFlashcardsHits.toFloat() / (userStats.totalFlashcardsHits + userStats.totalFlashcardsMisses)),
+                            backgroundColor = Red
+                        )
+                    }
+                }
+                Surface(color = White, shape = RoundedCornerShape(24.dp)) {
+                    Column(
+                        Modifier.padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Surface(
+                                color = MutedBlue,
+                                shape = RoundedCornerShape(16.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_clock),
+                                    contentDescription = null,
+                                    modifier = Modifier.padding(10.dp),
+                                    tint = DarkNavyBlue
+                                )
+                            }
+                            Text(
+                                text = "TEMPO DE ESTUDO",
+                                color = DarkGray.copy(alpha = 0.7f),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.W700
+                            )
+                        }
+                        //TODO: formatar tempo
+                        Text(
+                            text = "${userStats.totalStudyTime} horas",
+                            fontSize = 30.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = DarkGray
+                        )
+                        Surface(color = MutedBlue, shape = RoundedCornerShape(28.dp)) {
+                            Row(Modifier.padding(10.dp), verticalAlignment = CenterVertically) {
+                                Icon(
+                                    modifier = Modifier.padding(end = 6.dp),
+                                    painter = painterResource(id = R.drawable.ic_reclock),
+                                    contentDescription = null,
+                                    tint = DarkNavyBlue
+                                )
+                                Text(
+                                    //TODO: formatar data e texto
+                                    text = "${userStats.lastReview} atrás Última Revisão",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.W700,
+                                    color = DarkNavyBlue
+                                )
+                            }
                         }
                     }
                 }

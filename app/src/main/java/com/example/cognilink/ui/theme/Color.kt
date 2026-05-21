@@ -37,7 +37,7 @@ val Green = Color(0xFF22C55E)
 
 val VeryLightGreen = Color(0xFFDCFCE7)
 
-val DarkRed = Color(0xFF881104)
+val DarkRed = Color(0xFF380B00)
 
 val Red = Color(0xFFBA1A1A)
 

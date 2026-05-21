@@ -35,12 +35,11 @@ fun NeonActionButton(
     onClickButton: () -> Unit,
 ) {
     GradientSurface(
-        modifier = modifier.height(height),
-        shape = RoundedCornerShape(26.dp),
+        modifier = modifier,
+        shape = RoundedCornerShape(28.dp),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.height(height).fillMaxWidth()
                 .clickable(onClick = onClickButton),
             verticalAlignment = CenterVertically,
             horizontalArrangement = Arrangement.Center
@@ -86,5 +85,5 @@ fun NeonActionButton(
 @Preview
 @Composable
 private fun ActionButtomPreview() {
-    NeonActionButton(icon = R.drawable.ic_arrow_forward, iconRightSide = true) { }
+    NeonActionButton(icon = R.drawable.ic_arrow_forward, iconRightSide = false) { }
 }
