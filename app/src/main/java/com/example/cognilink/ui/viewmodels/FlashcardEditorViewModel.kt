@@ -1,17 +1,23 @@
 package com.example.cognilink.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.cognilink.data.model.Answer
 import com.example.cognilink.domain.model.DifficultyLevel
 import com.example.cognilink.data.model.Flashcard
+import com.example.cognilink.data.repository.FlashcardRepository
+import com.example.cognilink.data.repository.FlashcardRepositoryImpl
 import com.example.cognilink.domain.model.FlashcardType
 import com.example.cognilink.ui.states.FlashcardEditorUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class FlashcardEditorViewModel : ViewModel() {
+class FlashcardEditorViewModel(
+    private val repository: FlashcardRepository = FlashcardRepositoryImpl()
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FlashcardEditorUiState())
     val uiState: StateFlow<FlashcardEditorUiState> = _uiState.asStateFlow()
@@ -93,8 +99,11 @@ class FlashcardEditorViewModel : ViewModel() {
             cardType = currentState.cardType,
             difficulty = currentState.difficulty,
             answerOptions = currentState.answerOptions,
-            hints = currentState.hints
+            hints = currentState.hints,
+            deckId = 1L
         )
-        // repository.save(flashcardParaSalvar)
+        viewModelScope.launch {
+            repository.saveFlashcard(flashcardParaSalvar)
+        }
     }
 }

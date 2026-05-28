@@ -4,18 +4,31 @@ import androidx.lifecycle.ViewModel
 import com.example.cognilink.data.model.Answer
 import com.example.cognilink.domain.model.FlashcardType
 import com.example.cognilink.data.model.Flashcard
+import com.example.cognilink.data.repository.FlashcardRepository
+import com.example.cognilink.data.repository.FlashcardRepositoryImpl
 import com.example.cognilink.ui.states.FlashcardPlayerUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 
-
-
-class FlashcardPlayerViewModel : ViewModel() {
+class FlashcardPlayerViewModel(
+    private val repository: FlashcardRepository = FlashcardRepositoryImpl()
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FlashcardPlayerUiState())
     val uiState: StateFlow<FlashcardPlayerUiState> = _uiState.asStateFlow()
+
+    fun loadFlashcards(deckId: Long) {
+        viewModelScope.launch {
+            val flashcards = repository.getFlashcardsForDeck(deckId)
+            if (flashcards.isNotEmpty()) {
+                _uiState.update { it.copy(currentFlashcard = flashcards.first()) }
+            }
+        }
+    }
 
     fun onSelectAnswer(answer: Answer, choice: String = "") {
         _uiState.update { currentState ->
@@ -44,6 +57,10 @@ class FlashcardPlayerViewModel : ViewModel() {
     }
 
     fun saveFlashcard() {
-        // Implement save logic using a repository
+        _uiState.value.currentFlashcard?.let { flashcard ->
+            viewModelScope.launch {
+                repository.saveFlashcard(flashcard)
+            }
+        }
     }
 }

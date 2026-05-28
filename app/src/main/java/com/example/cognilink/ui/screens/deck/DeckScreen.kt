@@ -31,20 +31,30 @@ import com.example.cognilink.ui.components.utils.NavigationHeader
 import com.example.cognilink.ui.components.utils.buttons.SimpleGradientButton
 import com.example.cognilink.ui.theme.CogniLinkTheme
 import com.example.cognilink.ui.components.deck.FlashcardItem
-import com.example.cognilink.ui.components.deck.EmptyDeckContent
+import com.example.cognilink.ui.components.utils.EmptyContent
 import com.example.cognilink.ui.components.deck.ViewDeckContent
 import com.example.cognilink.ui.components.utils.labels.CustomLabel
 import com.example.cognilink.ui.theme.DarkNavyBlue
 import com.example.cognilink.ui.viewmodels.DeckViewModel
 
 
+import androidx.compose.runtime.LaunchedEffect
+
 @Composable
 fun DeckScreen(
+    deckId: Long,
+    userId: Long,
+    onBackClick: () -> Unit,
     viewModel: DeckViewModel = viewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val deck = uiState.currentDeck
 
+
+    LaunchedEffect(deckId, userId) {
+        viewModel.initialize(deckId, userId)
+    }
+
+    val deck = uiState.currentDeck
     DeckContent(
         deckName = deck?.name,
         deckCategories = deck?.categories,
@@ -53,11 +63,12 @@ fun DeckScreen(
         deckMastery = deck?.mastery,
         deckTotalCards = deck?.totalCards,
         deckCardsToReview = deck?.cardsToReview,
-        deckFlashcards = deck?.flashcards,
+        deckFlashcards = uiState.flashcards,
         onMenuClick = { /* TODO: DropDownMenu: Abrir menu de opções(editar,exclui) */ },
         onAddFlashcardClick = { /* TODO: Navegar para criação de card */ },
         onFlashcardClick = { /* TODO: Navegar para jogar de card */ },
-        onClickSeeMore = { /* TODO: Navegar para lista de flashcards */ }
+        onClickSeeMore = { /* TODO: Navegar para lista de flashcards */ },
+        onBackClick = onBackClick
     )
 }
 
@@ -75,6 +86,7 @@ fun DeckContent(
     onAddFlashcardClick: () -> Unit,
     onFlashcardClick: (Flashcard) -> Unit,
     onClickSeeMore: () -> Unit,
+    onBackClick: () -> Unit,
     onMenuClick: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
@@ -102,6 +114,7 @@ fun DeckContent(
             NavigationHeader(
                 title = deckName ?: "Nome do Baralho",
                 onMenuClick = onMenuClick,
+                onBackClick = onBackClick,
                 menuEnabled = true
             )
             Column(
@@ -147,7 +160,7 @@ fun DeckContent(
                     }
                 }
                 else
-                    EmptyDeckContent()
+                    EmptyContent()
             }
         }
     }
@@ -168,11 +181,12 @@ private fun DeckContentPreview() {
             deckMastery = deck1.mastery,
             deckTotalCards = deck1.totalCards,
             deckCardsToReview = deck1.cardsToReview,
-            deckFlashcards = deck1.flashcards,
+            deckFlashcards = emptyList(),
             onMenuClick = {},
             onAddFlashcardClick = {},
             onFlashcardClick = {},
-            onClickSeeMore = {}
+            onClickSeeMore = {},
+            onBackClick = {}
         )
     }
 }

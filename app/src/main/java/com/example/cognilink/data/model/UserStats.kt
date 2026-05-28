@@ -4,7 +4,6 @@ import com.example.cognilink.domain.model.CogniRank
 import com.example.cognilink.domain.model.UserRankingResult
 
 data class UserStats(
-    val flashcardStatistics: List<FlashcardStatistics>,
     val totalFlashcardsMisses: Int,
     val totalFlashcardsHits: Int,
     val lastReview: Long,
@@ -60,7 +59,6 @@ data class UserStats(
 )
 
 val fakeUserStats = UserStats(
-    flashcardStatistics = fakeFlashcardStatistics,
     totalFlashcardsMisses = 11,
     totalFlashcardsHits = 20,
     lastReview = 0L,

@@ -29,7 +29,7 @@ import com.example.cognilink.ui.theme.LightNavyBlue
 import com.example.cognilink.ui.theme.VeryLightGray
 
 @Composable
-fun AuthFooter() {
+fun AuthFooter(onTermsClick: () -> Unit = {}) {
 
     Surface(modifier = Modifier,
         color = VeryLightGray,
@@ -70,7 +70,7 @@ fun AuthFooter() {
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
                     ) {
-                        /* TODO */
+                        onTermsClick()
                     })
                 Icon(painter = painterResource(id = R.drawable.ic_overlay),
                     contentDescription = "ponto",
@@ -82,7 +82,7 @@ fun AuthFooter() {
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
                     ) {
-                        /* TODO */
+                        onTermsClick()
                     })
             }
         }

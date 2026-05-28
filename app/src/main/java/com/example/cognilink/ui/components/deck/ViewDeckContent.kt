@@ -51,7 +51,7 @@ fun ViewDeckContent(
             Row(Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                if(categories!!.isNotEmpty())
+                if(!categories.isNullOrEmpty())
                     Surface(
                         color = MutedBlue,
                         shape = RoundedCornerShape(9999.dp)
@@ -98,7 +98,7 @@ fun ViewDeckContent(
             lineHeight = 1.em
         )
 
-        if(description!!.isNotEmpty()){
+        if(!description.isNullOrEmpty()){
             Text(
                 text = description,
                 fontSize = 18.sp,

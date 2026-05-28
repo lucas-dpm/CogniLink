@@ -1,16 +1,24 @@
 package com.example.cognilink.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.cognilink.data.model.Deck
 import com.example.cognilink.data.model.Flashcard
+import com.example.cognilink.data.repository.DeckRepository
+import com.example.cognilink.data.repository.DeckRepositoryImpl
+import com.example.cognilink.data.repository.UserRepository
+import com.example.cognilink.data.repository.UserRepositoryImpl
 import com.example.cognilink.ui.states.DeckEditorUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-
-
-class DeckEditorViewModel : ViewModel() {
+class DeckEditorViewModel(
+    private val repository: DeckRepository = DeckRepositoryImpl(),
+    private val userRepository: UserRepository = UserRepositoryImpl()
+) : ViewModel() {
     private val _uiState = MutableStateFlow(DeckEditorUiState())
     val uiState: StateFlow<DeckEditorUiState> = _uiState.asStateFlow()
 
@@ -81,7 +89,22 @@ class DeckEditorViewModel : ViewModel() {
     }
 
     fun saveDeck() {
-        // TODO: Implementar persistência via Repository
+        viewModelScope.launch {
+            val user = userRepository.getUserById(1L)
+            val currentState = _uiState.value
+            val deckToSave = Deck(
+                id = 0,
+                userId = user.id,
+                name = currentState.deckName,
+                description = currentState.deckDescription,
+                categories = currentState.deckCategories,
+                difficulty = com.example.cognilink.domain.model.DifficultyLevel.MEDIUM,
+                mastery = 0f,
+                totalCards = currentState.deckFlashcards.size,
+                cardsToReview = currentState.deckFlashcards.size
+            )
+            repository.saveDeck(deckToSave, user.id)
+        }
     }
 
     fun loadDeckData(name: String, description: String, categories: List<String>) {

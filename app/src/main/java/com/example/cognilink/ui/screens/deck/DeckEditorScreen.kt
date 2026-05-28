@@ -36,8 +36,8 @@ import com.example.cognilink.ui.theme.DarkNavyBlue
 import com.example.cognilink.ui.theme.White
 import com.example.cognilink.ui.components.deck.FlashcardItem
 import com.example.cognilink.ui.components.deck.EditDeckContent
-import com.example.cognilink.ui.components.deck.EmptyDeckContent
-import com.example.cognilink.ui.viewmodels.DeckEditorUiState
+import com.example.cognilink.ui.components.utils.EmptyContent
+import com.example.cognilink.ui.states.DeckEditorUiState
 import com.example.cognilink.ui.viewmodels.DeckEditorViewModel
 
 
@@ -187,7 +187,7 @@ fun DeckEditorContent(
                     }
                 }
                 else
-                    EmptyDeckContent()
+                    EmptyContent()
             }
         }
     }
@@ -204,7 +204,6 @@ private fun DeckEditorContentPreview() {
             deckName = deck1.name,
             deckDescription = deck1.description,
             deckCategories = deck1.categories,
-            deckFlashcards = deck1.flashcards
         )
 
         DeckEditorContent(

@@ -20,25 +20,49 @@ import com.example.cognilink.ui.components.auth.AuthHeader
 import com.example.cognilink.ui.components.auth.SignInContent
 import com.example.cognilink.ui.components.auth.SignUpContent
 import com.example.cognilink.ui.theme.*
-import com.example.cognilink.ui.viewmodels.AuthUiState
+import com.example.cognilink.ui.states.AuthUiState
 import com.example.cognilink.ui.viewmodels.AuthViewModel
 
 @Composable
-fun AuthScreen(viewModel: AuthViewModel = viewModel()) {
+fun AuthScreen(
+    viewModel: AuthViewModel = viewModel(),
+    onNavigateToTerms: () -> Unit = {},
+    onNavigateToHome: (Long) -> Unit = {}
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Observa o sucesso do login para navegar
+    LaunchedEffect(uiState.loggedInUserId) {
+        uiState.loggedInUserId?.let { userId ->
+            onNavigateToHome(userId)
+            viewModel.clearNavigationEvent() // Limpa para evitar re-navegação ao voltar
+        }
+    }
     
+    // Exibe erro se houver
+    uiState.errorMessage?.let { message ->
+        LaunchedEffect(message) {
+            // Aqui poderia ser um SnackbarHostState.showSnackbar
+        }
+    }
+
     AuthContent(
         uiState = uiState,
         onModeChange = viewModel::onModeChange,
         onSignInEmailChange = viewModel::onSignInEmailChange,
         onSignInPasswordChange = viewModel::onSignInPasswordChange,
-        onSignInClick = viewModel::onSignInClick,
+        onSignInClick = {
+            viewModel.onSignInClick()
+        },
         onSignUpNameChange = viewModel::onSignUpNameChange,
         onSignUpEmailChange = viewModel::onSignUpEmailChange,
         onSignUpPasswordChange = viewModel::onSignUpPasswordChange,
         onSignUpConfirmPasswordChange = viewModel::onSignUpConfirmPasswordChange,
         onTermsAcceptedChange = viewModel::onTermsAcceptedChange,
-        onSignUpClick = viewModel::onSignUpClick
+        onSignUpClick = {
+            viewModel.onSignUpClick()
+        },
+        onNavigateToTerms = onNavigateToTerms
     )
 }
 
@@ -54,7 +78,8 @@ fun AuthContent(
     onSignUpPasswordChange: (String) -> Unit,
     onSignUpConfirmPasswordChange: (String) -> Unit,
     onTermsAcceptedChange: (Boolean) -> Unit,
-    onSignUpClick: () -> Unit
+    onSignUpClick: () -> Unit,
+    onNavigateToTerms: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
 
@@ -136,7 +161,8 @@ fun AuthContent(
                         onConfirmPasswordChange = onSignUpConfirmPasswordChange,
                         isTermsAccepted = uiState.isTermsAccepted,
                         onTermsAcceptedChange = onTermsAcceptedChange,
-                        onSignUpClick = onSignUpClick
+                        onSignUpClick = onSignUpClick,
+                        onTermsClick = onNavigateToTerms
                     )
                 } else {
                     SignInContent(
@@ -150,7 +176,7 @@ fun AuthContent(
                 }
             }
         }
-        AuthFooter()
+        AuthFooter(onTermsClick = onNavigateToTerms)
     }
 }
 

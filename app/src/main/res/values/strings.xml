@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">CogniLink</string>
+    <string name="empty_deck_content_default_title">Seu baralho está vazio!</string>
+    <string name="empty_deck_content_default_subtitle">Comece a construir seu conhecimento adicionando seu primeiro cartão de estudo acima.</string>
+    <string name="home_empty_content_title">Você ainda não tem baralhos</string>
+    <string name="home_empty_content_subtitle">Crie um novo baralho para começar a estudar.</string>
+    <string name="home_search_no_results_title">Nenhum baralho encontrado</string>
+    <string name="home_search_no_results_subtitle">Tente pesquisar com termos diferentes.</string>
 </resources>

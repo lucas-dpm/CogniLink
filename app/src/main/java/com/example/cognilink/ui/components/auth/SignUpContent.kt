@@ -46,7 +46,8 @@ fun SignUpContent(
     onConfirmPasswordChange: (String) -> Unit = {},
     isTermsAccepted: Boolean = false,
     onTermsAcceptedChange: (Boolean) -> Unit = {},
-    onSignUpClick: () -> Unit = {}
+    onSignUpClick: () -> Unit = {},
+    onTermsClick: () -> Unit = {}
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(20.dp)) {
         CustomTextField(
@@ -122,9 +123,7 @@ fun SignUpContent(
             Text(
                 text = annotatedString,
                 style = MaterialTheme.typography.bodyMedium.copy(color = Color.Gray),
-                modifier = Modifier.clickable{
-                    /* TODO */
-                }
+                modifier = Modifier.clickable { onTermsClick() }
             )
         }
 
@@ -134,7 +133,8 @@ fun SignUpContent(
             icon = R.drawable.ic_arrow_forward,
             iconRightSide = true,
             isEnabled = isTermsAccepted,
-            onClickButton = onSignUpClick
+            onClickButton = onSignUpClick,
+            modifier = Modifier.padding(bottom = 12.dp)
         )
 
     }

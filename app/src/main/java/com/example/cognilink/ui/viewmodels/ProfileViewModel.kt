@@ -3,7 +3,8 @@ package com.example.cognilink.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.cognilink.data.model.UserStats
-import com.example.cognilink.data.repository.ProfileRepository
+import com.example.cognilink.data.repository.UserRepository
+import com.example.cognilink.data.repository.UserRepositoryImpl
 import com.example.cognilink.domain.model.UserRankingResult
 import com.example.cognilink.domain.usecase.CalculateUserRankingUseCase
 import com.example.cognilink.ui.states.ProfileUiState
@@ -16,24 +17,25 @@ import java.util.concurrent.TimeUnit
 
 class ProfileViewModel(
     private val calculateUserRankingUseCase: CalculateUserRankingUseCase = CalculateUserRankingUseCase(),
-    private val repository: ProfileRepository = ProfileRepository()
+    private val repository: UserRepository = UserRepositoryImpl()
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Loading)
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
-    init {
-        loadUserProfileData()
+    fun initialize(userId: Long) {
+        loadUserProfileData(userId)
     }
 
-    fun loadUserProfileData() {
+    private fun loadUserProfileData(userId: Long) {
         viewModelScope.launch {
             _uiState.value = ProfileUiState.Loading
             try {
-                val userStats = repository.getUserStats()
+                val user = repository.getUserById(userId)
+                val userStats = user.stats
                 val rankingResult = calculateUserRankingUseCase(userStats)
 
                 _uiState.value = ProfileUiState.Success(
-                    userName = "Usuário",
+                    userName = user.name,
                     stats = userStats,
                     ranking = rankingResult
                 )

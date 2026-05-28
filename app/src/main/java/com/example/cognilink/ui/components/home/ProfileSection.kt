@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -32,6 +33,7 @@ import com.example.cognilink.ui.theme.White
 
 @Composable
 fun ProfileSection(
+    modifier: Modifier = Modifier,
     userName: String = "João Silva",
     overallMastery: Float = 0.8f,
     totalStudyTime: String = "20 dias",
@@ -45,7 +47,7 @@ fun ProfileSection(
     {
         Column(
             verticalArrangement = Arrangement.spacedBy(24.dp),
-            modifier = Modifier.padding(20.dp)
+            modifier = modifier.padding(all = 20.dp)
         ) {
             Row(modifier = Modifier.fillMaxWidth()) {
                 Column(

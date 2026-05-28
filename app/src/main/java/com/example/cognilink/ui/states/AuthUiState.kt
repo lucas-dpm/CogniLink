@@ -8,5 +8,8 @@ data class AuthUiState(
     val signUpEmail: String = "",
     val signUpPassword: String = "",
     val signUpConfirmPassword: String = "",
-    val isTermsAccepted: Boolean = false
+    val isTermsAccepted: Boolean = false,
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
+    val loggedInUserId: Long? = null
 )

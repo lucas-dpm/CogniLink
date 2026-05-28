@@ -57,14 +57,22 @@ import com.example.cognilink.ui.theme.OffWhite
 import com.example.cognilink.ui.theme.Red
 import com.example.cognilink.ui.theme.VeryLightRed
 import com.example.cognilink.ui.theme.White
-import com.example.cognilink.ui.viewmodels.ProfileUiState
+import com.example.cognilink.ui.states.ProfileUiState
 import com.example.cognilink.ui.viewmodels.ProfileViewModel
+
+import androidx.compose.runtime.LaunchedEffect
 
 @Composable
 fun ProfileScreen(
+    userId: Long,
+    onBackClick: () -> Unit,
     viewModel: ProfileViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(userId) {
+        viewModel.initialize(userId)
+    }
 
     when (val state = uiState) {
         is ProfileUiState.Loading -> {
@@ -81,7 +89,8 @@ fun ProfileScreen(
                 globalAverageLatencyMsText = viewModel.formatLatency(state.stats.globalAverageLatencyMs),
                 retentionRateInsight = state.ranking.retentionInsight,
                 formattedStudyTime = viewModel.formatTime(state.stats.totalStudyTime),
-                formattedLastReview = viewModel.formatLastReview(state.stats.lastReview)
+                formattedLastReview = viewModel.formatLastReview(state.stats.lastReview),
+                onBackClick = onBackClick
             )
         }
         is ProfileUiState.Error -> {
@@ -103,6 +112,7 @@ fun ProfileContent(
     retentionRateInsight: String,
     formattedStudyTime: String,
     formattedLastReview: String,
+    onBackClick: () -> Unit
 ) {
     val scrollState = rememberScrollState()
     Scaffold(
@@ -110,7 +120,7 @@ fun ProfileContent(
             .padding()
             .statusBarsPadding(),
         topBar = {
-            NavigationHeader(title = "Perfil")
+            NavigationHeader(title = "Perfil", onBackClick = onBackClick)
         },
         containerColor = OffWhite
     ) { padding ->
@@ -625,6 +635,7 @@ private fun ProfileContentPreview() {
         cognitiveEfficiencyInsight = "Seu cérebro está absorvendo mais conteúdo em menos tempo.",
         retentionRateInsight = "Considere revisar os cartões com maior frequência.",
         formattedStudyTime = "12h 30min",
-        formattedLastReview = "2h atrás Última Revisão"
+        formattedLastReview = "2h atrás Última Revisão",
+        onBackClick = {}
     )
 }

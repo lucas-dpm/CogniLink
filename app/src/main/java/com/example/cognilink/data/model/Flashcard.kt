@@ -5,6 +5,7 @@ import com.example.cognilink.domain.model.DifficultyLevel
 
 data class Flashcard(
     val id: Long,
+    val deckId: Long, // Referência ao deck pai
     val question: String,
     val cardType: FlashcardType,
     val difficulty: DifficultyLevel,
@@ -20,6 +21,7 @@ data class Answer(
 //Fake Objects
 val flashcard1 = Flashcard(
     id = 1L,
+    deckId = 1L,
     question = "Qual é a capital da França?",
     cardType = FlashcardType.MULTIPLE_CHOICE,
     difficulty = DifficultyLevel.EASY,
@@ -33,6 +35,7 @@ val flashcard1 = Flashcard(
 
 val flashcard2 = Flashcard(
     id = 2L,
+    deckId = 2L,
     question = "Quem pintou a Mona Lisa?",
     cardType = FlashcardType.BASIC,
     difficulty = DifficultyLevel.MEDIUM,
@@ -44,6 +47,7 @@ val flashcard2 = Flashcard(
 
 val flashcard3 = Flashcard(
     id = 3L,
+    deckId = 3L,
     question = "Qual é o maior planeta do sistema solar?",
     cardType = FlashcardType.TRUE_OR_FALSE,
     difficulty = DifficultyLevel.HARD,
@@ -55,6 +59,7 @@ val flashcard3 = Flashcard(
 
 val flashcard4 = Flashcard(
     id = 4L,
+    deckId = 3L,
     question = "Analise as afirmações abaixo e determine se cada uma é Verdadeira ou Falsa",
     cardType = FlashcardType.TRUE_OR_FALSE,
     difficulty = DifficultyLevel.HARD,

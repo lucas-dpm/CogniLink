@@ -46,7 +46,7 @@ fun SimpleGradientButton(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onClickButton),
+                .clickable(enabled = isEnabled, onClick = onClickButton),
             verticalAlignment = CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {

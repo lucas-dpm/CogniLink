@@ -10,7 +10,6 @@ data class User(
     val id: Long,
     val name: String,
     val email: String,
-    val decks: List<Deck>,
     val stats: UserStats,
 )
 
@@ -19,7 +18,6 @@ val fakeUser = User(
     id = 1001L,
     name = "Alex Silva",
     email = "alex.silva@example.com",
-    decks = listOf(deck1, deck2, deck3),
     stats = fakeUserStats
 )
 

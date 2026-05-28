@@ -34,6 +34,7 @@ import com.example.cognilink.ui.theme.tertiaryColor
 
 @Composable
 fun DeckCard(
+    modifier: Modifier = Modifier,
     difficulty: DifficultyLevel = DifficultyLevel.HARD,
     deckName: String = "Nome do Baralho",
     category: String = "Ciência",
@@ -43,7 +44,7 @@ fun DeckCard(
 ) {
 
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         color = White,
         shadowElevation = 2.dp

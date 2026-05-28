@@ -2,7 +2,9 @@ package com.example.cognilink.ui.screens.auth
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
@@ -34,7 +36,9 @@ fun TermsContent(
 ) {
     val scrollState = rememberScrollState()
     Scaffold(
-        modifier = modifier,
+        modifier = modifier
+            .imePadding()
+            .statusBarsPadding(),
         containerColor = OffWhite,
         topBar = {
             NavigationHeader(
@@ -43,7 +47,9 @@ fun TermsContent(
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).verticalScroll(scrollState)) {
+        Column(modifier = Modifier
+            .padding(padding)
+            .verticalScroll(scrollState)) {
             MarkdownText(
                 markdown = termsMarkdown,
                 modifier = Modifier
