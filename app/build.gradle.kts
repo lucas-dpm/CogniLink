@@ -43,9 +43,7 @@ android {
     }
     packaging {
         jniLibs {
-            pickFirsts += listOf(
-                "**/libmediapipe_tasks_text_jni.so"
-            )
+            pickFirsts += listOf()
         }
     }
 }
@@ -75,8 +73,8 @@ dependencies {
     implementation(libs.gson)
 
     // AI / Machine Learning
-    implementation(libs.mediapipe.tasks.text)
-    implementation(libs.mediapipe.tasks.core)
+    implementation(libs.onnxruntime.android)
+    implementation(libs.onnxruntime.extensions)
 
     // Ktor
     implementation(libs.ktor.client.core)

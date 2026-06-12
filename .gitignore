@@ -13,3 +13,9 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+app/src/main/assets/config.json
+app/src/main/assets/model.onnx
+app/src/main/assets/special_tokens_map.json
+app/src/main/assets/tokenizer.json
+app/src/main/assets/tokenizer_config.json

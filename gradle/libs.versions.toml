@@ -12,6 +12,8 @@ activityCompose = "1.13.0"
 kotlin = "2.4.0"
 navigationCompose = "2.9.8"
 composeBom = "2026.05.01"
+onnxruntimeAndroid = "1.26.0"
+onnxruntimeExtensions = "0.13.0"
 roomRuntime = "2.8.4"
 roomCompiler = "2.8.4"
 roomKtx = "2.8.4"
@@ -23,8 +25,6 @@ ksp = "2.3.9"
 gson = "2.14.0"
 tensorflowLite = "2.17.0"
 tensorflowLiteSupport = "0.5.0"
-mediapipeTasksText = "0.10.20"
-mediapipeTasksCore = "0.10.20"
 ktor = "3.1.1"
 koin-bom = "4.2.1"
 tensorflowLiteMetadata = "0.5.0"
@@ -63,11 +63,11 @@ koin-compose = { module = "io.insert-koin:koin-compose" }
 koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel" }
 koin-ktor = { module = "io.insert-koin:koin-ktor" }
 koin-test = { module = "io.insert-koin:koin-test" }
+onnxruntime-android = { module = "com.microsoft.onnxruntime:onnxruntime-android", version.ref = "onnxruntimeAndroid" }
+onnxruntime-extensions = { module = "com.microsoft.onnxruntime:onnxruntime-extensions-android", version.ref = "onnxruntimeExtensions" }
 tensorflow-lite-metadata-v010 = { module = "org.tensorflow:tensorflow-lite-metadata", version.ref = "tensorflowLiteMetadataVersion" }
 tflite-support = { module = "org.tensorflow:tensorflow-lite-support", version.ref = "tensorflowLiteSupport" }
 tflite-metadata = { group = "org.tensorflow", name = "tensorflow-lite-metadata", version.ref = "tensorflowLiteMetadata" }
-mediapipe-tasks-text = { module = "com.google.mediapipe:tasks-text", version.ref = "mediapipeTasksText" }
-mediapipe-tasks-core = { module = "com.google.mediapipe:tasks-core", version.ref = "mediapipeTasksCore" }
 
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktor" }

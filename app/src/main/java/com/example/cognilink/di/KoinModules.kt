@@ -14,7 +14,7 @@ import com.example.cognilink.data.repository.UserRepository
 import com.example.cognilink.data.repository.UserRepositoryImpl
 import com.example.cognilink.data.service.AndroidNetworkMonitor
 import com.example.cognilink.data.service.KtorFeedbackService
-import com.example.cognilink.data.service.TFLiteSimilarityService
+import com.example.cognilink.data.service.OnnxSimilarityService
 import com.example.cognilink.domain.repository.FeedbackService
 import com.example.cognilink.domain.repository.NetworkMonitor
 import com.example.cognilink.domain.repository.SimilarityService
@@ -52,7 +52,7 @@ val repositoryModule = module {
     singleOf(::TermsRepositoryImpl) { bind<TermsRepository>() }
 
     // Novos Serviços
-    single<SimilarityService> { TFLiteSimilarityService(get()) }
+    single<SimilarityService> { OnnxSimilarityService(get()) }
     single<FeedbackService> { KtorFeedbackService(get()) }
     single<NetworkMonitor> { AndroidNetworkMonitor(get()) }
 
