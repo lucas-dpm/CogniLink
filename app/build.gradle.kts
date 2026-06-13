@@ -74,10 +74,6 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.gson)
 
-    // AI / Machine Learning
-    implementation(libs.mediapipe.tasks.text)
-    implementation(libs.mediapipe.tasks.core)
-
     // Ktor
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.android)

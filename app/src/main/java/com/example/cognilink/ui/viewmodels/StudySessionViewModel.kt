@@ -125,7 +125,6 @@ class StudySessionViewModel(
 
             var isCorrect = false
             var validationType = ValidationType.NONE
-            var feedback: String? = null
 
             when (currentFlashcard.cardType) {
                 FlashcardType.BASIC -> {
@@ -138,11 +137,6 @@ class StudySessionViewModel(
                         is ValidationResult.Correct -> {
                             isCorrect = true
                             validationType = ValidationType.CORRECT
-                        }
-                        is ValidationResult.Feedback -> {
-                            isCorrect = false
-                            validationType = ValidationType.FEEDBACK
-                            feedback = result.message
                         }
                         is ValidationResult.Fallback -> {
                             isCorrect = false
@@ -172,7 +166,6 @@ class StudySessionViewModel(
                     sequenceHits = if (isCorrect) it.sequenceHits + 1 else 0,
                     isAnswerCorrect = isCorrect,
                     validationType = validationType,
-                    basicFeedback = feedback,
                     isValidating = false
                 )
             }

@@ -1,31 +1,11 @@
 package com.example.cognilink.domain.usecase
 
 import com.example.cognilink.domain.model.ValidationResult
-import com.example.cognilink.domain.repository.FeedbackService
-import com.example.cognilink.domain.repository.NetworkMonitor
-import com.example.cognilink.domain.repository.SimilarityService
 
-class ValidateBasicAnswerUseCase(
-    private val similarityService: SimilarityService,
-    private val feedbackService: FeedbackService,
-    private val networkMonitor: NetworkMonitor
-) {
-    suspend operator fun invoke(userAnswer: String, correctAnswer: String): ValidationResult {
-        // 1. Validação Local (TFLite)
-        val score = similarityService.calculateSimilarity(userAnswer, correctAnswer)
-        
-        if (score >= 0.85f) {
-            return ValidationResult.Correct
-        }
-
-        // 2. Validação Remota (LLM) se score for baixo
-        return if (networkMonitor.isOnline()) {
-            try {
-                val feedback = feedbackService.getLlmFeedback(userAnswer, correctAnswer)
-                ValidationResult.Feedback(feedback)
-            } catch (e: Exception) {
-                ValidationResult.Fallback
-            }
+class ValidateBasicAnswerUseCase {
+    operator fun invoke(userAnswer: String, correctAnswer: String): ValidationResult {
+        return if (userAnswer.trim().equals(correctAnswer.trim(), ignoreCase = true)) {
+            ValidationResult.Correct
         } else {
             ValidationResult.Fallback
         }

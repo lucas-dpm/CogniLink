@@ -17,7 +17,6 @@ data class StudySessionUiState(
     val sessionTitle: String = "",
     val secondsElapsed: Long = 0L,
     val sequenceHits: Int = 0,
-    val basicFeedback: String? = null,
     val isValidating: Boolean = false,
     val validationType: ValidationType = ValidationType.NONE,
     val isAnswerCorrect: Boolean = false,

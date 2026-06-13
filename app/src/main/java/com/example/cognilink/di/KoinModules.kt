@@ -12,12 +12,6 @@ import com.example.cognilink.data.repository.TermsRepository
 import com.example.cognilink.data.repository.TermsRepositoryImpl
 import com.example.cognilink.data.repository.UserRepository
 import com.example.cognilink.data.repository.UserRepositoryImpl
-import com.example.cognilink.data.service.AndroidNetworkMonitor
-import com.example.cognilink.data.service.KtorFeedbackService
-import com.example.cognilink.data.service.TFLiteSimilarityService
-import com.example.cognilink.domain.repository.FeedbackService
-import com.example.cognilink.domain.repository.NetworkMonitor
-import com.example.cognilink.domain.repository.SimilarityService
 import com.example.cognilink.domain.usecase.CalculateDeckReviewCountUseCase
 import com.example.cognilink.domain.usecase.CalculateDifficultyLevelUseCase
 import com.example.cognilink.domain.usecase.CalculateUserRankingUseCase
@@ -38,35 +32,12 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.android.Android
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.json.Json
-
 val repositoryModule = module {
     single<AuthRepository> { AuthRepositoryImpl(get(), get(), get()) }
     single<UserRepository> { UserRepositoryImpl(get(), get(), get()) }
     single<DeckRepository> { DeckRepositoryImpl(get(), get()) }
     singleOf(::FlashcardRepositoryImpl) { bind<FlashcardRepository>() }
     singleOf(::TermsRepositoryImpl) { bind<TermsRepository>() }
-
-    // Novos Serviços
-    single<SimilarityService> { TFLiteSimilarityService(get()) }
-    single<FeedbackService> { KtorFeedbackService(get()) }
-    single<NetworkMonitor> { AndroidNetworkMonitor(get()) }
-
-    // HttpClient configurado
-    single {
-        HttpClient(Android) {
-            install(ContentNegotiation) {
-                json(Json {
-                    ignoreUnknownKeys = true
-                    prettyPrint = true
-                })
-            }
-        }
-    }
 }
 
 val domainModule = module {

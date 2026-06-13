@@ -104,7 +104,6 @@ fun StudySessionScreen(
             isLastFlashcard = uiState.isLastFlashcard,
             elapsedTime = viewModel.formatSeconds(uiState.secondsElapsed),
             validationType = uiState.validationType,
-            basicFeedback = uiState.basicFeedback,
             isAnswerCorrect = uiState.isAnswerCorrect,
             sequenceHits = uiState.sequenceHits,
             isValidating = uiState.isValidating,
@@ -147,7 +146,6 @@ fun StudySessionContent(
     isLastFlashcard: Boolean = false,
     elapsedTime: String,
     validationType: ValidationType? = null,
-    basicFeedback: String? = null,
     isAnswerCorrect: Boolean = false,
     sequenceHits: Int = 0,
     isValidating: Boolean = false,
@@ -422,13 +420,7 @@ fun StudySessionContent(
                                                     )
                                                 }
                                                 // Exibe o Feedback Inteligente (LLM ou Fallback)
-                                                if (validationType == ValidationType.FEEDBACK) {
-                                                    Text(
-                                                        text = basicFeedback ?: "",
-                                                        color = White,
-                                                        fontSize = 14.sp,
-                                                    )
-                                                } else if (validationType == ValidationType.FALLBACK) {
+                                                if (validationType == ValidationType.FALLBACK) {
                                                     Text(
                                                         text = "Compare sua resposta com o gabarito acima para identificar pontos de melhoria e reforçar seu aprendizado.",
                                                         color = White,
@@ -539,8 +531,7 @@ private fun StudySessionContentPreview() {
             isQuestionVerified = true,
             isCloseDialogOpen = false,
             isAnswerCorrect = true,
-            validationType = ValidationType.FEEDBACK,
-            basicFeedback = "Uma suspend fun é uma função que pode pausar sua execução sem bloquear a thread, permitindo que o programa continue rodando outras tarefas enquanto aguarda um resultado.",
+            validationType = ValidationType.FALLBACK,
             elapsedTime = "00:00",
         )
     }
