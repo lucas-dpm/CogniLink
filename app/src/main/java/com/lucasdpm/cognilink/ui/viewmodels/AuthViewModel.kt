@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.lucasdpm.cognilink.data.repository.AuthRepository
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.states.AuthUiState
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -56,7 +55,6 @@ class AuthViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            delay(2000) // TODO: TEMPORARY FOR TESTING
             val user = repository.signIn(_uiState.value.signInEmail)
             if (user != null) {
                 _uiState.update { it.copy(loggedInUserId = user.id, isLoading = false) }
@@ -123,7 +121,6 @@ class AuthViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            delay(2000) // TODO: TEMPORARY FOR TESTING
             val user = repository.signUp(
                 _uiState.value.signUpName,
                 _uiState.value.signUpEmail

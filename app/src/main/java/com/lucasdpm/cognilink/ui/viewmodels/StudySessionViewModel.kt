@@ -130,9 +130,8 @@ class StudySessionViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isValidating = true) }
-            delay(2000) // TODO: TEMPORARY FOR TESTING
 
-            var isCorrect = false
+            var isCorrect: Boolean
             var validationType = ValidationType.NONE
 
             when (currentFlashcard.cardType) {

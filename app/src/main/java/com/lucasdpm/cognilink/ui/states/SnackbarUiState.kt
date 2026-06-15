@@ -5,11 +5,9 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarVisuals
 import androidx.compose.ui.graphics.Color
 import com.lucasdpm.cognilink.R
-import com.lucasdpm.cognilink.ui.theme.DarkGray
 import com.lucasdpm.cognilink.ui.theme.DarkNavyBlue
 import com.lucasdpm.cognilink.ui.theme.Green
 import com.lucasdpm.cognilink.ui.theme.Red
-import com.lucasdpm.cognilink.ui.theme.VividCyan
 import com.lucasdpm.cognilink.ui.theme.Yellow
 
 enum class SnackbarType {

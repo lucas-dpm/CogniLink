@@ -6,7 +6,6 @@ import com.lucasdpm.cognilink.data.repository.DeckRepository
 import com.lucasdpm.cognilink.data.repository.FlashcardRepository
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.states.DeckUiState
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,7 +30,6 @@ class DeckViewModel(
     private fun loadDeckDetails(deckId: String, userId: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            delay(2000) // TODO: TEMPORARY FOR TESTING
             try {
                 deckRepository.getDeckById(deckId, userId).collect { deck ->
                     if (deck != null) {

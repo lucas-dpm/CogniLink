@@ -7,9 +7,6 @@ import com.lucasdpm.cognilink.data.repository.DeckRepository
 import com.lucasdpm.cognilink.data.repository.UserRepository
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.states.HomeUiState
-import com.lucasdpm.cognilink.ui.states.SnackbarMessage
-import com.lucasdpm.cognilink.ui.states.SnackbarType
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,7 +36,6 @@ class HomeViewModel(
         // 1. Observar baralhos
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingDecks = true) }
-            delay(2000) // TODO: TEMPORARY FOR TESTING
             try {
                 deckRepository.getDecks(userId).collect { decks ->
                     _uiState.update {
@@ -59,7 +55,6 @@ class HomeViewModel(
         // 2. Observar estatísticas
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingStats = true) }
-            delay(3500) // TODO: TEMPORARY FOR TESTING (Estatísticas demoram mais)
             try {
                 userRepository.getUserStats(userId).collect { stats ->
                     val userStats = stats ?: UserStats(userId = userId)
@@ -82,7 +77,6 @@ class HomeViewModel(
         // 3. Carregar Perfil (Nome)
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingUser = true) }
-            delay(1500) // TODO: TEMPORARY FOR TESTING
             try {
                 val user = userRepository.getUserById(userId = userId)
                 if (user == null) {

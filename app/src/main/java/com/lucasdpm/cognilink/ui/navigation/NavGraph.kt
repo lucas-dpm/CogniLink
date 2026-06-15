@@ -1,5 +1,6 @@
 package com.lucasdpm.cognilink.ui.navigation
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -12,8 +13,16 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.components.utils.CustomSnackbar
+import com.lucasdpm.cognilink.ui.screens.AuthScreen
+import com.lucasdpm.cognilink.ui.screens.CreateFlashcardWithIAScreen
+import com.lucasdpm.cognilink.ui.screens.DeckEditorScreen
+import com.lucasdpm.cognilink.ui.screens.DeckScreen
+import com.lucasdpm.cognilink.ui.screens.FlashcardEditorScreen
+import com.lucasdpm.cognilink.ui.screens.HomeScreen
+import com.lucasdpm.cognilink.ui.screens.ProfileScreen
+import com.lucasdpm.cognilink.ui.screens.StudySessionScreen
+import com.lucasdpm.cognilink.ui.screens.TermsScreen
 import com.lucasdpm.cognilink.ui.states.CustomSnackbarVisuals
-import com.lucasdpm.cognilink.ui.screens.*
 
 sealed class Screen(val route: String) {
     object Auth : Screen("auth")
@@ -84,10 +93,11 @@ fun CogniLinkNavGraph(
                 CustomSnackbar(snackbarData = data)
             }
         }
-    ) { _ ->
+    ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = startDestination
+            startDestination = startDestination,
+            modifier = androidx.compose.ui.Modifier.padding(paddingValues)
         ) {
             composable(Screen.Auth.route) {
                 AuthScreen(
@@ -109,6 +119,8 @@ fun CogniLinkNavGraph(
                 ProfileScreen(
                     userId = userId,
                     onNavigateBack = { navController.popBackStack() },
+                    onNavigateToStudy = {
+                       studyMode -> navController.navigate(Screen.PlayFlashcard.createRoute(studyMode,userId))}
                 )
             }
 

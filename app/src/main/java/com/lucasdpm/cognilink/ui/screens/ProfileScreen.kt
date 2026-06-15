@@ -55,6 +55,7 @@ import androidx.compose.runtime.LaunchedEffect
 fun ProfileScreen(
     userId: String,
     onNavigateBack: () -> Unit,
+    onNavigateToStudy: (String) -> Unit,
     viewModel: ProfileViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -79,7 +80,7 @@ fun ProfileScreen(
                     formattedStudyTime = viewModel.formatTime(state.stats.totalStudyTime),
                     formattedLastReview = viewModel.formatLastReview(state.stats.lastReview),
                     onNavigateBack = onNavigateBack,
-                    onReviewLeeches = { /* TODO: Navigate to FlashcardPlayer with leech filter */ }
+                    onReviewLeeches = { onNavigateToStudy("LEECHES") }
                 )
             }
             is ProfileUiState.Error -> {

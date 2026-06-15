@@ -11,7 +11,6 @@ import com.lucasdpm.cognilink.domain.model.FlashcardType
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.states.FlashcardFormUiState
 import java.util.UUID
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -58,7 +57,6 @@ class FlashcardFormViewModel(
         val currentState = _uiState.value
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            delay(2000) // TODO: TEMPORARY FOR TESTING
             try {
                 val flashcard = repository.getFlashcardById(currentState.flashcardId)?.flashcard
                 if (flashcard != null) {
@@ -196,7 +194,6 @@ class FlashcardFormViewModel(
     fun saveFlashcard(): Boolean {
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true) }
-            delay(2000) // TODO: TEMPORARY FOR TESTING
             if (saveFlashcardSuspending()) {
                 _uiState.update { it.copy(isSaved = true,isSaving = false) }
             } else {
@@ -245,7 +242,6 @@ class FlashcardFormViewModel(
     fun deleteFlashcard() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            delay(2000) // TODO: TEMPORARY FOR TESTING
             try {
                 repository.deleteFlashcard(_uiState.value.flashcardId)
                 _uiState.update {

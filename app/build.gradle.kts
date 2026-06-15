@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
+    kotlin("plugin.serialization") version "1.9.10"
 }
 
 android {
@@ -79,6 +80,8 @@ dependencies {
     implementation(libs.ktor.client.android)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.ktor.client.logging)
+    implementation(libs.slf4j.android)
 
     testImplementation(libs.junit)
 

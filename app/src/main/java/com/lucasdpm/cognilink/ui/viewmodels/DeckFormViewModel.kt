@@ -9,7 +9,6 @@ import com.lucasdpm.cognilink.data.repository.FlashcardRepository
 import com.lucasdpm.cognilink.domain.model.DifficultyLevel
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.states.DeckFormUiState
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -104,7 +103,6 @@ class DeckFormViewModel(
         val state = _uiState.value
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true) }
-            delay(2000) // TODO: TEMPORARY FOR TESTING
             try {
                 val deck = Deck(
                     id = state.deckId,

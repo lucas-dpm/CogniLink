@@ -59,7 +59,6 @@ import com.lucasdpm.cognilink.ui.components.utils.buttons.SimpleGradientButton
 import com.lucasdpm.cognilink.ui.components.utils.dialogs.BasicCustomAlertDialog
 import com.lucasdpm.cognilink.ui.components.utils.labels.CustomLabel
 import com.lucasdpm.cognilink.ui.states.AnswerVisualState
-import com.lucasdpm.cognilink.ui.states.CustomSnackbarVisuals
 import com.lucasdpm.cognilink.ui.theme.CogniLinkTheme
 import com.lucasdpm.cognilink.ui.theme.DarkNavyBlue
 import com.lucasdpm.cognilink.ui.theme.Green

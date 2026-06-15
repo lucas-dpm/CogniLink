@@ -17,9 +17,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,14 +32,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.lucasdpm.cognilink.ui.components.utils.CustomSnackbar
 import com.lucasdpm.cognilink.ui.components.utils.FullScreenLoading
 import com.lucasdpm.cognilink.ui.components.auth.AuthFooter
 import com.lucasdpm.cognilink.ui.components.auth.AuthHeader
 import com.lucasdpm.cognilink.ui.components.auth.SignInContent
 import com.lucasdpm.cognilink.ui.components.auth.SignUpContent
 import com.lucasdpm.cognilink.ui.states.AuthUiState
-import com.lucasdpm.cognilink.ui.states.CustomSnackbarVisuals
 import com.lucasdpm.cognilink.ui.theme.CogniLinkTheme
 import com.lucasdpm.cognilink.ui.theme.DarkGray
 import com.lucasdpm.cognilink.ui.theme.DarkNavyBlue

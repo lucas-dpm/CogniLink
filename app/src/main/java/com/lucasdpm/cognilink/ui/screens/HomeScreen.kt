@@ -1,7 +1,16 @@
 package com.lucasdpm.cognilink.ui.screens
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -30,7 +39,6 @@ import com.lucasdpm.cognilink.ui.components.home.ShimmerDeckCard
 import com.lucasdpm.cognilink.ui.components.home.ShimmerProfileSection
 import com.lucasdpm.cognilink.ui.components.input.SearchTextField
 import com.lucasdpm.cognilink.ui.components.utils.EmptyContent
-import com.lucasdpm.cognilink.ui.components.utils.FullScreenLoading
 import com.lucasdpm.cognilink.ui.components.utils.buttons.NeonActionButton
 import com.lucasdpm.cognilink.ui.components.utils.buttons.NeonFAB
 import com.lucasdpm.cognilink.ui.components.utils.dialogs.BasicCustomAlertDialog
@@ -41,7 +49,6 @@ import com.lucasdpm.cognilink.ui.theme.Red
 import com.lucasdpm.cognilink.ui.theme.White
 import com.lucasdpm.cognilink.ui.viewmodels.HomeViewModel
 import org.koin.androidx.compose.koinViewModel
-import androidx.compose.animation.Crossfade
 
 @Composable
 fun HomeScreen(
@@ -51,6 +58,7 @@ fun HomeScreen(
     onNavigateToProfile: () -> Unit = {},
     onNavigateToPlay: (String) -> Unit = {},
     onNavigateToLogin: () -> Unit = {},
+    onNavigateToSettings: () -> Unit = {},
     viewModel: HomeViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -64,7 +72,8 @@ fun HomeScreen(
             onDismissRequest = { onNavigateToLogin() },
             onConfirmation = { onNavigateToLogin() },
             dialogTitle = "Acesso Expirado",
-            dialogText = uiState.errorMessage ?: "Por favor, realize o login novamente para continuar.",
+            dialogText = uiState.errorMessage
+                ?: "Por favor, realize o login novamente para continuar.",
             confirmationButtonText = "Ir para Login",
             dismissButtonText = null,
             icon = R.drawable.ic_warning,
@@ -87,6 +96,7 @@ fun HomeScreen(
             onNavigateToCreateDeck = { onNavigateToCreateDeck(userId) },
             onNavigateToProfile = onNavigateToProfile,
             onNavigateToPlay = { onNavigateToPlay(userId) },
+            onNavigateToSettings = onNavigateToSettings,
             isLoadingUser = uiState.isLoadingUser,
             isLoadingDecks = uiState.isLoadingDecks,
             isLoadingStats = uiState.isLoadingStats
@@ -109,6 +119,7 @@ fun HomeContent(
     onNavigateToCreateDeck: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToPlay: () -> Unit = {},
+    onNavigateToSettings: () -> Unit = {},
     isLoadingUser: Boolean = true,
     isLoadingDecks: Boolean = true,
     isLoadingStats: Boolean = true
@@ -157,7 +168,10 @@ fun HomeContent(
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                Crossfade(targetState = isLoadingUser || isLoadingStats, label = "profile_shimmer") { loading ->
+                Crossfade(
+                    targetState = isLoadingUser || isLoadingStats,
+                    label = "profile_shimmer"
+                ) { loading ->
                     if (loading) {
                         ShimmerProfileSection(
                             modifier = Modifier.padding(top = padding.calculateTopPadding() + 20.dp)
@@ -177,7 +191,7 @@ fun HomeContent(
                 }
 
                 IconButton(
-                    onClick = { /* TODO: Abrir tela de configurações */ },
+                    onClick = onNavigateToSettings,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(top = padding.calculateTopPadding() + 25.dp, end = 8.dp)
