@@ -7,6 +7,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,11 +25,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
@@ -47,6 +51,8 @@ import com.lucasdpm.cognilink.data.model.Flashcard
 import com.lucasdpm.cognilink.data.preview.PreviewDataProvider
 import com.lucasdpm.cognilink.domain.model.FlashcardType
 import com.lucasdpm.cognilink.domain.model.ValidationType
+import com.lucasdpm.cognilink.ui.components.utils.CustomSnackbar
+import com.lucasdpm.cognilink.ui.components.utils.FullScreenLoading
 import com.lucasdpm.cognilink.ui.components.flashcard.AnswerSelector
 import com.lucasdpm.cognilink.ui.components.flashcard.FlashcardHeader
 import com.lucasdpm.cognilink.ui.components.flashcard.HintReveal
@@ -56,6 +62,7 @@ import com.lucasdpm.cognilink.ui.components.utils.GradientSurface
 import com.lucasdpm.cognilink.ui.components.utils.buttons.SimpleGradientButton
 import com.lucasdpm.cognilink.ui.components.utils.dialogs.BasicCustomAlertDialog
 import com.lucasdpm.cognilink.ui.states.AnswerVisualState
+import com.lucasdpm.cognilink.ui.states.CustomSnackbarVisuals
 import com.lucasdpm.cognilink.ui.theme.CogniLinkTheme
 import com.lucasdpm.cognilink.ui.theme.DarkGray
 import com.lucasdpm.cognilink.ui.theme.DarkNavyBlue
@@ -83,49 +90,83 @@ fun StudySessionScreen(
         viewModel.initializeSession(studyMode, contextId)
     }
 
+    if (uiState.showCriticalErrorDialog) {
+        BasicCustomAlertDialog(
+            onDismissRequest = {
+                scope.launch {
+                    delay(150)
+                    onNavigateBack()
+                }
+            },
+            onConfirmation = {
+                scope.launch {
+                    delay(150)
+                    onNavigateBack()
+                }
+            },
+            dialogTitle = "Ocorreu um erro!",
+            dialogText = uiState.errorMessage ?: "Não foi possível iniciar a sessão.",
+            confirmationButtonText = "Voltar",
+            dismissButtonText = null,
+            icon = R.drawable.ic_warning,
+            iconColor = Red
+        )
+    }
+
     LaunchedEffect(uiState.isSessionFinished) {
         if (uiState.isSessionFinished && !uiState.isSessionInsightDialogOpen) {
             viewModel.toggleSessionInsightDialog()
         }
     }
 
-    uiState.currentFlashcard?.let { flashcard ->
-        StudySessionContent(
-            flashcard = flashcard,
-            currentFlashcardIndex = uiState.currentFlashcardIndex,
-            totalFlashcards = uiState.sessionFlashcards.size,
-            sessionTitle = uiState.sessionTitle,
-            selectedAnswers = uiState.selectedAnswers,
-            onSelectAnswer = viewModel::onSelectAnswer,
-            isQuestionAnswered = uiState.isQuestionAnswered,
-            isQuestionVerified = uiState.isQuestionVerified,
-            isCloseDialogOpen = uiState.isCloseDialogOpen,
-            isSessionInsightDialogOpen = uiState.isSessionInsightDialogOpen,
-            isLastFlashcard = uiState.isLastFlashcard,
-            elapsedTime = viewModel.formatSeconds(uiState.secondsElapsed),
-            validationType = uiState.validationType,
-            isAnswerCorrect = uiState.isAnswerCorrect,
-            sequenceHits = uiState.sequenceHits,
-            isValidating = uiState.isValidating,
-            onDismissSessionInsight = {
-                viewModel.toggleSessionInsightDialog()
-                scope.launch {
-                    delay(100)
-                    onNavigateBack()
-                }
-            },
-            onCloseClick = viewModel::toggleCloseDialog,
-            onAcceptCloseDialog = {
-                viewModel.toggleCloseDialog()
-                scope.launch {
-                    delay(100)
-                    onNavigateBack()
-                }
-            },
-            onDismissCloseDialog = viewModel::toggleCloseDialog,
-            onClickToVerifyQuestion = viewModel::verifyQuestion,
-            onClickToNextFlashcard = viewModel::nextFlashcard,
-        )
+    Box(modifier = Modifier.fillMaxSize()) {
+        uiState.currentFlashcard?.let { flashcard ->
+            StudySessionContent(
+                flashcard = flashcard,
+                currentFlashcardIndex = uiState.currentFlashcardIndex,
+                totalFlashcards = uiState.sessionFlashcards.size,
+                sessionTitle = uiState.sessionTitle,
+                selectedAnswers = uiState.selectedAnswers,
+                onSelectAnswer = viewModel::onSelectAnswer,
+                isQuestionAnswered = uiState.isQuestionAnswered,
+                isQuestionVerified = uiState.isQuestionVerified,
+                isCloseDialogOpen = uiState.isCloseDialogOpen,
+                isSessionInsightDialogOpen = uiState.isSessionInsightDialogOpen,
+                isLastFlashcard = uiState.isLastFlashcard,
+                elapsedTime = viewModel.formatSeconds(uiState.secondsElapsed),
+                validationType = uiState.validationType,
+                isAnswerCorrect = uiState.isAnswerCorrect,
+                sequenceHits = uiState.sequenceHits,
+                isValidating = uiState.isValidating,
+                onDismissSessionInsight = {
+                    viewModel.toggleSessionInsightDialog()
+                    scope.launch {
+                        delay(100)
+                        onNavigateBack()
+                    }
+                },
+                onCloseClick = viewModel::toggleCloseDialog,
+                onAcceptCloseDialog = {
+                    viewModel.toggleCloseDialog()
+                    scope.launch {
+                        delay(120)
+                        onNavigateBack()
+                    }
+                },
+                onDismissCloseDialog = {
+                    scope.launch {
+                        delay(120)
+                        viewModel.toggleCloseDialog()
+                    }
+                },
+                onClickToVerifyQuestion = viewModel::verifyQuestion,
+                onClickToNextFlashcard = viewModel::nextFlashcard,
+            )
+        }
+
+        if (uiState.isLoading) {
+            FullScreenLoading()
+        }
     }
 }
 
@@ -154,7 +195,7 @@ fun StudySessionContent(
     onAcceptCloseDialog: () -> Unit = {},
     onDismissCloseDialog: () -> Unit = {},
     onClickToVerifyQuestion: () -> Unit = {},
-    onClickToNextFlashcard: () -> Unit = {}
+    onClickToNextFlashcard: () -> Unit = {},
 ) {
 
     val scrollState = rememberScrollState()
@@ -167,6 +208,8 @@ fun StudySessionContent(
             dialogText = "O progresso não será salvo! Deseja realmente sair?",
             confirmationButtonText = "Sair",
             dismissButtonText = "Cancelar",
+            icon = R.drawable.ic_warning,
+            iconColor = Red
         )
     }
 
@@ -525,7 +568,8 @@ private fun StudySessionContentPreview() {
         StudySessionContent(
             flashcard = PreviewDataProvider.flashcard,
             currentFlashcardIndex = 0,
-            totalFlashcards = 0,
+            totalFlashcards = 10,
+            sessionTitle = "Kotlin",
             selectedAnswers = emptyMap(),
             isQuestionAnswered = false,
             isQuestionVerified = true,

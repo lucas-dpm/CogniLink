@@ -17,13 +17,15 @@ data class FlashcardFormUiState(
     val isInitialized: Boolean = false,
     val isLoading: Boolean = false,
     val isSaved: Boolean = false,
+    val isSaving: Boolean = false,
     val errorMessage: String? = null,
     val isEditMode: Boolean = false,
     val isNewlyCreated: Boolean = false,
     val showDeleteDialog: Boolean = false,
     val showChangeDialog: Boolean = false,
+    val showCriticalErrorDialog: Boolean = false,
     val wasEdited: Boolean = false,
     val isMenuExpanded: Boolean = false,
     val questionTextError: String? = null,
-    val answersError: String? = null,
+    val answersError: String? = null
 )

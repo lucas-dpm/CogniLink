@@ -1,12 +1,33 @@
 package com.lucasdpm.cognilink.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -14,12 +35,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.lucasdpm.cognilink.ui.components.utils.CustomSnackbar
+import com.lucasdpm.cognilink.ui.components.utils.FullScreenLoading
 import com.lucasdpm.cognilink.ui.components.auth.AuthFooter
 import com.lucasdpm.cognilink.ui.components.auth.AuthHeader
 import com.lucasdpm.cognilink.ui.components.auth.SignInContent
 import com.lucasdpm.cognilink.ui.components.auth.SignUpContent
-import com.lucasdpm.cognilink.ui.theme.*
 import com.lucasdpm.cognilink.ui.states.AuthUiState
+import com.lucasdpm.cognilink.ui.states.CustomSnackbarVisuals
+import com.lucasdpm.cognilink.ui.theme.CogniLinkTheme
+import com.lucasdpm.cognilink.ui.theme.DarkGray
+import com.lucasdpm.cognilink.ui.theme.DarkNavyBlue
+import com.lucasdpm.cognilink.ui.theme.OffWhite
+import com.lucasdpm.cognilink.ui.theme.VeryLightGray
 import com.lucasdpm.cognilink.ui.viewmodels.AuthViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -35,52 +63,53 @@ fun AuthScreen(
     LaunchedEffect(uiState.loggedInUserId) {
         uiState.loggedInUserId?.let { userId ->
             onNavigateToHome(userId)
-            viewModel.clearNavigationEvent() // Limpa para evitar renavegarão ao voltar
-        }
-    }
-    
-    // Exibe erro se houver
-    uiState.errorMessage?.let { message ->
-        LaunchedEffect(message) {
-            // Aqui poderia ser um 'SnackbarHostState.showSnackbar'
+            viewModel.clearNavigationEvent()
         }
     }
 
-    AuthContent(
-        isSignUpMode = uiState.isSignUpMode,
-        signInEmail = uiState.signInEmail,
-        signInPassword = uiState.signInPassword,
-        signUpName = uiState.signUpName,
-        signUpEmail = uiState.signUpEmail,
-        signUpPassword = uiState.signUpPassword,
-        signUpConfirmPassword = uiState.signUpConfirmPassword,
-        isTermsAccepted = uiState.isTermsAccepted,
-        signInEmailError = uiState.signInEmailError,
-        signUpEmailError = uiState.signUpEmailError,
-        signInPasswordError = uiState.signInPasswordError,
-        signUpPasswordError = uiState.signUpPasswordError,
-        nameError = uiState.nameError,
-        confirmPasswordError = uiState.confirmPasswordError,
-        onModeChange = viewModel::onModeChange,
-        onSignInEmailChange = viewModel::onSignInEmailChange,
-        onSignInPasswordChange = viewModel::onSignInPasswordChange,
-        onSignInClick = {
-            viewModel.onSignInClick()
-        },
-        onSignUpNameChange = viewModel::onSignUpNameChange,
-        onSignUpEmailChange = viewModel::onSignUpEmailChange,
-        onSignUpPasswordChange = viewModel::onSignUpPasswordChange,
-        onSignUpConfirmPasswordChange = viewModel::onSignUpConfirmPasswordChange,
-        onTermsAcceptedChange = viewModel::onTermsAcceptedChange,
-        onSignUpClick = {
-            viewModel.onSignUpClick()
-        },
-        onNavigateToTerms = onNavigateToTerms
-    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        AuthContent(
+            isLoading = uiState.isLoading,
+            isSignUpMode = uiState.isSignUpMode,
+            signInEmail = uiState.signInEmail,
+            signInPassword = uiState.signInPassword,
+            signUpName = uiState.signUpName,
+            signUpEmail = uiState.signUpEmail,
+            signUpPassword = uiState.signUpPassword,
+            signUpConfirmPassword = uiState.signUpConfirmPassword,
+            isTermsAccepted = uiState.isTermsAccepted,
+            signInEmailError = uiState.signInEmailError,
+            signUpEmailError = uiState.signUpEmailError,
+            signInPasswordError = uiState.signInPasswordError,
+            signUpPasswordError = uiState.signUpPasswordError,
+            nameError = uiState.nameError,
+            confirmPasswordError = uiState.confirmPasswordError,
+            onModeChange = viewModel::onModeChange,
+            onSignInEmailChange = viewModel::onSignInEmailChange,
+            onSignInPasswordChange = viewModel::onSignInPasswordChange,
+            onSignInClick = {
+                viewModel.onSignInClick()
+            },
+            onSignUpNameChange = viewModel::onSignUpNameChange,
+            onSignUpEmailChange = viewModel::onSignUpEmailChange,
+            onSignUpPasswordChange = viewModel::onSignUpPasswordChange,
+            onSignUpConfirmPasswordChange = viewModel::onSignUpConfirmPasswordChange,
+            onTermsAcceptedChange = viewModel::onTermsAcceptedChange,
+            onSignUpClick = {
+                viewModel.onSignUpClick()
+            },
+            onNavigateToTerms = onNavigateToTerms
+        )
+
+        if (uiState.isLoading) {
+            FullScreenLoading()
+        }
+    }
 }
 
 @Composable
 fun AuthContent(
+    isLoading: Boolean = false,
     isSignUpMode: Boolean,
     signInEmail: String,
     signInPassword: String,
@@ -121,7 +150,7 @@ fun AuthContent(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
                 .offset(y = (-30).dp),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Surface(
                 color = VeryLightGray,
@@ -137,7 +166,10 @@ fun AuthContent(
                 ) {
                     Button(
                         onClick = { onModeChange(false) },
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        enabled = !isLoading,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (!isSignUpMode) Color.White else Color.Transparent
                         )
@@ -150,7 +182,10 @@ fun AuthContent(
                     }
                     Button(
                         onClick = { onModeChange(true) },
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        enabled = !isLoading,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (isSignUpMode) Color.White else Color.Transparent
                         )
@@ -217,7 +252,7 @@ fun AuthContent(
 private fun AuthScreenPreview() {
     CogniLinkTheme {
         var state by remember { mutableStateOf(AuthUiState()) }
-        
+
         AuthContent(
             isSignUpMode = state.isSignUpMode,
             signInEmail = state.signInEmail,

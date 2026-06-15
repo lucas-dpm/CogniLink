@@ -6,6 +6,7 @@ import com.lucasdpm.cognilink.data.model.UserStats
 import com.lucasdpm.cognilink.data.repository.UserRepository
 import com.lucasdpm.cognilink.domain.usecase.CalculateUserRankingUseCase
 import com.lucasdpm.cognilink.ui.states.ProfileUiState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,6 +30,7 @@ class ProfileViewModel(
     private fun loadUserProfileData(userId: String) {
         viewModelScope.launch {
             _uiState.value = ProfileUiState.Loading
+            delay(2000) // TODO: TEMPORARY FOR TESTING
             try {
                 val user = userRepository.getUserById(userId)
                 if (user == null) {

@@ -1,5 +1,6 @@
 package com.lucasdpm.cognilink.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lucasdpm.cognilink.data.model.Answer
@@ -7,8 +8,10 @@ import com.lucasdpm.cognilink.data.model.Flashcard
 import com.lucasdpm.cognilink.data.repository.FlashcardRepository
 import com.lucasdpm.cognilink.domain.model.DifficultyLevel
 import com.lucasdpm.cognilink.domain.model.FlashcardType
+import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.states.FlashcardFormUiState
 import java.util.UUID
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +19,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class FlashcardFormViewModel(
-    private val repository: FlashcardRepository
+    private val repository: FlashcardRepository,
+    private val notificationService: AppNotificationService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FlashcardFormUiState())
@@ -45,6 +49,7 @@ class FlashcardFormViewModel(
         }
         
         if (flashcardId != null) {
+            _uiState.update { it.copy(isLoading = true) }
             loadFlashcard()
         }
     }
@@ -52,6 +57,8 @@ class FlashcardFormViewModel(
     private fun loadFlashcard() {
         val currentState = _uiState.value
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            delay(2000) // TODO: TEMPORARY FOR TESTING
             try {
                 val flashcard = repository.getFlashcardById(currentState.flashcardId)?.flashcard
                 if (flashcard != null) {
@@ -65,13 +72,21 @@ class FlashcardFormViewModel(
                             difficulty = flashcard.difficulty,
                             answerOptions = flashcard.answerOptions,
                             hints = flashcard.hints,
-                            isInitialized = true
+                            isInitialized = true,
+                            isLoading = false
                         )
 
                     }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
+                Log.e("FlashcardFormViewModel", "Error loading flashcard: ${e.message}", e)
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Sentimos muito, mas não foi possível carregar os dados do flashcard. Tente novamente mais tarde!",
+                        showCriticalErrorDialog = true
+                    )
+                }
             }
         }
     }
@@ -159,15 +174,19 @@ class FlashcardFormViewModel(
         var isValid = true
 
         if (state.questionText.isBlank()) {
-            _uiState.update { it.copy(questionTextError = "O enunciado é obrigatório") }
+            _uiState.update { it.copy(questionTextError = "O enunciado é obrigatório.") }
             isValid = false
         }
 
         if (state.answerOptions.isEmpty() || state.answerOptions.all { it.answer.isBlank() }) {
-            _uiState.update { it.copy(answersError = "Pelo menos uma resposta deve ser fornecida") }
+            viewModelScope.launch {
+                notificationService.showWarning("Pelo menos uma resposta deve ser fornecida.")
+            }
             isValid = false
         } else if (state.cardType != FlashcardType.BASIC && state.answerOptions.none { it.isCorrect }) {
-            _uiState.update { it.copy(answersError = "Pelo menos uma resposta deve estar correta") }
+            viewModelScope.launch {
+                notificationService.showWarning("Pelo menos uma resposta deve estar marcada como correta.")
+            }
             isValid = false
         }
 
@@ -176,8 +195,12 @@ class FlashcardFormViewModel(
 
     fun saveFlashcard(): Boolean {
         viewModelScope.launch {
+            _uiState.update { it.copy(isSaving = true) }
+            delay(2000) // TODO: TEMPORARY FOR TESTING
             if (saveFlashcardSuspending()) {
-                _uiState.update { it.copy(isSaved = true) }
+                _uiState.update { it.copy(isSaved = true,isSaving = false) }
+            } else {
+                _uiState.update { it.copy(isSaving = false) }
             }
         }
         return uiState.value.isSaved
@@ -198,22 +221,23 @@ class FlashcardFormViewModel(
             hints = currentState.hints.filter { it.isNotBlank() },
             deckId = deckId
         )
-        
-        _uiState.update { it.copy(isLoading = true) }
+
         return try {
             repository.saveFlashcard(flashcardToSave)
             val isFirstSave = !currentState.isEditMode && !currentState.isNewlyCreated
             _uiState.update { 
                 it.copy(
                     isLoading = false, 
-                    errorMessage = null, 
                     wasEdited = false,
                     isNewlyCreated = it.isNewlyCreated || isFirstSave
                 ) 
             }
+            notificationService.showSuccess("Flashcard salvo com sucesso!")
             true
         } catch (e: Exception) {
-            _uiState.update { it.copy(isLoading = false, errorMessage = "Erro ao salvar flashcard: ${e.message}") }
+            Log.e("FlashcardFormViewModel", "saveFlashcardSuspending: Error saving flashcard", e)
+            _uiState.update { it.copy(isLoading = false) }
+            notificationService.showError("Não foi possível salvar o flashcard. Tente novamente mais tarde!")
             false
         }
     }
@@ -221,11 +245,22 @@ class FlashcardFormViewModel(
     fun deleteFlashcard() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
+            delay(2000) // TODO: TEMPORARY FOR TESTING
             try {
                 repository.deleteFlashcard(_uiState.value.flashcardId)
-                _uiState.update { it.copy(showDeleteDialog = false, isSaved = true, isLoading = false) }
+                _uiState.update {
+                    it.copy(
+                        showDeleteDialog = false,
+                        isSaved = true,
+                        isLoading = false,
+                        wasEdited = false
+                    )
+                }
+                notificationService.showSuccess("Flashcard excluído com sucesso!")
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = "Erro ao excluir flashcard: ${e.message}") }
+                Log.e("FlashcardFormViewModel", "deleteFlashcard: Error deleting flashcard", e)
+                _uiState.update { it.copy(isLoading = false) }
+                notificationService.showError("Não foi possível excluir o flashcard. Tente novamente mais tarde!")
             }
         }
     }
@@ -236,7 +271,9 @@ class FlashcardFormViewModel(
             viewModelScope.launch {
                 try {
                     repository.deleteFlashcard(currentState.flashcardId)
-                } catch (_: Exception) {}
+                } catch (e: Exception) {
+                    Log.e("FlashcardFormViewModel", "discardFlashcard: Error deleting flashcard", e)
+                }
             }
         }
     }

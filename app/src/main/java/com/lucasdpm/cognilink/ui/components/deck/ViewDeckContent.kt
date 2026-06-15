@@ -1,14 +1,7 @@
 package com.lucasdpm.cognilink.ui.components.deck
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -17,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -26,13 +20,8 @@ import com.lucasdpm.cognilink.R
 import com.lucasdpm.cognilink.domain.model.DifficultyLevel
 import com.lucasdpm.cognilink.ui.components.utils.GradientSurface
 import com.lucasdpm.cognilink.ui.components.utils.ProgressBar
-import com.lucasdpm.cognilink.ui.theme.DarkGray
-import com.lucasdpm.cognilink.ui.theme.DarkNavyBlue
-import com.lucasdpm.cognilink.ui.theme.MutedBlue
-import com.lucasdpm.cognilink.ui.theme.VeryLightGray
-import com.lucasdpm.cognilink.ui.theme.White
-import com.lucasdpm.cognilink.ui.theme.secondaryColor
-import com.lucasdpm.cognilink.ui.theme.tertiaryColor
+import com.lucasdpm.cognilink.ui.theme.shimmerEffect
+import com.lucasdpm.cognilink.ui.theme.*
 
 @Composable
 fun ViewDeckContent(
@@ -203,6 +192,77 @@ fun ViewDeckContent(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun ShimmerViewDeckContent(
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Box(
+                modifier = Modifier
+                    .width(100.dp)
+                    .height(20.dp)
+                    .clip(RoundedCornerShape(9999.dp))
+                    .shimmerEffect()
+            )
+            Box(
+                modifier = Modifier
+                    .width(80.dp)
+                    .height(20.dp)
+                    .clip(RoundedCornerShape(9999.dp))
+                    .shimmerEffect()
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .width(280.dp)
+                .height(54.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .shimmerEffect()
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(24.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .shimmerEffect()
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(100.dp)
+                .clip(RoundedCornerShape(26.dp))
+                .shimmerEffect()
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(90.dp)
+                    .clip(RoundedCornerShape(26.dp))
+                    .shimmerEffect()
+            )
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(90.dp)
+                    .clip(RoundedCornerShape(26.dp))
+                    .shimmerEffect()
+            )
         }
     }
 }

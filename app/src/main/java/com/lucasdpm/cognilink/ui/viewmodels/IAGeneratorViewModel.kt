@@ -3,13 +3,16 @@ package com.lucasdpm.cognilink.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import com.lucasdpm.cognilink.domain.model.DifficultyLevel
 import com.lucasdpm.cognilink.domain.model.FlashcardType
+import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.states.IAGeneratorUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-class IAGeneratorViewModel : ViewModel() {
+class IAGeneratorViewModel(
+    private val notificationService: AppNotificationService
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(IAGeneratorUiState())
     val uiState: StateFlow<IAGeneratorUiState> = _uiState.asStateFlow()

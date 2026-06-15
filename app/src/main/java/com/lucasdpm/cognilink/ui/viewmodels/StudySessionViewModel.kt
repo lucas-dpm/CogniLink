@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.lucasdpm.cognilink.data.model.Answer
 import com.lucasdpm.cognilink.data.repository.FlashcardRepository
 import com.lucasdpm.cognilink.domain.model.FlashcardType
+import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.states.StudySessionUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +23,8 @@ import com.lucasdpm.cognilink.domain.usecase.ValidateBasicAnswerUseCase
 
 class StudySessionViewModel(
     private val repository: FlashcardRepository,
-    private val validateBasicAnswerUseCase: ValidateBasicAnswerUseCase
+    private val validateBasicAnswerUseCase: ValidateBasicAnswerUseCase,
+    private val notificationService: AppNotificationService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(StudySessionUiState())
@@ -68,7 +70,13 @@ class StudySessionViewModel(
             }
 
             if (flashcards.isEmpty()) {
-                _uiState.update { it.copy(isLoading = false) }
+                _uiState.update { 
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Não há flashcards disponíveis para esta sessão.",
+                        showCriticalErrorDialog = true
+                    ) 
+                }
                 return@launch
             }
 
@@ -122,6 +130,7 @@ class StudySessionViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isValidating = true) }
+            delay(2000) // TODO: TEMPORARY FOR TESTING
 
             var isCorrect = false
             var validationType = ValidationType.NONE

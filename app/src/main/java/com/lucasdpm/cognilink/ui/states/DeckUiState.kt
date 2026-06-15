@@ -12,5 +12,7 @@ data class DeckUiState(
     val isAddFlashcardDialogOpen: Boolean = false,
     val isDeleteDeckDialogOpen: Boolean = false,
     val isLoading: Boolean = false,
+    val showCriticalErrorDialog: Boolean = false,
+    val isDeleting: Boolean = false,
     val errorMessage: String? = null
 )

@@ -3,7 +3,9 @@ package com.lucasdpm.cognilink.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lucasdpm.cognilink.data.repository.AuthRepository
+import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.states.AuthUiState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,7 +13,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class AuthViewModel(
-    private val repository: AuthRepository
+    private val repository: AuthRepository,
+    private val notificationService: AppNotificationService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
@@ -36,12 +39,12 @@ class AuthViewModel(
         var isValid = true
 
         if (email.isBlank() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _uiState.update { it.copy(signInEmailError = "E-mail inválido") }
+            _uiState.update { it.copy(signInEmailError = "E-mail inválido!") }
             isValid = false
         }
 
         if (password.isBlank()) {
-            _uiState.update { it.copy(signInPasswordError = "A senha não pode estar vazia") }
+            _uiState.update { it.copy(signInPasswordError = "A senha não pode estar vazia!") }
             isValid = false
         }
 
@@ -52,12 +55,14 @@ class AuthViewModel(
         if (!validateSignIn()) return
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true) }
+            delay(2000) // TODO: TEMPORARY FOR TESTING
             val user = repository.signIn(_uiState.value.signInEmail)
             if (user != null) {
                 _uiState.update { it.copy(loggedInUserId = user.id, isLoading = false) }
             } else {
-                _uiState.update { it.copy(errorMessage = "E-mail ou senha incorretos", isLoading = false) }
+                _uiState.update { it.copy(isLoading = false) }
+                notificationService.showError("E-mail ou senha incorretos!")
             }
         }
     }
@@ -84,27 +89,29 @@ class AuthViewModel(
         var isValid = true
 
         if (state.signUpName.isBlank()) {
-            _uiState.update { it.copy(nameError = "O nome é obrigatório") }
+            _uiState.update { it.copy(nameError = "O nome é obrigatório!") }
             isValid = false
         }
 
         if (state.signUpEmail.isBlank() || !android.util.Patterns.EMAIL_ADDRESS.matcher(state.signUpEmail).matches()) {
-            _uiState.update { it.copy(signUpEmailError = "E-mail inválido") }
+            _uiState.update { it.copy(signUpEmailError = "E-mail inválido!") }
             isValid = false
         }
 
         if (state.signUpPassword.length < 6) {
-            _uiState.update { it.copy(signUpPasswordError = "A senha deve ter pelo menos 6 caracteres") }
+            _uiState.update { it.copy(signUpPasswordError = "A senha deve ter pelo menos 6 caracteres!") }
             isValid = false
         }
 
         if (state.signUpPassword != state.signUpConfirmPassword) {
-            _uiState.update { it.copy(confirmPasswordError = "As senhas não coincidem") }
+            _uiState.update { it.copy(confirmPasswordError = "As senhas não coincidem!") }
             isValid = false
         }
 
         if (!state.isTermsAccepted) {
-            _uiState.update { it.copy(errorMessage = "Você deve aceitar os termos de uso") }
+            viewModelScope.launch {
+                notificationService.showWarning("Você deve aceitar os termos de uso!")
+            }
             isValid = false
         }
 
@@ -115,15 +122,18 @@ class AuthViewModel(
         if (!validateSignUp()) return
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true) }
+            delay(2000) // TODO: TEMPORARY FOR TESTING
             val user = repository.signUp(
                 _uiState.value.signUpName,
                 _uiState.value.signUpEmail
             )
             if (user != null) {
                 _uiState.update { it.copy(loggedInUserId = user.id, isLoading = false) }
+                notificationService.showSuccess("Cadastro realizado com sucesso!")
             } else {
-                _uiState.update { it.copy(errorMessage = "Falha no cadastro. Tente novamente.", isLoading = false) }
+                _uiState.update { it.copy(isLoading = false) }
+                notificationService.showError("Falha no cadastro. Tente novamente!")
             }
         }
     }
@@ -134,9 +144,5 @@ class AuthViewModel(
 
     fun clearNavigationEvent() {
         _uiState.update { it.copy(loggedInUserId = null) }
-    }
-
-    fun clearErrorMessage() {
-        _uiState.update { it.copy(errorMessage = null) }
     }
 }

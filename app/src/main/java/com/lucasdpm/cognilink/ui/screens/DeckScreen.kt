@@ -1,15 +1,8 @@
 package com.lucasdpm.cognilink.ui.screens
 
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenuItem
@@ -38,6 +31,8 @@ import com.lucasdpm.cognilink.data.model.FlashcardWithStats
 import com.lucasdpm.cognilink.data.preview.PreviewDataProvider
 import com.lucasdpm.cognilink.domain.model.DifficultyLevel
 import com.lucasdpm.cognilink.ui.components.deck.FlashcardItem
+import com.lucasdpm.cognilink.ui.components.deck.ShimmerFlashcardItem
+import com.lucasdpm.cognilink.ui.components.deck.ShimmerViewDeckContent
 import com.lucasdpm.cognilink.ui.components.deck.ViewDeckContent
 import com.lucasdpm.cognilink.ui.components.utils.dialogs.BasicCustomAlertDialog
 import com.lucasdpm.cognilink.ui.components.utils.EmptyContent
@@ -49,6 +44,7 @@ import com.lucasdpm.cognilink.ui.components.utils.labels.CustomLabel
 import com.lucasdpm.cognilink.ui.theme.CogniLinkTheme
 import com.lucasdpm.cognilink.ui.theme.DarkNavyBlue
 import com.lucasdpm.cognilink.ui.theme.LightGray
+import com.lucasdpm.cognilink.ui.theme.Red
 import com.lucasdpm.cognilink.ui.viewmodels.DeckViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -74,65 +70,94 @@ fun DeckScreen(
         viewModel.initialize(deckId, userId)
     }
 
-    val deck = uiState.currentDeck
-    DeckContent(
-        deckName = deck?.name,
-        deckCategories = deck?.categories,
-        deckDescription = deck?.description,
-        deckDifficulty = deck?.difficulty,
-        deckMastery = deck?.mastery,
-        deckTotalCards = deck?.totalCards,
-        deckCardsToReview = deck?.cardsToReview,
-        deckFlashcards = uiState.flashcards,
-        isMenuExpanded = uiState.isMenuExpanded,
-        isAddFlashcardDialogOpen = uiState.isAddFlashcardDialogOpen,
-        isDeleteDeckDialogOpen = uiState.isDeleteDeckDialogOpen,
-        onMenuClick = { viewModel.toggleMenu() },
-        onClickAddFlashcardDialog = { viewModel.toggleAddFlashcardDialog() },
-        onDismissAddFlashcardDialog = { viewModel.toggleAddFlashcardDialog() },
-        onCreateFlashcardManually = {
-            viewModel.toggleAddFlashcardDialog()
-            scope.launch {
-                delay(100)
-                onNavigateToCreateFlashcard(deckId)
-            }
-        },
-        onCreateFlashcardWithIA = {
-            viewModel.toggleAddFlashcardDialog()
-            scope.launch {
-                delay(100)
-                onNavigateToCreateWithIA(deckId)
-            }
-        },
-        onFlashcardClick = { flashcardId -> onNavigateToFlashcard(flashcardId) },
-        onStudyNowClick = {
-            onNavigateToStudy(deckId)
-        },
-        onClickSeeMore = { viewModel.loadAllFlashcards() },
-        onBackClick = onNavigateBack,
-        onConfirmDelete = {
-            viewModel.toggleDeleteDeckDialog()
-            viewModel.deleteDeck()
-            scope.launch {
-                delay(100)
-                onNavigateBack()
-            }
-        },
-        onEditClick = {
-            viewModel.toggleMenu()
-            scope.launch {
-                delay(100)
-                onNavigateToEdit()
-            }
-        },
-        onClickDeleteDeckDialog = {
-            viewModel.toggleMenu()
-            viewModel.toggleDeleteDeckDialog()
-        },
-        onDismissDeleteDeckDialog = {
-            viewModel.toggleDeleteDeckDialog()
-        },
-    )
+    if (uiState.showCriticalErrorDialog) {
+        BasicCustomAlertDialog(
+            onDismissRequest = {
+                scope.launch {
+                    delay(150)
+                    onNavigateBack()
+                }
+            },
+            onConfirmation = {
+                scope.launch {
+                    delay(150)
+                    onNavigateBack()
+                }
+            },
+            dialogTitle = "Ocorreu um erro!",
+            dialogText = uiState.errorMessage ?: "Não foi possível carregar o baralho.",
+            confirmationButtonText = "Voltar",
+            dismissButtonText = null,
+            icon = R.drawable.ic_warning,
+            iconColor = Red
+        )
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        val deck = uiState.currentDeck
+        DeckContent(
+            deckName = deck?.name,
+            deckCategories = deck?.categories,
+            deckDescription = deck?.description,
+            deckDifficulty = deck?.difficulty,
+            deckMastery = deck?.mastery,
+            deckTotalCards = deck?.totalCards,
+            deckCardsToReview = deck?.cardsToReview,
+            deckFlashcards = uiState.flashcards,
+            isMenuExpanded = uiState.isMenuExpanded,
+            isAddFlashcardDialogOpen = uiState.isAddFlashcardDialogOpen,
+            isDeleteDeckDialogOpen = uiState.isDeleteDeckDialogOpen,
+            onMenuClick = { viewModel.toggleMenu() },
+            onClickAddFlashcardDialog = { viewModel.toggleAddFlashcardDialog() },
+            onDismissAddFlashcardDialog = { viewModel.toggleAddFlashcardDialog() },
+            onCreateFlashcardManually = {
+                viewModel.toggleAddFlashcardDialog()
+                scope.launch {
+                    delay(100)
+                    onNavigateToCreateFlashcard(deckId)
+                }
+            },
+            onCreateFlashcardWithIA = {
+                viewModel.toggleAddFlashcardDialog()
+                scope.launch {
+                    delay(100)
+                    onNavigateToCreateWithIA(deckId)
+                }
+            },
+            onFlashcardClick = { flashcardId -> onNavigateToFlashcard(flashcardId) },
+            onStudyNowClick = {
+                onNavigateToStudy(deckId)
+            },
+            onClickSeeMore = { viewModel.loadAllFlashcards() },
+            onBackClick = onNavigateBack,
+            onConfirmDelete = {
+                viewModel.toggleDeleteDeckDialog()
+                viewModel.deleteDeck()
+                scope.launch {
+                    delay(100)
+                    onNavigateBack()
+                }
+            },
+            onEditClick = {
+                viewModel.toggleMenu()
+                scope.launch {
+                    delay(100)
+                    onNavigateToEdit()
+                }
+            },
+            onClickDeleteDeckDialog = {
+                viewModel.toggleMenu()
+                viewModel.toggleDeleteDeckDialog()
+            },
+            onDismissDeleteDeckDialog = {
+                scope.launch {
+                    delay(120)
+                    viewModel.toggleDeleteDeckDialog()
+                }
+            },
+            isLoading = uiState.isLoading
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -162,6 +187,7 @@ fun DeckContent(
     onClickDeleteDeckDialog: () -> Unit = {},
     onDismissDeleteDeckDialog: () -> Unit = {},
     isDeleteDeckDialogOpen: Boolean = false,
+    isLoading: Boolean = false
 ) {
     val scrollState = rememberScrollState()
 
@@ -173,6 +199,8 @@ fun DeckContent(
             dismissButtonText = "Cancelar",
             onConfirmation = onConfirmDelete,
             onDismissRequest = onDismissDeleteDeckDialog,
+            icon = R.drawable.ic_delete,
+            iconColor = Red
         )
     }
 
@@ -210,6 +238,7 @@ fun DeckContent(
                 menuEnabled = true,
                 showMenu = isMenuExpanded,
                 onDismissMenu = onMenuClick,
+                isLoading = isLoading,
                 menuContent = {
                     DropdownMenuItem(
                         text = { Text("Editar") },
@@ -255,15 +284,21 @@ fun DeckContent(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
 
-                ViewDeckContent(
-                    categories = deckCategories,
-                    difficulty = deckDifficulty,
-                    name = deckName,
-                    description = deckDescription,
-                    mastery = deckMastery,
-                    totalCards = deckTotalCards,
-                    cardToReview = deckCardsToReview,
-                )
+                Crossfade(targetState = isLoading, label = "deck_header_shimmer") { loading ->
+                    if (loading) {
+                        ShimmerViewDeckContent()
+                    } else {
+                        ViewDeckContent(
+                            categories = deckCategories,
+                            difficulty = deckDifficulty,
+                            name = deckName,
+                            description = deckDescription,
+                            mastery = deckMastery,
+                            totalCards = deckTotalCards,
+                            cardToReview = deckCardsToReview,
+                        )
+                    }
+                }
 
                 NeonActionButton(
                     text = "ADICIONAR FLASHCARD",
@@ -288,35 +323,50 @@ fun DeckContent(
                         }
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        deckFlashcards.forEach { flashcardWithStats ->
-                            val flashcard = flashcardWithStats.flashcard
-                            val stats = flashcardWithStats.stats
-                            
-                            FlashcardItem(
-                                flashcardType = flashcard.cardType,
-                                flashcardQuestion = flashcard.question,
-                                nextReview = stats?.nextReview?.let { "Revisar em $it" } ?: "Novo card",
-                                onSelectCard = { onFlashcardClick(flashcard.id) },
-                                selectionControl = {
-                                    IconButton(
-                                        onClick = { onFlashcardClick(flashcard.id) },
-                                        modifier = Modifier
-                                            .offset(x = 10.dp)
-                                            .size(32.dp)
-                                    ) {
-                                        Icon(
-                                            painterResource(id = R.drawable.ic_keyboard_arrow_down),
-                                            contentDescription = null,
-                                            tint = LightGray,
-                                            modifier = Modifier.rotate(-90f)
+                        Crossfade(targetState = isLoading, label = "flashcards_shimmer") { loading ->
+                            if (loading) {
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    repeat(3) {
+                                        ShimmerFlashcardItem()
+                                    }
+                                }
+                            } else {
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    deckFlashcards.forEach { flashcardWithStats ->
+                                        val flashcard = flashcardWithStats.flashcard
+                                        val stats = flashcardWithStats.stats
+
+                                        FlashcardItem(
+                                            flashcardType = flashcard.cardType,
+                                            flashcardQuestion = flashcard.question,
+                                            nextReview = stats?.nextReview?.let { "Revisar em $it" } ?: "Novo card",
+                                            onSelectCard = { onFlashcardClick(flashcard.id) },
+                                            selectionControl = {
+                                                IconButton(
+                                                    onClick = { onFlashcardClick(flashcard.id) },
+                                                    modifier = Modifier
+                                                        .offset(x = 10.dp)
+                                                        .size(32.dp)
+                                                ) {
+                                                    Icon(
+                                                        painterResource(id = R.drawable.ic_keyboard_arrow_down),
+                                                        contentDescription = null,
+                                                        tint = LightGray,
+                                                        modifier = Modifier.rotate(-90f)
+                                                    )
+                                                }
+                                            }
                                         )
                                     }
                                 }
-                            )
+                            }
                         }
                     }
-                } else
-                    EmptyContent()
+                } else {
+                    if (!isLoading) {
+                        EmptyContent()
+                    }
+                }
             }
         }
     }
@@ -340,6 +390,7 @@ private fun DeckContentPreview() {
             deckTotalCards = deck.totalCards,
             deckCardsToReview = deck.cardsToReview,
             deckFlashcards = flashcards,
+            isLoading = false
         )
     }
 }

@@ -5,7 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.lucasdpm.cognilink.data.model.UserStats
 import com.lucasdpm.cognilink.data.repository.DeckRepository
 import com.lucasdpm.cognilink.data.repository.UserRepository
+import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.states.HomeUiState
+import com.lucasdpm.cognilink.ui.states.SnackbarMessage
+import com.lucasdpm.cognilink.ui.states.SnackbarType
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +19,8 @@ import java.util.concurrent.TimeUnit
 
 class HomeViewModel(
     private val userRepository: UserRepository,
-    private val deckRepository: DeckRepository
+    private val deckRepository: DeckRepository,
+    private val notificationService: AppNotificationService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -31,50 +36,78 @@ class HomeViewModel(
         val currentState = _uiState.value
         val userId = currentState.userId ?: return
 
-        // Observar baralhos de forma reativa
+        // 1. Observar baralhos
         viewModelScope.launch {
-            deckRepository.getDecks(userId).collect { decks ->
-                _uiState.update {
-                    it.copy(
-                        decks = decks,
-                        isLoading = false
-                    )
+            _uiState.update { it.copy(isLoadingDecks = true) }
+            delay(2000) // TODO: TEMPORARY FOR TESTING
+            try {
+                deckRepository.getDecks(userId).collect { decks ->
+                    _uiState.update {
+                        it.copy(
+                            decks = decks,
+                            isLoadingDecks = false
+                        )
+                    }
+                    filterDecks(_uiState.value.searchInput)
                 }
-                filterDecks(_uiState.value.searchInput)
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoadingDecks = false) }
+                notificationService.showError("Erro ao carregar baralhos")
             }
         }
 
-        // Observar estatísticas de forma reativa
+        // 2. Observar estatísticas
         viewModelScope.launch {
-            userRepository.getUserStats(userId).collect { stats ->
-                val userStats = stats ?: UserStats(userId = userId)
-                _uiState.update {
-                    it.copy(
-                        totalStudyTime = userStats.totalStudyTime,
-                        overallMastery = userStats.overallMastery,
-                        cardsDone = userStats.totalFlashcardsDone,
-                        retentionRate = userStats.retentionRate
-                    )
+            _uiState.update { it.copy(isLoadingStats = true) }
+            delay(3500) // TODO: TEMPORARY FOR TESTING (Estatísticas demoram mais)
+            try {
+                userRepository.getUserStats(userId).collect { stats ->
+                    val userStats = stats ?: UserStats(userId = userId)
+                    _uiState.update {
+                        it.copy(
+                            totalStudyTime = userStats.totalStudyTime,
+                            overallMastery = userStats.overallMastery,
+                            cardsDone = userStats.totalFlashcardsDone,
+                            retentionRate = userStats.retentionRate,
+                            isLoadingStats = false
+                        )
+                    }
                 }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoadingStats = false) }
+                notificationService.showWarning("Erro ao carregar estatísticas")
             }
         }
 
+        // 3. Carregar Perfil (Nome)
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isLoadingUser = true) }
+            delay(1500) // TODO: TEMPORARY FOR TESTING
             try {
                 val user = userRepository.getUserById(userId = userId)
+                if (user == null) {
+                    _uiState.update {
+                        it.copy(
+                            isLoadingUser = false,
+                            errorMessage = "Usuário não encontrado. Por favor, faça login novamente.",
+                            showCriticalErrorDialog = true
+                        )
+                    }
+                    return@launch
+                }
 
                 _uiState.update {
                     it.copy(
-                        userName = user?.name ?: "Usuário",
-                        isLoading = false
+                        userName = user.name,
+                        isLoadingUser = false
                     )
                 }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
-                        isLoading = false,
-                        error = "Erro ao carregar dados da Home"
+                        isLoadingUser = false,
+                        errorMessage = "Falha ao conectar com o servidor.",
+                        showCriticalErrorDialog = true
                     )
                 }
             }
@@ -112,9 +145,5 @@ class HomeViewModel(
             _uiState.value.decks.filter { it.name.contains(query, ignoreCase = true) }
         }
         _uiState.update { it.copy(filteredDecks = filteredList) }
-    }
-
-    fun refreshDecks() {
-        // Não é mais necessário com Flow reativo, mas mantemos para compatibilidade
     }
 }

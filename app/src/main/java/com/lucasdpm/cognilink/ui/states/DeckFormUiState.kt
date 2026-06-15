@@ -16,9 +16,11 @@ data class DeckFormUiState(
     val showAddFlashcardDialog: Boolean = false,
     val isLoading: Boolean = false,
     val isSaved: Boolean = false,
+    val isSaving: Boolean = false,
     val errorMessage: String? = null,
     val isEditMode: Boolean = false,
     val wasEdited: Boolean = false,
     val showChangeDialog: Boolean = false,
     val deckNameError: String? = null,
+    val showCriticalErrorDialog: Boolean = false
 )

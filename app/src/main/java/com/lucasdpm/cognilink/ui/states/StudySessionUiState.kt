@@ -20,6 +20,8 @@ data class StudySessionUiState(
     val isValidating: Boolean = false,
     val validationType: ValidationType = ValidationType.NONE,
     val isAnswerCorrect: Boolean = false,
+    val showCriticalErrorDialog: Boolean = false,
+    val errorMessage: String? = null
 ) {
     val isQuestionAnswered: Boolean = selectedAnswers.isNotEmpty()
     val currentFlashcard: Flashcard? = sessionFlashcards.getOrNull(currentFlashcardIndex)

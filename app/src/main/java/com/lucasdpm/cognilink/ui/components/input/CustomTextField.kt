@@ -21,6 +21,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.lucasdpm.cognilink.ui.components.utils.labels.CustomLabel
+import com.lucasdpm.cognilink.ui.theme.Black
 import com.lucasdpm.cognilink.ui.theme.CogniLinkTheme
 import com.lucasdpm.cognilink.ui.theme.DarkGray
 import com.lucasdpm.cognilink.ui.theme.LightGray
@@ -74,6 +75,8 @@ fun CustomTextField(
                         unfocusedBorderColor = Color.Transparent,
                         focusedContainerColor = White,
                         unfocusedContainerColor = White,
+                        focusedTextColor = Black,
+                        unfocusedTextColor = Black
                     ),
                     minLines = minLines,
                     placeholder = {

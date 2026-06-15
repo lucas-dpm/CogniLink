@@ -10,7 +10,6 @@ data class AuthUiState(
     val signUpConfirmPassword: String = "",
     val isTermsAccepted: Boolean = false,
     val isLoading: Boolean = false,
-    val errorMessage: String? = null, // Erro geral (ex: falha na rede)
     val loggedInUserId: String? = null,
     
     // Erros específicos de campos

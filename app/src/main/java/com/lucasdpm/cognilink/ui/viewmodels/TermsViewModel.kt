@@ -1,20 +1,19 @@
 package com.lucasdpm.cognilink.ui.viewmodels
 
-import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.lucasdpm.cognilink.data.repository.TermsRepository
-import com.lucasdpm.cognilink.data.repository.TermsRepositoryImpl
+import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class TermsViewModel(
-    private val repository: TermsRepository
+    private val repository: TermsRepository,
+    private val notificationService: AppNotificationService
 ) : ViewModel() {
 
     var termsText by mutableStateOf("Carregando...")
@@ -38,26 +37,8 @@ class TermsViewModel(
                 termsText = content
             } catch (e: Exception) {
                 termsText = "Erro ao carregar termos de uso."
+                notificationService.showError("Falha ao carregar termos.")
             }
-        }
-    }
-
-    companion object {
-        fun provideFactory(
-            repository: TermsRepository
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                if (modelClass.isAssignableFrom(TermsViewModel::class.java)) {
-                    return TermsViewModel(repository) as T
-                }
-                throw IllegalArgumentException("Unknown ViewModel class")
-            }
-        }
-
-        fun provideFactory(context: Context): ViewModelProvider.Factory {
-            val repository = TermsRepositoryImpl(context.applicationContext)
-            return provideFactory(repository)
         }
     }
 }

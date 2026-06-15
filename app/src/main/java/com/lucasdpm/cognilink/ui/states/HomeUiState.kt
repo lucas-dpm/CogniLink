@@ -13,6 +13,13 @@ data class HomeUiState(
     val searchInput: String = "",
     val filteredDecks: List<Deck> = emptyList(),
     val decks: List<Deck> = emptyList(),
-    val isLoading: Boolean = false,
-    val error: String? = null
+    
+    // Flags individuais para Shimmer parcial
+    val isLoadingUser: Boolean = true,
+    val isLoadingDecks: Boolean = true,
+    val isLoadingStats: Boolean = true,
+
+    val snackbarMessage: SnackbarMessage? = null,
+    val showCriticalErrorDialog: Boolean = false,
+    val errorMessage: String? = null
 )

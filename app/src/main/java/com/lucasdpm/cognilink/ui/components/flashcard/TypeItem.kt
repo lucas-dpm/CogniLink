@@ -1,8 +1,11 @@
 package com.lucasdpm.cognilink.ui.components.flashcard
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,7 +16,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -25,6 +30,7 @@ import com.lucasdpm.cognilink.ui.theme.CogniLinkTheme
 import com.lucasdpm.cognilink.ui.theme.DarkNavyBlue
 import com.lucasdpm.cognilink.ui.theme.MutedBlue
 import com.lucasdpm.cognilink.ui.theme.White
+import com.lucasdpm.cognilink.ui.theme.shimmerEffect
 
 @Composable
 fun TypeItem(
@@ -63,7 +69,12 @@ fun TypeItem(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = typeName, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                Text(text = typeDefinition, fontSize = 11.sp, color = Color.DarkGray, lineHeight = 14.sp)
+                Text(
+                    text = typeDefinition,
+                    fontSize = 11.sp,
+                    color = Color.DarkGray,
+                    lineHeight = 14.sp
+                )
             }
 
             RadioButton(
@@ -75,16 +86,65 @@ fun TypeItem(
     }
 }
 
+@Composable
+fun ShimmerTypeItem(
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        modifier = modifier.fillMaxWidth(),
+        shadowElevation = 2.dp,
+        color = White
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(end = 16.dp)
+                    .size(46.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .shimmerEffect()
+            )
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .height(20.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .shimmerEffect()
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.4f)
+                        .height(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .shimmerEffect()
+                )
+            }
+        }
+    }
+}
+
 @Preview
 @Composable
 private fun TypeItemPreview() {
     CogniLinkTheme {
-        TypeItem(
-            typeName = "Pergunta e Resposta",
-            typeDefinition = "Ideal para fatos diretos",
-            icon = R.drawable.ic_basic_card,
-            checked = true,
-            onSelect = { }
-        )
+        Column() {
+            TypeItem(
+                typeName = "Pergunta e Resposta",
+                typeDefinition = "Ideal para fatos diretos",
+                icon = R.drawable.ic_basic_card,
+                checked = true,
+                onSelect = { }
+            )
+            ShimmerTypeItem()
+        }
+
     }
 }

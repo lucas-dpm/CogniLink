@@ -45,23 +45,27 @@ fun DifficultySelector(
 
     var expanded by remember { mutableStateOf(false) }
 
-    Surface(color = White,
+    Surface(
+        color = White,
         shape = RoundedCornerShape(12.dp),
         shadowElevation = 2.dp
     ) {
         Row(
-            modifier = modifier.clickable{
-                expanded = !expanded
-            }
+            modifier = modifier
+                .clickable {
+                    expanded = !expanded
+                }
                 .padding(16.dp)
         ) {
-            Text(text = selectedDifficulty?.toDisplayName() ?: "TODOS",
+            Text(
+                text = selectedDifficulty?.toDisplayName() ?: "TODOS",
                 fontWeight = FontWeight.Medium,
                 fontSize = 14.sp,
                 modifier = Modifier.weight(1f)
             )
 
-            Icon(painter = painterResource(id = R.drawable.ic_keyboard_arrow_down),
+            Icon(
+                painter = painterResource(id = R.drawable.ic_keyboard_arrow_down),
                 contentDescription = null
             )
 
@@ -71,7 +75,9 @@ fun DifficultySelector(
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.width(250.dp).border(1.dp, MutedBlue, RoundedCornerShape(12.dp)),
+                modifier = Modifier
+                    .width(250.dp)
+                    .border(1.dp, MutedBlue, RoundedCornerShape(12.dp)),
                 containerColor = White,
                 shape = RoundedCornerShape(12.dp)
             ) {
@@ -85,11 +91,20 @@ fun DifficultySelector(
                             expanded = false
                         },
                         leadingIcon = {
-                            val icon = if (selectedDifficulty == null) R.drawable.ic_check_circle else R.drawable.ic_circle
-                            Icon(painter = painterResource(id = icon), contentDescription = null, tint = DarkNavyBlue)
+                            val icon =
+                                if (selectedDifficulty == null) R.drawable.ic_check_circle else R.drawable.ic_circle
+                            Icon(
+                                painter = painterResource(id = icon),
+                                contentDescription = null,
+                                tint = DarkNavyBlue
+                            )
                         }
                     )
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp, color = LightGray)
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        thickness = 0.5.dp,
+                        color = LightGray
+                    )
                 }
 
                 difficultyLevels.forEachIndexed { index, difficulty ->
@@ -102,14 +117,23 @@ fun DifficultySelector(
                             expanded = false
                         },
                         leadingIcon = {
-                            val icon = if (difficulty == selectedDifficulty) R.drawable.ic_check_circle else R.drawable.ic_circle
-                            Icon(painter = painterResource(id = icon), contentDescription = null, tint = DarkNavyBlue)
+                            val icon =
+                                if (difficulty == selectedDifficulty) R.drawable.ic_check_circle else R.drawable.ic_circle
+                            Icon(
+                                painter = painterResource(id = icon),
+                                contentDescription = null,
+                                tint = DarkNavyBlue
+                            )
                         }
                     )
 
                     // Adiciona uma linha divisória entre itens, exceto no último
                     if (index < difficultyLevels.size - 1) {
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp, color = LightGray)
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            thickness = 0.5.dp,
+                            color = LightGray
+                        )
                     }
                 }
             }
@@ -125,10 +149,15 @@ private fun DifficultySelectorPreview() {
         var selectedDifficulty by remember { mutableStateOf<DifficultyLevel?>(DifficultyLevel.EASY) }
 
         DifficultySelector(
-            difficultyLevels = listOf(DifficultyLevel.EASY, DifficultyLevel.MEDIUM,DifficultyLevel.HARD),
+            difficultyLevels = listOf(
+                DifficultyLevel.EASY,
+                DifficultyLevel.MEDIUM,
+                DifficultyLevel.HARD
+            ),
             selectedDifficulty = selectedDifficulty,
-            onDifficultySelected = { selectedDifficulty = it},
+            onDifficultySelected = { selectedDifficulty = it },
             includeAllOption = true
         )
+
     }
 }

@@ -2,15 +2,7 @@ package com.lucasdpm.cognilink.ui.components.home
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
@@ -19,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,11 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lucasdpm.cognilink.R
 import com.lucasdpm.cognilink.ui.components.utils.GradientSurface
-import com.lucasdpm.cognilink.ui.theme.CogniLinkTheme
-import com.lucasdpm.cognilink.ui.theme.DarkGray
-import com.lucasdpm.cognilink.ui.theme.DarkNavyBlue
-import com.lucasdpm.cognilink.ui.theme.MutedBlue
-import com.lucasdpm.cognilink.ui.theme.White
+import com.lucasdpm.cognilink.ui.theme.shimmerEffect
+import com.lucasdpm.cognilink.ui.theme.*
 
 @Composable
 fun ProfileSection(
@@ -249,12 +239,75 @@ fun ProfileSection(
 
 }
 
+@Composable
+fun ShimmerProfileSection(
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(160.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .shimmerEffect()
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(120.dp)
+                    .height(24.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .shimmerEffect()
+            )
+            Box(
+                modifier = Modifier
+                    .width(80.dp)
+                    .height(20.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .shimmerEffect()
+            )
+        }
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            repeat(2) {
+                Row(
+                    modifier = Modifier.height(160.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    repeat(2) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .clip(RoundedCornerShape(24.dp))
+                                .shimmerEffect()
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
 
 
 @Preview
 @Composable
 private fun ProfileSectionPreview() {
     CogniLinkTheme {
-        ProfileSection(onOpenProfileClick = {})
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            ProfileSection(onOpenProfileClick = {})
+            ShimmerProfileSection()
+        }
     }
 }

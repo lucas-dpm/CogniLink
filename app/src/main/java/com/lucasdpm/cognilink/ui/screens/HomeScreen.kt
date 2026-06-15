@@ -1,15 +1,7 @@
 package com.lucasdpm.cognilink.ui.screens
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -34,16 +26,22 @@ import com.lucasdpm.cognilink.data.model.Deck
 import com.lucasdpm.cognilink.data.preview.PreviewDataProvider
 import com.lucasdpm.cognilink.ui.components.home.DeckCard
 import com.lucasdpm.cognilink.ui.components.home.ProfileSection
+import com.lucasdpm.cognilink.ui.components.home.ShimmerDeckCard
+import com.lucasdpm.cognilink.ui.components.home.ShimmerProfileSection
 import com.lucasdpm.cognilink.ui.components.input.SearchTextField
 import com.lucasdpm.cognilink.ui.components.utils.EmptyContent
+import com.lucasdpm.cognilink.ui.components.utils.FullScreenLoading
 import com.lucasdpm.cognilink.ui.components.utils.buttons.NeonActionButton
 import com.lucasdpm.cognilink.ui.components.utils.buttons.NeonFAB
+import com.lucasdpm.cognilink.ui.components.utils.dialogs.BasicCustomAlertDialog
 import com.lucasdpm.cognilink.ui.theme.CogniLinkTheme
 import com.lucasdpm.cognilink.ui.theme.DarkGray
 import com.lucasdpm.cognilink.ui.theme.DarkNavyBlue
+import com.lucasdpm.cognilink.ui.theme.Red
 import com.lucasdpm.cognilink.ui.theme.White
 import com.lucasdpm.cognilink.ui.viewmodels.HomeViewModel
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.animation.Crossfade
 
 @Composable
 fun HomeScreen(
@@ -52,6 +50,7 @@ fun HomeScreen(
     onNavigateToDeck: (String) -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToPlay: (String) -> Unit = {},
+    onNavigateToLogin: () -> Unit = {},
     viewModel: HomeViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -60,21 +59,39 @@ fun HomeScreen(
         viewModel.initialize(userId)
     }
 
-    HomeContent(
-        userName = uiState.userName,
-        homeInsight = uiState.welcomePhrase,
-        overallMastery = uiState.overallMastery,
-        totalStudyTime = viewModel.formatTime(uiState.totalStudyTime),
-        cardsDone = uiState.cardsDone,
-        learnRetention = uiState.retentionRate,
-        searchInput = uiState.searchInput,
-        decks = uiState.decks,
-        onSearchValueChange = viewModel::onSearchValueChange,
-        onDeckClick = onNavigateToDeck,
-        onNavigateToCreateDeck = { onNavigateToCreateDeck(userId) },
-        onNavigateToProfile = onNavigateToProfile,
-        onNavigateToPlay = { onNavigateToPlay(userId) }
-    )
+    if (uiState.showCriticalErrorDialog) {
+        BasicCustomAlertDialog(
+            onDismissRequest = { onNavigateToLogin() },
+            onConfirmation = { onNavigateToLogin() },
+            dialogTitle = "Acesso Expirado",
+            dialogText = uiState.errorMessage ?: "Por favor, realize o login novamente para continuar.",
+            confirmationButtonText = "Ir para Login",
+            dismissButtonText = null,
+            icon = R.drawable.ic_warning,
+            iconColor = Red
+        )
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        HomeContent(
+            userName = uiState.userName,
+            homeInsight = uiState.welcomePhrase,
+            overallMastery = uiState.overallMastery,
+            totalStudyTime = viewModel.formatTime(uiState.totalStudyTime),
+            cardsDone = uiState.cardsDone,
+            learnRetention = uiState.retentionRate,
+            searchInput = uiState.searchInput,
+            decks = uiState.filteredDecks,
+            onSearchValueChange = viewModel::onSearchValueChange,
+            onDeckClick = onNavigateToDeck,
+            onNavigateToCreateDeck = { onNavigateToCreateDeck(userId) },
+            onNavigateToProfile = onNavigateToProfile,
+            onNavigateToPlay = { onNavigateToPlay(userId) },
+            isLoadingUser = uiState.isLoadingUser,
+            isLoadingDecks = uiState.isLoadingDecks,
+            isLoadingStats = uiState.isLoadingStats
+        )
+    }
 }
 
 @Composable
@@ -91,7 +108,10 @@ fun HomeContent(
     onDeckClick: (String) -> Unit = { },
     onNavigateToCreateDeck: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
-    onNavigateToPlay: () -> Unit = {}
+    onNavigateToPlay: () -> Unit = {},
+    isLoadingUser: Boolean = true,
+    isLoadingDecks: Boolean = true,
+    isLoadingStats: Boolean = true
 ) {
 
     val scrollState = rememberScrollState()
@@ -137,16 +157,24 @@ fun HomeContent(
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                ProfileSection(
-                    userName = userName,
-                    homeInsight = homeInsight,
-                    overallMastery = overallMastery,
-                    totalStudyTime = totalStudyTime,
-                    cardsDone = cardsDone,
-                    learnRetention = learnRetention,
-                    onOpenProfileClick = onNavigateToProfile,
-                    modifier = Modifier.padding(top = padding.calculateTopPadding() + 20.dp)
-                )
+                Crossfade(targetState = isLoadingUser || isLoadingStats, label = "profile_shimmer") { loading ->
+                    if (loading) {
+                        ShimmerProfileSection(
+                            modifier = Modifier.padding(top = padding.calculateTopPadding() + 20.dp)
+                        )
+                    } else {
+                        ProfileSection(
+                            userName = userName,
+                            homeInsight = homeInsight,
+                            overallMastery = overallMastery,
+                            totalStudyTime = totalStudyTime,
+                            cardsDone = cardsDone,
+                            learnRetention = learnRetention,
+                            onOpenProfileClick = onNavigateToProfile,
+                            modifier = Modifier.padding(top = padding.calculateTopPadding() + 20.dp)
+                        )
+                    }
+                }
 
                 IconButton(
                     onClick = { /* TODO: Abrir tela de configurações */ },
@@ -185,26 +213,36 @@ fun HomeContent(
                     .fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                if (decks.isEmpty()) {
-                    EmptyContent(
-                        title = if (searchInput.isNotEmpty()) stringResource(R.string.home_search_no_results_title) else stringResource(
-                            R.string.home_empty_content_title
-                        ),
-                        subTitle = if (searchInput.isNotEmpty()) stringResource(R.string.home_search_no_results_subtitle) else stringResource(
-                            R.string.home_empty_content_subtitle
-                        ),
-                    )
-                } else {
-                    decks.forEach { deck ->
-                        DeckCard(
-                            modifier = Modifier.clickable { onDeckClick(deck.id) },
-                            difficulty = deck.difficulty,
-                            deckName = deck.name,
-                            category = deck.categories.firstOrNull() ?: "Geral",
-                            totalCards = deck.totalCards,
-                            cardsToReview = deck.cardsToReview,
-                            proficiency = deck.mastery
+                Crossfade(targetState = isLoadingDecks, label = "decks_shimmer") { loading ->
+                    if (loading) {
+                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            repeat(3) {
+                                ShimmerDeckCard()
+                            }
+                        }
+                    } else if (decks.isEmpty()) {
+                        EmptyContent(
+                            title = if (searchInput.isNotEmpty()) stringResource(R.string.home_search_no_results_title) else stringResource(
+                                R.string.home_empty_content_title
+                            ),
+                            subTitle = if (searchInput.isNotEmpty()) stringResource(R.string.home_search_no_results_subtitle) else stringResource(
+                                R.string.home_empty_content_subtitle
+                            ),
                         )
+                    } else {
+                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            decks.forEach { deck ->
+                                DeckCard(
+                                    modifier = Modifier.clickable { onDeckClick(deck.id) },
+                                    difficulty = deck.difficulty,
+                                    deckName = deck.name,
+                                    category = deck.categories.firstOrNull() ?: "Geral",
+                                    totalCards = deck.totalCards,
+                                    cardsToReview = deck.cardsToReview,
+                                    proficiency = deck.mastery
+                                )
+                            }
+                        }
                     }
                 }
             }

@@ -1,5 +1,6 @@
 package com.lucasdpm.cognilink.ui.screens
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -18,7 +19,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
@@ -44,20 +45,10 @@ import com.lucasdpm.cognilink.ui.components.utils.GradientSurface
 import com.lucasdpm.cognilink.ui.components.utils.NavigationHeader
 import com.lucasdpm.cognilink.ui.components.utils.ProgressBar
 import com.lucasdpm.cognilink.ui.components.utils.buttons.NeonActionButton
-import com.lucasdpm.cognilink.ui.theme.DarkGray
-import com.lucasdpm.cognilink.ui.theme.DarkNavyBlue
-import com.lucasdpm.cognilink.ui.theme.DarkRed
-import com.lucasdpm.cognilink.ui.theme.Green
-import com.lucasdpm.cognilink.ui.theme.LavenderBlue
-import com.lucasdpm.cognilink.ui.theme.MutedBlue
-import com.lucasdpm.cognilink.ui.theme.OffWhite
-import com.lucasdpm.cognilink.ui.theme.Red
-import com.lucasdpm.cognilink.ui.theme.VeryLightRed
-import com.lucasdpm.cognilink.ui.theme.White
+import com.lucasdpm.cognilink.ui.theme.*
 import com.lucasdpm.cognilink.ui.states.ProfileUiState
 import com.lucasdpm.cognilink.ui.viewmodels.ProfileViewModel
 import org.koin.androidx.compose.koinViewModel
-
 import androidx.compose.runtime.LaunchedEffect
 
 @Composable
@@ -72,29 +63,29 @@ fun ProfileScreen(
         viewModel.initialize(userId)
     }
 
-    when (val state = uiState) {
-        is ProfileUiState.Loading -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+    Crossfade(targetState = uiState, label = "profile_screen_shimmer") { state ->
+        when (state) {
+            is ProfileUiState.Loading -> {
+                ShimmerProfileContent(onNavigateBack = onNavigateBack)
             }
-        }
-        is ProfileUiState.Success -> {
-            ProfileContent(
-                userName = state.userName,
-                userRank = state.ranking.currentRank.displayName,
-                userStats = state.stats,
-                cognitiveEfficiencyInsight = state.ranking.efficiencyInsight,
-                globalAverageLatencyMsText = viewModel.formatLatency(state.stats.globalAverageLatencyMs),
-                retentionRateInsight = state.ranking.retentionInsight,
-                formattedStudyTime = viewModel.formatTime(state.stats.totalStudyTime),
-                formattedLastReview = viewModel.formatLastReview(state.stats.lastReview),
-                onNavigateBack = onNavigateBack,
-                onReviewLeeches = { /* TODO: Navigate to FlashcardPlayer with leech filter */ }
-            )
-        }
-        is ProfileUiState.Error -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = state.message, color = Red)
+            is ProfileUiState.Success -> {
+                ProfileContent(
+                    userName = state.userName,
+                    userRank = state.ranking.currentRank.displayName,
+                    userStats = state.stats,
+                    cognitiveEfficiencyInsight = state.ranking.efficiencyInsight,
+                    globalAverageLatencyMsText = viewModel.formatLatency(state.stats.globalAverageLatencyMs),
+                    retentionRateInsight = state.ranking.retentionInsight,
+                    formattedStudyTime = viewModel.formatTime(state.stats.totalStudyTime),
+                    formattedLastReview = viewModel.formatLastReview(state.stats.lastReview),
+                    onNavigateBack = onNavigateBack,
+                    onReviewLeeches = { /* TODO: Navigate to FlashcardPlayer with leech filter */ }
+                )
+            }
+            is ProfileUiState.Error -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(text = state.message, color = Red)
+                }
             }
         }
     }
@@ -103,7 +94,7 @@ fun ProfileScreen(
 @Composable
 fun ProfileContent(
     modifier: Modifier = Modifier,
-    userName: String = "Alex Silva",
+    userName: String = "Lucas Martins",
     userRank: String = "Iniciante",
     userStats: UserStats,
     cognitiveEfficiencyInsight: String,
@@ -624,6 +615,85 @@ fun ProfileContent(
         }
     }
 
+}
+
+@Composable
+fun ShimmerProfileContent(
+    modifier: Modifier = Modifier,
+    onNavigateBack: () -> Unit
+) {
+    Scaffold(
+        modifier = modifier.statusBarsPadding(),
+        topBar = {
+            NavigationHeader(title = "Perfil", onBackClick = onNavigateBack)
+        },
+        containerColor = OffWhite
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(32.dp),
+            horizontalAlignment = CenterHorizontally
+        ) {
+            Column(
+                horizontalAlignment = CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(200.dp)
+                        .height(40.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .shimmerEffect()
+                )
+                Box(
+                    modifier = Modifier
+                        .width(120.dp)
+                        .height(24.dp)
+                        .clip(RoundedCornerShape(32.dp))
+                        .shimmerEffect()
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .shimmerEffect()
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .shimmerEffect()
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .shimmerEffect()
+                )
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .shimmerEffect()
+                )
+            }
+        }
+    }
 }
 
 @Preview(showBackground = true, showSystemUi = true)
