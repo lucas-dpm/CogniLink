@@ -12,6 +12,8 @@ import com.lucasdpm.cognilink.data.repository.TermsRepository
 import com.lucasdpm.cognilink.data.repository.TermsRepositoryImpl
 import com.lucasdpm.cognilink.data.repository.UserRepository
 import com.lucasdpm.cognilink.data.repository.UserRepositoryImpl
+import com.lucasdpm.cognilink.data.service.KtorAIService
+import com.lucasdpm.cognilink.domain.repository.AIService
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.domain.usecase.CalculateDeckReviewCountUseCase
 import com.lucasdpm.cognilink.domain.usecase.CalculateDifficultyLevelUseCase
@@ -26,6 +28,13 @@ import com.lucasdpm.cognilink.ui.viewmodels.HomeViewModel
 import com.lucasdpm.cognilink.ui.viewmodels.IAGeneratorViewModel
 import com.lucasdpm.cognilink.ui.viewmodels.ProfileViewModel
 import com.lucasdpm.cognilink.ui.viewmodels.TermsViewModel
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.android.Android
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.factoryOf
@@ -33,12 +42,30 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
+val networkModule = module {
+    single {
+        HttpClient(Android) {
+            install(ContentNegotiation) {
+                json(Json {
+                    prettyPrint = true
+                    isLenient = true
+                    ignoreUnknownKeys = true
+                })
+            }
+            install(Logging) {
+                level = LogLevel.ALL
+            }
+        }
+    }
+}
+
 val repositoryModule = module {
     single<AuthRepository> { AuthRepositoryImpl(get(), get(), get()) }
     single<UserRepository> { UserRepositoryImpl(get(), get(), get()) }
     single<DeckRepository> { DeckRepositoryImpl(get(), get()) }
     singleOf(::FlashcardRepositoryImpl) { bind<FlashcardRepository>() }
     singleOf(::TermsRepositoryImpl) { bind<TermsRepository>() }
+    singleOf(::KtorAIService) { bind<AIService>() }
 }
 
 val domainModule = module {
@@ -78,6 +105,7 @@ val databaseModule = module {
 }
 
 val appModule = listOf(
+    networkModule,
     repositoryModule,
     domainModule,
     viewModelModule,
