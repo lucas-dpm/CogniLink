@@ -57,9 +57,10 @@ class DeckFormViewModel(
                 val draft = Deck(
                     id = id, userId = userId, name = "", description = "",
                     categories = emptyList(), difficulty = DifficultyLevel.EASY,
-                    mastery = 0f, totalCards = 0, cardsToReview = 0
+                    mastery = 0f, totalCards = 0, cardsToReview = 0,
                 )
                 deckRepository.saveDeck(draft, userId)
+                _uiState.update { it.copy(wasEdited = true) }
             } catch (e: Exception) {
                 Log.e("DeckFormViewModel", "saveDraftDeck: error on save draft deck", e)
                 _uiState.update {

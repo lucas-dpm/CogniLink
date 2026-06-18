@@ -7,7 +7,7 @@ import com.lucasdpm.cognilink.data.model.Flashcard
 import com.lucasdpm.cognilink.data.repository.FlashcardRepository
 import com.lucasdpm.cognilink.domain.model.DifficultyLevel
 import com.lucasdpm.cognilink.domain.model.FlashcardType
-import com.lucasdpm.cognilink.domain.repository.AIService
+import com.lucasdpm.cognilink.domain.service.AIService
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.states.IAGeneratorUiState
 import kotlinx.coroutines.flow.MutableStateFlow

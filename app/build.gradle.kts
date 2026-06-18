@@ -52,16 +52,6 @@ android {
         buildConfig = true
     }
 
-    androidResources {
-        noCompress += listOf("tflite")
-    }
-    packaging {
-        jniLibs {
-            pickFirsts += listOf(
-                "**/libmediapipe_tasks_text_jni.so"
-            )
-        }
-    }
 }
 
 dependencies {

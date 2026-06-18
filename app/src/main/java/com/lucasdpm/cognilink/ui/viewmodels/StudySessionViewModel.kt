@@ -24,7 +24,7 @@ import com.lucasdpm.cognilink.domain.usecase.ValidateBasicAnswerUseCase
 class StudySessionViewModel(
     private val repository: FlashcardRepository,
     private val validateBasicAnswerUseCase: ValidateBasicAnswerUseCase,
-    private val notificationService: AppNotificationService
+    private val notificationService: AppNotificationService,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(StudySessionUiState())
@@ -133,33 +133,71 @@ class StudySessionViewModel(
 
             var isCorrect: Boolean
             var validationType = ValidationType.NONE
+            var aiFeedback: String? = null
 
             when (currentFlashcard.cardType) {
-                FlashcardType.BASIC -> {
+                FlashcardType.BASIC, FlashcardType.OMISSION -> {
                     val userAnswer = currentState.selectedAnswers.values.firstOrNull() ?: ""
                     val correctAnswer = currentFlashcard.answerOptions.firstOrNull()?.answer ?: ""
-                    
-                    val result = validateBasicAnswerUseCase(userAnswer, correctAnswer)
-                    
+
+                    val result = validateBasicAnswerUseCase(
+                        question = currentFlashcard.question,
+                        userAnswer = userAnswer,
+                        correctAnswer = correctAnswer
+                    )
+
                     when (result) {
                         is ValidationResult.Correct -> {
                             isCorrect = true
                             validationType = ValidationType.CORRECT
+                            aiFeedback = result.feedback
                         }
                         is ValidationResult.Fallback -> {
                             isCorrect = false
                             validationType = ValidationType.FALLBACK
+                            aiFeedback = result.feedback
                         }
                     }
                 }
 
                 FlashcardType.MULTIPLE_CHOICE -> {
-                    isCorrect = currentState.selectedAnswers.keys.any { it.isCorrect }
+                    val selectedAnswer = currentState.selectedAnswers.keys.firstOrNull()
+                    val correctAnswer = currentFlashcard.answerOptions.find { it.isCorrect }
+
+                    isCorrect = selectedAnswer?.isCorrect ?: false
+                    validationType = if (isCorrect) ValidationType.CORRECT else ValidationType.FALLBACK
+
+                    if (selectedAnswer != null && correctAnswer != null) {
+                        val result = validateBasicAnswerUseCase(
+                            question = currentFlashcard.question,
+                            userAnswer = selectedAnswer.answer,
+                            correctAnswer = correctAnswer.answer
+                        )
+                        aiFeedback = when (result) {
+                            is ValidationResult.Correct -> result.feedback
+                            is ValidationResult.Fallback -> result.feedback
+                        }
+                    }
                 }
 
                 FlashcardType.TRUE_OR_FALSE -> {
                     isCorrect = currentState.selectedAnswers.all { (answer, choice) ->
                         (choice == "T" && answer.isCorrect) || (choice == "F" && !answer.isCorrect)
+                    }
+                    validationType = if (isCorrect) ValidationType.CORRECT else ValidationType.FALLBACK
+                    
+                    val firstAnswer = currentState.selectedAnswers.keys.firstOrNull()
+                    val userChoice = currentState.selectedAnswers.values.firstOrNull() ?: ""
+                    if (firstAnswer != null) {
+                         val result = validateBasicAnswerUseCase(
+                            question = currentFlashcard.question,
+                            userAnswer = "O usuário marcou a afirmação como ${if(userChoice == "T") "Verdadeira" else "Falsa"}",
+                            correctAnswer = "A afirmação é ${if(firstAnswer.isCorrect) "Verdadeira" else "Falsa"}"
+                        )
+                        aiFeedback = when (result) {
+                            is ValidationResult.Correct -> result.feedback
+                            is ValidationResult.Fallback -> result.feedback
+                        }
                     }
                 }
 
@@ -174,6 +212,7 @@ class StudySessionViewModel(
                     sequenceHits = if (isCorrect) it.sequenceHits + 1 else 0,
                     isAnswerCorrect = isCorrect,
                     validationType = validationType,
+                    aiFeedback = aiFeedback,
                     isValidating = false
                 )
             }

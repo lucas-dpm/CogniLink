@@ -10,9 +10,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -48,13 +51,13 @@ import com.lucasdpm.cognilink.data.model.Flashcard
 import com.lucasdpm.cognilink.data.preview.PreviewDataProvider
 import com.lucasdpm.cognilink.domain.model.FlashcardType
 import com.lucasdpm.cognilink.domain.model.ValidationType
-import com.lucasdpm.cognilink.ui.components.utils.FullScreenLoading
+import com.lucasdpm.cognilink.ui.components.flashcard.AIFeedbackSection
 import com.lucasdpm.cognilink.ui.components.flashcard.AnswerSelector
 import com.lucasdpm.cognilink.ui.components.flashcard.FlashcardHeader
 import com.lucasdpm.cognilink.ui.components.flashcard.HintReveal
 import com.lucasdpm.cognilink.ui.components.flashcard.TrueFalseToggle
 import com.lucasdpm.cognilink.ui.components.input.CustomTextField
-import com.lucasdpm.cognilink.ui.components.utils.GradientSurface
+import com.lucasdpm.cognilink.ui.components.utils.FullScreenLoading
 import com.lucasdpm.cognilink.ui.components.utils.buttons.SimpleGradientButton
 import com.lucasdpm.cognilink.ui.components.utils.dialogs.BasicCustomAlertDialog
 import com.lucasdpm.cognilink.ui.states.AnswerVisualState
@@ -131,6 +134,7 @@ fun StudySessionScreen(
                 elapsedTime = viewModel.formatSeconds(uiState.secondsElapsed),
                 validationType = uiState.validationType,
                 isAnswerCorrect = uiState.isAnswerCorrect,
+                aiFeedback = uiState.aiFeedback,
                 sequenceHits = uiState.sequenceHits,
                 isValidating = uiState.isValidating,
                 onDismissSessionInsight = {
@@ -183,6 +187,7 @@ fun StudySessionContent(
     elapsedTime: String,
     validationType: ValidationType? = null,
     isAnswerCorrect: Boolean = false,
+    aiFeedback: String? = null,
     sequenceHits: Int = 0,
     isValidating: Boolean = false,
     onDismissSessionInsight: () -> Unit = {},
@@ -194,6 +199,7 @@ fun StudySessionContent(
 ) {
 
     val scrollState = rememberScrollState()
+    val isKeyboardVisible = WindowInsets.ime.asPaddingValues().calculateBottomPadding() > 0.dp
 
     if (isCloseDialogOpen) {
         BasicCustomAlertDialog(
@@ -248,7 +254,6 @@ fun StudySessionContent(
     Scaffold(
         modifier = modifier
             .fillMaxSize()
-            .imePadding()
             .statusBarsPadding(),
         topBar = {
             FlashcardHeader(
@@ -257,33 +262,42 @@ fun StudySessionContent(
                 totalCards = totalFlashcards
             )
         },
-        containerColor = OffWhite,
         bottomBar = {
-            Column(modifier = Modifier.padding(24.dp)) {
-                SimpleGradientButton(
-                    text = when {
-                        isValidating -> "VALIDANDO..."
-                        isQuestionVerified && isLastFlashcard -> "FINALIZAR SESSÃO"
-                        isQuestionVerified -> "PROXÍMO FLASHCARD"
-                        else -> "VERIFICAR RESPOSTA"
-                    },
-                    icon = if (isValidating) null else if (isQuestionVerified) R.drawable.ic_arrow_forward else R.drawable.ic_check,
-                    iconRightSide = true,
-                    isEnabled = isQuestionAnswered && !isValidating,
-                    onClickButton = {
-                        if (isQuestionVerified) {
-                            onClickToNextFlashcard()
-                        } else {
-                            onClickToVerifyQuestion()
+            if (!isKeyboardVisible) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp)
+                        .navigationBarsPadding()
+                ) {
+                    SimpleGradientButton(
+                        text = when {
+                            isValidating -> "VALIDANDO..."
+                            isQuestionVerified && isLastFlashcard -> "FINALIZAR SESSÃO"
+                            isQuestionVerified -> "PROXÍMO FLASHCARD"
+                            else -> "VERIFICAR RESPOSTA"
+                        },
+                        icon = if (isValidating) null else if (isQuestionVerified) R.drawable.ic_arrow_forward else R.drawable.ic_check,
+                        iconRightSide = true,
+                        isEnabled = isQuestionAnswered && !isValidating,
+                        onClickButton = {
+                            if (isQuestionVerified) {
+                                onClickToNextFlashcard()
+                            } else {
+                                onClickToVerifyQuestion()
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
-        }
+        },
+        containerColor = OffWhite,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
+                .fillMaxSize()
                 .verticalScroll(scrollState)
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -379,7 +393,6 @@ fun StudySessionContent(
                             )
 
                             if (isQuestionVerified) {
-
                                 Surface(
                                     color = White,
                                     shape = RoundedCornerShape(24.dp),
@@ -421,7 +434,6 @@ fun StudySessionContent(
                                                 lineHeight = 8.sp
                                             )
                                         }
-
                                         Text(
                                             text = flashcard.answerOptions.firstOrNull()?.answer
                                                 ?: "",
@@ -430,47 +442,10 @@ fun StudySessionContent(
                                             fontSize = 14.sp,
                                             lineHeight = 16.sp
                                         )
-                                        GradientSurface(
-                                            shape = RoundedCornerShape(12.dp),
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) {
-                                            Column(
-                                                modifier = Modifier.padding(10.dp),
-                                                verticalArrangement = Arrangement.spacedBy(4.dp),
-                                            ){
-                                                Row(
-                                                    verticalAlignment = CenterVertically,
-                                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                                ) {
-                                                    Icon(
-                                                        painterResource(
-                                                            id = R.drawable.ic_lightbulb
-                                                        ), contentDescription = null,
-                                                        tint = White,
-                                                        modifier = Modifier.size(16.dp)
-                                                    )
-                                                    Text(
-                                                        text = "DICA DE MEMORIZAÇÃO",
-                                                        fontWeight = FontWeight.Bold,
-                                                        fontSize = 14.sp,
-                                                        lineHeight = 8.sp,
-                                                        color = White
-                                                    )
-                                                }
-                                                // Exibe o Feedback Inteligente (LLM ou Fallback)
-                                                if (validationType == ValidationType.FALLBACK) {
-                                                    Text(
-                                                        text = "Compare sua resposta com o gabarito acima para identificar pontos de melhoria e reforçar seu aprendizado.",
-                                                        color = White,
-                                                        fontSize = 14.sp,
-                                                        lineHeight = 18.sp
-                                                    )
-                                                }
-                                            }
-
-                                        }
+                                        AIFeedbackSection(
+                                            aiFeedback = aiFeedback,
+                                        )
                                     }
-
                                 }
                             }
                         }
@@ -507,7 +482,6 @@ fun StudySessionContent(
                                     }
                                 },
                             )
-
                         }
 
                         FlashcardType.MULTIPLE_CHOICE -> {
@@ -534,26 +508,38 @@ fun StudySessionContent(
                                     }
                                 }
                             )
-
+                            if (isQuestionVerified) {
+                                AIFeedbackSection(
+                                    aiFeedback = aiFeedback,
+                                )
+                            }
                         }
 
                         FlashcardType.OMISSION -> {
-
+                            CustomTextField(
+                                inputValue = selectedAnswers.values.firstOrNull() ?: "",
+                                onInputValueChange = { newAnswer ->
+                                    onSelectAnswer(Answer("", false), newAnswer)
+                                },
+                                placeholder = "Preencha a lacuna",
+                                enabled = !isQuestionVerified
+                            )
+                            if (isQuestionVerified) {
+                                AIFeedbackSection(
+                                    aiFeedback = aiFeedback,
+                                )
+                            }
                         }
 
                         FlashcardType.CHAT_FEYNMAN -> {
 
                         }
                     }
-
                     HintReveal(hints = targetFlashcard.hints)
                 }
             }
-
-
         }
     }
-
 }
 
 @Preview(showBackground = true, showSystemUi = true)
@@ -575,4 +561,3 @@ private fun StudySessionContentPreview() {
         )
     }
 }
-

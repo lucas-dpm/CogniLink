@@ -1,5 +1,6 @@
 package com.lucasdpm.cognilink.ui.navigation
 
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -97,7 +98,9 @@ fun CogniLinkNavGraph(
         NavHost(
             navController = navController,
             startDestination = startDestination,
-            modifier = androidx.compose.ui.Modifier.padding(paddingValues)
+            modifier = androidx.compose.ui.Modifier
+                .padding(paddingValues)
+                .consumeWindowInsets(paddingValues)
         ) {
             composable(Screen.Auth.route) {
                 AuthScreen(

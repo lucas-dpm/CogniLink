@@ -12,8 +12,10 @@ import com.lucasdpm.cognilink.data.repository.TermsRepository
 import com.lucasdpm.cognilink.data.repository.TermsRepositoryImpl
 import com.lucasdpm.cognilink.data.repository.UserRepository
 import com.lucasdpm.cognilink.data.repository.UserRepositoryImpl
+import com.lucasdpm.cognilink.data.service.AndroidNetworkMonitor
 import com.lucasdpm.cognilink.data.service.KtorAIService
-import com.lucasdpm.cognilink.domain.repository.AIService
+import com.lucasdpm.cognilink.domain.service.AIService
+import com.lucasdpm.cognilink.domain.repository.NetworkMonitor
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.domain.usecase.CalculateDeckReviewCountUseCase
 import com.lucasdpm.cognilink.domain.usecase.CalculateDifficultyLevelUseCase
@@ -70,6 +72,7 @@ val repositoryModule = module {
 
 val domainModule = module {
     singleOf(::AppNotificationService)
+    singleOf(::AndroidNetworkMonitor) { bind<NetworkMonitor>() }
     factoryOf(::CalculateDifficultyLevelUseCase)
     factoryOf(::CalculateDeckReviewCountUseCase)
     factoryOf(::CalculateUserRankingUseCase)

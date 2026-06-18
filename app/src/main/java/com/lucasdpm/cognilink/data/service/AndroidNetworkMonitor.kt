@@ -18,4 +18,11 @@ class AndroidNetworkMonitor(private val context: Context) : NetworkMonitor {
                 capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
         )
     }
+
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
+    override fun isWifiConnected(): Boolean {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+        return capabilities != null && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+    }
 }

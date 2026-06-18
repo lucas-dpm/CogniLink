@@ -25,6 +25,8 @@ import com.lucasdpm.cognilink.R
 import com.lucasdpm.cognilink.ui.components.utils.GradientSurface
 import com.lucasdpm.cognilink.ui.components.utils.ProgressBar
 import com.lucasdpm.cognilink.ui.theme.CogniLinkTheme
+import com.lucasdpm.cognilink.ui.theme.LavenderBlue
+import com.lucasdpm.cognilink.ui.theme.MutedBlue
 import com.lucasdpm.cognilink.ui.theme.VividCyan
 import com.lucasdpm.cognilink.ui.theme.White
 
@@ -70,7 +72,7 @@ fun FlashcardHeader(modifier: Modifier = Modifier,
                     )
                     Text(
                         text = "SESSÃO DE ESTUDO",
-                        color = VividCyan,
+                        color = MutedBlue,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 10.sp,
                         letterSpacing = 1.sp

@@ -116,7 +116,7 @@ fun IAGeneratorContent(
                 LabeledText(
                     modifier = Modifier.padding(top = 8.dp),
                     label = "OBS: ",
-                    text = "Se nulo, a IA criará com base no arquivo anexo. O tema será preenchido após a criação."
+                    text = "Se nulo, a IA criará com base no arquivo anexo."
                 )
             }
 

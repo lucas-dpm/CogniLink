@@ -20,6 +20,7 @@ data class StudySessionUiState(
     val isValidating: Boolean = false,
     val validationType: ValidationType = ValidationType.NONE,
     val isAnswerCorrect: Boolean = false,
+    val aiFeedback: String? = null,
     val showCriticalErrorDialog: Boolean = false,
     val errorMessage: String? = null
 ) {
