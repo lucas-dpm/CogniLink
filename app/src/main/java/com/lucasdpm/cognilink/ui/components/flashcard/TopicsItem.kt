@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.lucasdpm.cognilink.ui.components.utils.buttons.DeleteButton
+import com.lucasdpm.cognilink.ui.theme.Black
 import com.lucasdpm.cognilink.ui.theme.White
 
 @Composable
@@ -51,6 +52,8 @@ fun TopicsItem(
                         unfocusedBorderColor = Color.Transparent,
                         focusedContainerColor = Color.Transparent,
                         unfocusedContainerColor = Color.Transparent,
+                        focusedTextColor = Black,
+                        unfocusedTextColor = Black
                     ),
                     placeholder = { Text("Digite o tópico...") },
                 )
@@ -63,7 +66,6 @@ fun TopicsItem(
 @Preview
 @Composable
 private fun TopicsItemPreview() {
-    var topic by remember { mutableStateOf("Teste") }
-
-    TopicsItem(topic = topic, onTopicChange = { topic = it }, onClickToRemove = {})
+    var topicExample by remember { mutableStateOf("Tópico de exemplo") }
+    TopicsItem(topic = topicExample, onTopicChange = { topicExample = it }, onClickToRemove = {})
 }
