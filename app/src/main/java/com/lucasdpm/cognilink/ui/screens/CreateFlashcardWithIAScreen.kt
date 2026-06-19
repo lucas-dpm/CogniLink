@@ -89,7 +89,6 @@ fun CreateFlashcardWithIAScreen(
 
     IAGeneratorContent(
         flashcardTheme = uiState.flashcardTheme,
-        themeError = uiState.themeError,
         onFlashcardThemeChange = viewModel::onThemeChange,
         quantity = uiState.quantity,
         onQuantityChange = viewModel::onQuantityChange,

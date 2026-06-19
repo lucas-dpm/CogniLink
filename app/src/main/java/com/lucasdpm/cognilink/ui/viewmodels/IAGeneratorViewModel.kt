@@ -39,7 +39,7 @@ class IAGeneratorViewModel(
     }
 
     fun onThemeChange(newTheme: String) {
-        _uiState.update { it.copy(flashcardTheme = newTheme, themeError = null) }
+        _uiState.update { it.copy(flashcardTheme = newTheme) }
     }
 
     fun onQuantityChange(newQuantity: Int) {
@@ -63,8 +63,7 @@ class IAGeneratorViewModel(
             it.copy(
                 selectedFileUri = uri,
                 selectedFileName = fileName,
-                hasFile = true,
-                themeError = null
+                hasFile = true
             )
         }
 
@@ -96,8 +95,10 @@ class IAGeneratorViewModel(
                 _uiState.update { 
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Erro ao analisar documento: ${error.message}"
                     ) 
+                }
+                viewModelScope.launch {
+                    notificationService.showError("Erro ao analisar documento: ${error.message}")
                 }
             }
         }
@@ -106,7 +107,9 @@ class IAGeneratorViewModel(
     private fun validate(): Boolean {
         val state = _uiState.value
         if (state.flashcardTheme.isBlank() && !state.hasFile) {
-            _uiState.update { it.copy(themeError = "Forneça um tema ou anexe um arquivo") }
+            viewModelScope.launch {
+                notificationService.showError("Forneça um tema ou anexe um arquivo.")
+            }
             return false
         }
         return true
@@ -125,7 +128,7 @@ class IAGeneratorViewModel(
         val state = _uiState.value
         val deckId = state.deckId ?: return
         
-        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        _uiState.update { it.copy(isLoading = true) }
         
         viewModelScope.launch {
             val result = aiService.generateFlashcardsWithIA(
@@ -158,8 +161,7 @@ class IAGeneratorViewModel(
                 notificationService.showError("Erro ao gerar flashcards: ${error.message}")
                 _uiState.update { 
                     it.copy(
-                        isLoading = false, 
-                        errorMessage = "Erro ao gerar flashcards: ${error.message}"
+                        isLoading = false,
                     ) 
                 }
             }
