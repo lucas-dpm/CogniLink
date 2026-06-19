@@ -30,6 +30,8 @@ import com.lucasdpm.cognilink.ui.viewmodels.HomeViewModel
 import com.lucasdpm.cognilink.ui.viewmodels.IAGeneratorViewModel
 import com.lucasdpm.cognilink.ui.viewmodels.ProfileViewModel
 import com.lucasdpm.cognilink.ui.viewmodels.TermsViewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -45,6 +47,8 @@ import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val networkModule = module {
+    single { FirebaseAuth.getInstance() }
+    single { FirebaseFirestore.getInstance() }
     single {
         HttpClient(Android) {
             install(ContentNegotiation) {

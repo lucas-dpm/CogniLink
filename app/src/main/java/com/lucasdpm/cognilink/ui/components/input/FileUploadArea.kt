@@ -25,6 +25,7 @@ import com.lucasdpm.cognilink.ui.theme.dashedBorder
 
 @Composable
 fun FileUploadArea(modifier: Modifier = Modifier,
+                   fileName: String? = null,
                    onUploadClick: () -> Unit = {}
 ) {
     Column(horizontalAlignment = CenterHorizontally,
@@ -53,7 +54,7 @@ fun FileUploadArea(modifier: Modifier = Modifier,
                     contentDescription = null,
                     tint = Gray
                 )
-                Text(text = "Clique para enviar", color = Gray)
+                Text(text = fileName ?: "Clique para enviar", color = Gray)
 
                 Row(modifier= Modifier.padding(top= 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)

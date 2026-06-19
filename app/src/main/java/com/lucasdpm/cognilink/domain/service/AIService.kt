@@ -4,24 +4,41 @@ import com.lucasdpm.cognilink.domain.model.DifficultyLevel
 import com.lucasdpm.cognilink.domain.model.FlashcardType
 
 interface AIService {
-    suspend fun generateFlashcards(
-        theme: String,
-        quantity: Int,
-        difficulty: DifficultyLevel?,
-        type: FlashcardType?
-    ): Result<List<GeneratedFlashcard>>
-
     suspend fun compareAnswer(
         question: String,
         correctAnswer: String,
         userAnswer: String
     ): Result<AIAnswerFeedback>
+
+    suspend fun analyzeDocument(
+        fileBytes: ByteArray,
+        fileName: String
+    ): Result<DocumentAnalysis>
+
+    suspend fun generateFlashcardsWithIA(
+        topics: List<String>,
+        difficulty: String,
+        type: String,
+        quantity: Int
+    ): Result<List<IAGeneratedFlashcard>>
 }
 
-data class GeneratedFlashcard(
+data class DocumentAnalysis(
+    val mainTheme: String,
+    val topics: List<String>
+)
+
+data class IAGeneratedFlashcard(
     val question: String,
+    val type: FlashcardType,
+    val difficulty: DifficultyLevel,
+    val hints: List<String>,
+    val answerOptions: List<IAGeneratedAnswer>
+)
+
+data class IAGeneratedAnswer(
     val answer: String,
-    val options: List<String>? = null
+    val isCorrect: Boolean
 )
 
 data class AIAnswerFeedback(

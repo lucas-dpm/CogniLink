@@ -10,8 +10,11 @@ import com.lucasdpm.cognilink.domain.model.FlashcardType
 import com.lucasdpm.cognilink.domain.service.AIService
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.states.IAGeneratorUiState
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -24,6 +27,9 @@ class IAGeneratorViewModel(
 
     private val _uiState = MutableStateFlow(IAGeneratorUiState())
     val uiState: StateFlow<IAGeneratorUiState> = _uiState.asStateFlow()
+
+    private val _navigationEvents = MutableSharedFlow<IAGeneratorNavigationEvent>()
+    val navigationEvents: SharedFlow<IAGeneratorNavigationEvent> = _navigationEvents.asSharedFlow()
 
     fun initialize(deckId: String) {
         if (_uiState.value.deckId == deckId) return
@@ -46,8 +52,46 @@ class IAGeneratorViewModel(
         _uiState.update { it.copy(selectedType = newType) }
     }
 
-    fun onUploadFile(){
-        //TODO
+    fun onTopicsUpdate(newTopics: List<String>) {
+        _uiState.update { it.copy(topics = newTopics) }
+    }
+
+    fun onFileSelected(uri: String, fileName: String, fileBytes: ByteArray?) {
+        _uiState.update { 
+            it.copy(
+                selectedFileUri = uri,
+                selectedFileName = fileName,
+                hasFile = true,
+                themeError = null
+            )
+        }
+
+        if (fileBytes != null) {
+            analyzeDocument(fileBytes, fileName)
+        }
+    }
+
+    private fun analyzeDocument(fileBytes: ByteArray, fileName: String) {
+        _uiState.update { it.copy(isLoading = true) }
+        viewModelScope.launch {
+            val result = aiService.analyzeDocument(fileBytes, fileName)
+            result.onSuccess { analysis ->
+                _uiState.update { 
+                    it.copy(
+                        isLoading = false,
+                        flashcardTheme = analysis.mainTheme,
+                        topics = analysis.topics
+                    )
+                }
+            }.onFailure { error ->
+                _uiState.update { 
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Erro ao analisar documento: ${error.message}"
+                    ) 
+                }
+            }
+        }
     }
 
     private fun validate(): Boolean {
@@ -68,11 +112,11 @@ class IAGeneratorViewModel(
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
         
         viewModelScope.launch {
-            val result = aiService.generateFlashcards(
-                theme = state.flashcardTheme,
-                quantity = state.quantity,
-                difficulty = state.selectedDifficulty,
-                type = state.selectedType
+            val result = aiService.generateFlashcardsWithIA(
+                topics = if (state.topics.isNotEmpty()) state.topics else listOf(state.flashcardTheme),
+                difficulty = state.selectedDifficulty?.name ?: "RANDOM",
+                type = state.selectedType?.name ?: "RANDOM",
+                quantity = state.quantity
             )
 
             result.onSuccess { generatedList ->
@@ -80,19 +124,21 @@ class IAGeneratorViewModel(
                     Flashcard(
                         deckId = deckId,
                         question = generated.question,
-                        cardType = state.selectedType ?: FlashcardType.BASIC,
-                        difficulty = state.selectedDifficulty ?: DifficultyLevel.MEDIUM,
-                        hints = emptyList(),
-                        answerOptions = generated.options?.map { 
-                            Answer(it, isCorrect = it == generated.answer) 
-                        } ?: listOf(Answer(generated.answer, isCorrect = true))
+                        cardType = generated.type,
+                        difficulty = generated.difficulty,
+                        hints = generated.hints,
+                        answerOptions = generated.answerOptions.map { 
+                            Answer(it.answer, isCorrect = it.isCorrect) 
+                        }
                     )
                 }
                 
                 flashcardRepository.saveAllFlashcards(flashcards)
                 _uiState.update { it.copy(isLoading = false) }
-                // Navegar de volta ou mostrar sucesso
+                notificationService.showSuccess("${flashcards.size} flashcards gerados com sucesso!")
+                _navigationEvents.emit(IAGeneratorNavigationEvent.NavigateBack)
             }.onFailure { error ->
+                notificationService.showError("Erro ao gerar flashcards: ${error.message}")
                 _uiState.update { 
                     it.copy(
                         isLoading = false, 
@@ -102,4 +148,8 @@ class IAGeneratorViewModel(
             }
         }
     }
+}
+
+sealed class IAGeneratorNavigationEvent {
+    object NavigateBack : IAGeneratorNavigationEvent()
 }

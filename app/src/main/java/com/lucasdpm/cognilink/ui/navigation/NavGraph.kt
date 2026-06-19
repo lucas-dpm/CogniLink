@@ -244,6 +244,11 @@ fun CogniLinkNavGraph(
                     },
                     onNavigateToPlay = { uId ->
                         navController.navigate(Screen.PlayFlashcard.createRoute(studyMode = "REVIEW", contextId = uId))
+                    },
+                    onNavigateToLogin = {
+                        navController.navigate(Screen.Auth.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
                     }
                 )
             }

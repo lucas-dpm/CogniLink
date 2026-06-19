@@ -58,7 +58,7 @@ fun DifficultySelector(
                 .padding(16.dp)
         ) {
             Text(
-                text = selectedDifficulty?.toDisplayName() ?: "TODOS",
+                text = selectedDifficulty?.toDisplayName() ?: "ALEATÓRIO",
                 fontWeight = FontWeight.Medium,
                 fontSize = 14.sp,
                 modifier = Modifier.weight(1f)
@@ -84,7 +84,7 @@ fun DifficultySelector(
                 if (includeAllOption) {
                     DropdownMenuItem(
                         text = {
-                            Text("TODOS")
+                            Text("ALEATÓRIO")
                         },
                         onClick = {
                             onDifficultySelected(null)

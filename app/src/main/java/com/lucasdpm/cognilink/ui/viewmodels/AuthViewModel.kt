@@ -55,11 +55,25 @@ class AuthViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val user = repository.signIn(_uiState.value.signInEmail)
+            val user = repository.signIn(
+                _uiState.value.signInEmail,
+                _uiState.value.signInPassword
+            )
             if (user != null) {
-                _uiState.update { it.copy(loggedInUserId = user.id, isLoading = false) }
+                _uiState.update { 
+                    it.copy(
+                        loggedInUserId = user.id, 
+                        isLoading = false,
+                        signInPassword = "" // Item 1: Limpeza de segurança
+                    ) 
+                }
             } else {
-                _uiState.update { it.copy(isLoading = false) }
+                _uiState.update { 
+                    it.copy(
+                        isLoading = false,
+                        signInPassword = "" // Item 1: Limpeza de segurança em falhas
+                    ) 
+                }
                 notificationService.showError("E-mail ou senha incorretos!")
             }
         }
@@ -96,6 +110,7 @@ class AuthViewModel(
             isValid = false
         }
 
+        // TODO Item 3: Adicionar validação de complexidade de senha (letras, números, símbolos)
         if (state.signUpPassword.length < 6) {
             _uiState.update { it.copy(signUpPasswordError = "A senha deve ter pelo menos 6 caracteres!") }
             isValid = false
@@ -123,13 +138,27 @@ class AuthViewModel(
             _uiState.update { it.copy(isLoading = true) }
             val user = repository.signUp(
                 _uiState.value.signUpName,
-                _uiState.value.signUpEmail
+                _uiState.value.signUpEmail,
+                _uiState.value.signUpPassword
             )
             if (user != null) {
-                _uiState.update { it.copy(loggedInUserId = user.id, isLoading = false) }
+                _uiState.update { 
+                    it.copy(
+                        loggedInUserId = user.id, 
+                        isLoading = false,
+                        signUpPassword = "", // Item 1: Limpeza de segurança
+                        signUpConfirmPassword = ""
+                    ) 
+                }
                 notificationService.showSuccess("Cadastro realizado com sucesso!")
             } else {
-                _uiState.update { it.copy(isLoading = false) }
+                _uiState.update { 
+                    it.copy(
+                        isLoading = false,
+                        signUpPassword = "", // Item 1: Limpeza de segurança em falhas
+                        signUpConfirmPassword = ""
+                    ) 
+                }
                 notificationService.showError("Falha no cadastro. Tente novamente!")
             }
         }
