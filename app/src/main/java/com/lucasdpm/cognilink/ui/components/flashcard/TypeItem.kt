@@ -50,7 +50,7 @@ fun TypeItem(
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = CenterVertically
         ) {
             Surface(
                 color = MutedBlue,
@@ -135,7 +135,7 @@ fun ShimmerTypeItem(
 @Composable
 private fun TypeItemPreview() {
     CogniLinkTheme {
-        Column() {
+        Column {
             TypeItem(
                 typeName = "Pergunta e Resposta",
                 typeDefinition = "Ideal para fatos diretos",

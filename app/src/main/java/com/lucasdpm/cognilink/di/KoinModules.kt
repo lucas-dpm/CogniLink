@@ -14,7 +14,7 @@ import com.lucasdpm.cognilink.data.repository.UserRepository
 import com.lucasdpm.cognilink.data.repository.UserRepositoryImpl
 import com.lucasdpm.cognilink.data.service.AndroidNetworkMonitor
 import com.lucasdpm.cognilink.data.service.KtorAIService
-import com.lucasdpm.cognilink.domain.service.AIService
+import com.lucasdpm.cognilink.domain.repository.AIService
 import com.lucasdpm.cognilink.domain.repository.NetworkMonitor
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.domain.usecase.CalculateDeckReviewCountUseCase
@@ -66,7 +66,7 @@ val networkModule = module {
 }
 
 val repositoryModule = module {
-    single<AuthRepository> { AuthRepositoryImpl(get(), get(), get()) }
+    single<AuthRepository> { AuthRepositoryImpl(get(), get(), get(), get(), get()) }
     single<UserRepository> { UserRepositoryImpl(get(), get(), get()) }
     single<DeckRepository> { DeckRepositoryImpl(get(), get()) }
     singleOf(::FlashcardRepositoryImpl) { bind<FlashcardRepository>() }

@@ -3,11 +3,11 @@ package com.lucasdpm.cognilink.data.service
 import com.lucasdpm.cognilink.BuildConfig
 import com.lucasdpm.cognilink.domain.model.DifficultyLevel
 import com.lucasdpm.cognilink.domain.model.FlashcardType
-import com.lucasdpm.cognilink.domain.service.AIAnswerFeedback
-import com.lucasdpm.cognilink.domain.service.AIService
-import com.lucasdpm.cognilink.domain.service.DocumentAnalysis
-import com.lucasdpm.cognilink.domain.service.IAGeneratedAnswer
-import com.lucasdpm.cognilink.domain.service.IAGeneratedFlashcard
+import com.lucasdpm.cognilink.domain.repository.AIAnswerFeedback
+import com.lucasdpm.cognilink.domain.repository.AIService
+import com.lucasdpm.cognilink.domain.repository.DocumentAnalysis
+import com.lucasdpm.cognilink.domain.repository.IAGeneratedAnswer
+import com.lucasdpm.cognilink.domain.repository.IAGeneratedFlashcard
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.formData
@@ -67,6 +67,7 @@ class KtorAIService(
     }
 
     override suspend fun generateFlashcardsWithIA(
+        mainTheme: String,
         topics: List<String>,
         difficulty: String,
         type: String,
@@ -75,7 +76,7 @@ class KtorAIService(
         return runCatching {
             val response = httpClient.post("${baseUrl}/ai/generate-flashcards") {
                 contentType(ContentType.Application.Json)
-                setBody(IAGenerationRequest(topics, difficulty, type, quantity))
+                setBody(IAGenerationRequest(mainTheme, topics, difficulty, type, quantity))
             }.body<IAGenerationResponse>()
 
             response.flashcards.map { dto ->
@@ -117,6 +118,7 @@ class KtorAIService(
 
     @Serializable
     private data class IAGenerationRequest(
+        val mainTheme: String,
         val topics: List<String>,
         val difficulty: String,
         val type: String,

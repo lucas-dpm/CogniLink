@@ -28,7 +28,7 @@ interface FlashcardDao {
     @androidx.room.Update
     suspend fun updateFlashcard(flashcard: FlashcardEntity)
 
-    @androidx.room.Transaction
+    @Transaction
     suspend fun upsertFlashcard(flashcard: FlashcardEntity) {
         val id = insertFlashcard(flashcard)
         if (id == -1L) {

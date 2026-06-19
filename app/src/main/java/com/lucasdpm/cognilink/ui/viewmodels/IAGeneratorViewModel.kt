@@ -7,7 +7,8 @@ import com.lucasdpm.cognilink.data.model.Flashcard
 import com.lucasdpm.cognilink.data.repository.FlashcardRepository
 import com.lucasdpm.cognilink.domain.model.DifficultyLevel
 import com.lucasdpm.cognilink.domain.model.FlashcardType
-import com.lucasdpm.cognilink.domain.service.AIService
+import com.lucasdpm.cognilink.domain.repository.AIService
+import com.lucasdpm.cognilink.domain.repository.NetworkMonitor
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.states.IAGeneratorUiState
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -22,7 +23,8 @@ import kotlinx.coroutines.launch
 class IAGeneratorViewModel(
     private val aiService: AIService,
     private val flashcardRepository: FlashcardRepository,
-    private val notificationService: AppNotificationService
+    private val notificationService: AppNotificationService,
+    private val networkMonitor: NetworkMonitor
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(IAGeneratorUiState())
@@ -72,6 +74,13 @@ class IAGeneratorViewModel(
     }
 
     private fun analyzeDocument(fileBytes: ByteArray, fileName: String) {
+        if (!networkMonitor.isOnline()) {
+            viewModelScope.launch {
+                notificationService.showError("Você está offline. Conecte-se à internet para analisar o documento.")
+            }
+            return
+        }
+
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             val result = aiService.analyzeDocument(fileBytes, fileName)
@@ -105,6 +114,13 @@ class IAGeneratorViewModel(
 
     fun generateFlashcards() {
         if (!validate()) return
+        
+        if (!networkMonitor.isOnline()) {
+            viewModelScope.launch {
+                notificationService.showError("Você está offline. Conecte-se à internet para gerar flashcards com IA.")
+            }
+            return
+        }
 
         val state = _uiState.value
         val deckId = state.deckId ?: return
@@ -113,7 +129,8 @@ class IAGeneratorViewModel(
         
         viewModelScope.launch {
             val result = aiService.generateFlashcardsWithIA(
-                topics = if (state.topics.isNotEmpty()) state.topics else listOf(state.flashcardTheme),
+                mainTheme = state.flashcardTheme,
+                topics = state.topics,
                 difficulty = state.selectedDifficulty?.name ?: "RANDOM",
                 type = state.selectedType?.name ?: "RANDOM",
                 quantity = state.quantity

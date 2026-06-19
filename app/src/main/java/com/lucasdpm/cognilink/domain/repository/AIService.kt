@@ -1,4 +1,4 @@
-package com.lucasdpm.cognilink.domain.service
+package com.lucasdpm.cognilink.domain.repository
 
 import com.lucasdpm.cognilink.domain.model.DifficultyLevel
 import com.lucasdpm.cognilink.domain.model.FlashcardType
@@ -16,6 +16,7 @@ interface AIService {
     ): Result<DocumentAnalysis>
 
     suspend fun generateFlashcardsWithIA(
+        mainTheme: String,
         topics: List<String>,
         difficulty: String,
         type: String,

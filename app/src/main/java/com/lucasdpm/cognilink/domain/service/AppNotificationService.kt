@@ -1,5 +1,6 @@
 package com.lucasdpm.cognilink.domain.service
 
+import androidx.compose.material3.SnackbarDuration
 import com.lucasdpm.cognilink.ui.states.SnackbarMessage
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -17,7 +18,7 @@ class AppNotificationService {
     }
 
     suspend fun showError(message: String) {
-        showSnackbar(SnackbarMessage(message, type = com.lucasdpm.cognilink.ui.states.SnackbarType.ERROR))
+        showSnackbar(SnackbarMessage(message, type = com.lucasdpm.cognilink.ui.states.SnackbarType.ERROR, duration = SnackbarDuration.Long))
     }
 
     suspend fun showWarning(message: String) {

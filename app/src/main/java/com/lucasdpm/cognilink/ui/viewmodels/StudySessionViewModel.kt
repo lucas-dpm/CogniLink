@@ -24,7 +24,6 @@ import com.lucasdpm.cognilink.domain.usecase.ValidateBasicAnswerUseCase
 class StudySessionViewModel(
     private val repository: FlashcardRepository,
     private val validateBasicAnswerUseCase: ValidateBasicAnswerUseCase,
-    private val notificationService: AppNotificationService,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(StudySessionUiState())

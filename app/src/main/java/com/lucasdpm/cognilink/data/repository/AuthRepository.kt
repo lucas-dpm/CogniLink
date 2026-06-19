@@ -6,6 +6,8 @@ import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.firestore.FirebaseFirestore
 import com.lucasdpm.cognilink.data.model.User
 import com.lucasdpm.cognilink.data.model.UserStats
+import com.lucasdpm.cognilink.domain.repository.NetworkMonitor
+import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeoutOrNull
 
@@ -17,10 +19,17 @@ interface AuthRepository {
 class AuthRepositoryImpl(
     private val firebaseAuth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val networkMonitor: NetworkMonitor,
+    private val notificationService: AppNotificationService
 ) : AuthRepository {
 
     override suspend fun signIn(email: String, password: String): User? {
+        if (!networkMonitor.isOnline()) {
+            notificationService.showError("Sem conexão com a internet. Não é possível realizar login.")
+            return null
+        }
+
         return try {
             val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
             val firebaseUser = result.user ?: return null
@@ -69,12 +78,17 @@ class AuthRepositoryImpl(
             Log.e("AuthRepository", "Firebase Auth Error: ${e.errorCode}")
             null
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Unknown Auth Error")
+            Log.e("AuthRepository", "Unknown Auth Error: ${e.message}")
             null
         }
     }
 
     override suspend fun signUp(name: String, email: String, password: String): User? {
+        if (!networkMonitor.isOnline()) {
+            notificationService.showError("Sem conexão com a internet. Não é possível realizar o cadastro.")
+            return null
+        }
+
         return try {
             val result = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
             val firebaseUser = result.user ?: return null
@@ -99,7 +113,7 @@ class AuthRepositoryImpl(
                         .collection("stats").document("global").set(newUser.stats).await()
                 }
             } catch (firestoreError: Exception) {
-                Log.e("AuthRepository", "Firestore Sync Error")
+                Log.e("AuthRepository", "Firestore Sync Error: ${firestoreError.message}")
             }
 
             // Salva no banco local (Room) para prioridade de uso offline
@@ -110,7 +124,7 @@ class AuthRepositoryImpl(
             Log.e("AuthRepository", "Firebase Auth Error: ${e.errorCode}")
             null
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Unknown Auth Error")
+            Log.e("AuthRepository", "Unknown Auth Error: ${e.message}")
             null
         }
     }

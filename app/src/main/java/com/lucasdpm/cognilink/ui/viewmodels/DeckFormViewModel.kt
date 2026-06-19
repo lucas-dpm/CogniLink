@@ -152,7 +152,6 @@ class DeckFormViewModel(
     fun toggleRemoveMode() = _uiState.update { it.copy(isRemoveMode = !it.isRemoveMode) }
     fun toggleChangeDialog() = _uiState.update { it.copy(showChangeDialog = !it.showChangeDialog) }
 
-    fun clearError() = _uiState.update { it.copy(errorMessage = null) }
     fun toggleAddFlashcardDialog() =
         _uiState.update { it.copy(showAddFlashcardDialog = !it.showAddFlashcardDialog) }
 
