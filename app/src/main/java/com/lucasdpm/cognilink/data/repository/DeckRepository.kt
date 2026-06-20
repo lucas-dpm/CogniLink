@@ -1,5 +1,6 @@
 package com.lucasdpm.cognilink.data.repository
 
+import android.util.Log
 import com.lucasdpm.cognilink.data.datebase.CogniLinkDatabase
 import com.lucasdpm.cognilink.data.datebase.dao.DeckDao
 import com.lucasdpm.cognilink.data.mappers.toDomain
@@ -20,6 +21,10 @@ class DeckRepositoryImpl(
     private val db: CogniLinkDatabase,
     private val deckDao: DeckDao
 ) : DeckRepository {
+
+    companion object {
+        private const val TAG = "DeckRepository"
+    }
     
     override fun getDecks(userId: String): Flow<List<Deck>> {
         val currentTime = System.currentTimeMillis()
@@ -37,14 +42,24 @@ class DeckRepositoryImpl(
     }
 
     override suspend fun saveDeck(deck: Deck, userId: String) {
-        // Garante que o userId está correto antes de salvar/atualizar
-        deckDao.upsertDeck(deck.toEntity().copy(userId = userId))
+        try {
+            // Garante que o userId está correto antes de salvar/atualizar
+            deckDao.upsertDeck(deck.toEntity().copy(userId = userId))
+        } catch (e: Exception) {
+            Log.e(TAG, "saveDeck: Erro ao salvar baralho", e)
+            throw e
+        }
     }
 
     override suspend fun deleteDeck(deckId: String, userId: String) {
-        val entity = deckDao.getDeckById(deckId).first()
-        if (entity?.userId == userId) {
-            deckDao.deleteDeckById(deckId)
+        try {
+            val entity = deckDao.getDeckById(deckId).first()
+            if (entity?.userId == userId) {
+                deckDao.deleteDeckById(deckId)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "deleteDeck: Erro ao excluir baralho $deckId", e)
+            throw e
         }
     }
 }

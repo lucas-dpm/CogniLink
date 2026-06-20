@@ -1,5 +1,6 @@
 package com.lucasdpm.cognilink.data.service
 
+import android.util.Log
 import com.lucasdpm.cognilink.BuildConfig
 import com.lucasdpm.cognilink.domain.model.DifficultyLevel
 import com.lucasdpm.cognilink.domain.model.FlashcardType
@@ -25,6 +26,10 @@ class KtorAIService(
     private val httpClient: HttpClient,
 ) : AIService {
 
+    companion object {
+        private const val TAG = "KtorAIService"
+    }
+
     private val baseUrl = BuildConfig.BASE_BACKEND_URL
 
     override suspend fun compareAnswer(
@@ -42,6 +47,8 @@ class KtorAIService(
                 isCorrect = response.isCorrect,
                 tip = response.tip
             )
+        }.onFailure { e ->
+            Log.e(TAG, "compareAnswer: Erro ao comparar resposta", e)
         }
     }
 
@@ -63,6 +70,8 @@ class KtorAIService(
                 mainTheme = response.mainTheme,
                 topics = response.topics
             )
+        }.onFailure { e ->
+            Log.e(TAG, "analyzeDocument: Erro ao analisar documento", e)
         }
     }
 
@@ -93,6 +102,8 @@ class KtorAIService(
                     }
                 )
             }
+        }.onFailure { e ->
+            Log.e(TAG, "generateFlashcardsWithIA: Erro ao gerar flashcards", e)
         }
     }
 

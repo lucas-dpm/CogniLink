@@ -24,6 +24,10 @@ class AuthRepositoryImpl(
     private val notificationService: AppNotificationService
 ) : AuthRepository {
 
+    companion object {
+        private const val TAG = "AuthRepository"
+    }
+
     override suspend fun signIn(email: String, password: String): User? {
         if (!networkMonitor.isOnline()) {
             notificationService.showError("Sem conexão com a internet. Não é possível realizar login.")
@@ -75,10 +79,10 @@ class AuthRepositoryImpl(
 
             user
         } catch (e: FirebaseAuthException) {
-            Log.e("AuthRepository", "Firebase Auth Error: ${e.errorCode}")
+            Log.e(TAG, "signIn: Firebase Auth Error code: ${e.errorCode}", e)
             null
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Unknown Auth Error: ${e.message}")
+            Log.e(TAG, "signIn: Unknown Auth Error", e)
             null
         }
     }
@@ -113,7 +117,7 @@ class AuthRepositoryImpl(
                         .collection("stats").document("global").set(newUser.stats).await()
                 }
             } catch (e: Exception) {
-                Log.e("AuthRepository", "Firestore Sync Error: ${e.message}")
+                Log.e(TAG, "signUp: Firestore Sync Error", e)
             }
 
             // Salva no banco local (Room) para prioridade de uso offline
@@ -121,10 +125,10 @@ class AuthRepositoryImpl(
 
             newUser
         } catch (e: FirebaseAuthException) {
-            Log.e("AuthRepository", "Firebase Auth Error: ${e.errorCode}")
+            Log.e(TAG, "signUp: Firebase Auth Error code: ${e.errorCode}", e)
             null
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Unknown Auth Error: ${e.message}")
+            Log.e(TAG, "signUp: Unknown Auth Error", e)
             null
         }
     }

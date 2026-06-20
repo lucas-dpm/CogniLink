@@ -1,5 +1,6 @@
 package com.lucasdpm.cognilink.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lucasdpm.cognilink.data.model.UserStats
@@ -19,6 +20,10 @@ class HomeViewModel(
     private val deckRepository: DeckRepository,
     private val notificationService: AppNotificationService
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "HomeViewModel"
+    }
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -49,6 +54,7 @@ class HomeViewModel(
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoadingDecks = false) }
                 notificationService.showError("Erro ao carregar baralhos")
+                Log.e(TAG, "loadHomeData (decks): Erro ao carregar baralhos", e)
             }
         }
 
@@ -71,6 +77,7 @@ class HomeViewModel(
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoadingStats = false) }
                 notificationService.showWarning("Erro ao carregar estatísticas")
+                Log.e(TAG, "loadHomeData (stats): Erro ao carregar estatísticas", e)
             }
         }
 
@@ -104,6 +111,7 @@ class HomeViewModel(
                         showCriticalErrorDialog = true
                     )
                 }
+                Log.e(TAG, "loadHomeData (user): Falha ao conectar com o servidor", e)
             }
         }
     }

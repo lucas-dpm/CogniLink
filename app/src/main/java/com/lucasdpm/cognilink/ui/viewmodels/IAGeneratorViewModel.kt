@@ -1,5 +1,6 @@
 package com.lucasdpm.cognilink.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lucasdpm.cognilink.data.model.Answer
@@ -26,6 +27,10 @@ class IAGeneratorViewModel(
     private val notificationService: AppNotificationService,
     private val networkMonitor: NetworkMonitor
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "IAGeneratorViewModel"
+    }
 
     private val _uiState = MutableStateFlow(IAGeneratorUiState())
     val uiState: StateFlow<IAGeneratorUiState> = _uiState.asStateFlow()
@@ -98,8 +103,9 @@ class IAGeneratorViewModel(
                     ) 
                 }
                 viewModelScope.launch {
-                    notificationService.showError("Erro ao analisar documento: ${error.message}")
+                    notificationService.showError("Erro ao analisar documento. Por favor, tente novamente mais tarde!")
                 }
+                Log.e(TAG, "analyzeDocument: Erro ao analisar documento", error)
             }
         }
     }
@@ -158,7 +164,8 @@ class IAGeneratorViewModel(
                 notificationService.showSuccess("${flashcards.size} flashcards gerados com sucesso!")
                 _navigationEvents.emit(IAGeneratorNavigationEvent.NavigateBack)
             }.onFailure { error ->
-                notificationService.showError("Erro ao gerar flashcards: ${error.message}")
+                notificationService.showError("Erro ao gerar flashcards. Por favor, tente novamente mais tarde!")
+                Log.e(TAG, "generateFlashcards: Erro ao gerar flashcards", error)
                 _uiState.update { 
                     it.copy(
                         isLoading = false,

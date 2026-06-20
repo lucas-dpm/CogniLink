@@ -1,5 +1,6 @@
 package com.lucasdpm.cognilink.data.repository
 
+import android.util.Log
 import com.lucasdpm.cognilink.data.datebase.dao.DeckDao
 import com.lucasdpm.cognilink.data.datebase.dao.FlashcardDao
 import com.lucasdpm.cognilink.data.datebase.dao.FlashcardStatsDao
@@ -34,6 +35,11 @@ class FlashcardRepositoryImpl(
     private val flashcardStatsDao: FlashcardStatsDao,
     private val deckDao: DeckDao
 ) : FlashcardRepository {
+
+    companion object {
+        private const val TAG = "FlashcardRepository"
+    }
+
     override fun getFlashcardsForDeck(deckId: String): Flow<List<FlashcardWithStats>> {
         return flashcardDao.getFlashcardForDeckById(deckId).map { list ->
             list.map { it.toDomain() }
@@ -41,19 +47,39 @@ class FlashcardRepositoryImpl(
     }
 
     override suspend fun saveFlashcard(flashcard: Flashcard) {
-        flashcardDao.upsertFlashcard(flashcard.toEntity())
+        try {
+            flashcardDao.upsertFlashcard(flashcard.toEntity())
+        } catch (e: Exception) {
+            Log.e(TAG, "saveFlashcard: Erro ao salvar flashcard", e)
+            throw e
+        }
     }
 
     override suspend fun deleteFlashcard(flashcardId: String) {
-        flashcardDao.deleteFlashcardById(flashcardId)
+        try {
+            flashcardDao.deleteFlashcardById(flashcardId)
+        } catch (e: Exception) {
+            Log.e(TAG, "deleteFlashcard: Erro ao excluir flashcard", e)
+            throw e
+        }
     }
 
     override suspend fun getFlashcardById(flashcardId: String): FlashcardWithStats? {
-        return flashcardDao.getFlashcardById(flashcardId)?.toDomain()
+        return try {
+            flashcardDao.getFlashcardById(flashcardId)?.toDomain()
+        } catch (e: Exception) {
+            Log.e(TAG, "getFlashcardById: Erro ao buscar flashcard $flashcardId", e)
+            null
+        }
     }
 
     override suspend fun saveAllFlashcards(flashcards: List<Flashcard>) {
-        flashcardDao.saveAllFlashcards(flashcards.map { it.toEntity() })
+        try {
+            flashcardDao.saveAllFlashcards(flashcards.map { it.toEntity() })
+        } catch (e: Exception) {
+            Log.e(TAG, "saveAllFlashcards: Erro ao salvar lista de flashcards", e)
+            throw e
+        }
     }
 
     override fun getFlashcardStatistics(flashcardId: String): Flow<FlashcardStats?> {
@@ -77,7 +103,12 @@ class FlashcardRepositoryImpl(
     }
 
     override suspend fun updateFlashcardStatistics(statistics: FlashcardStats) {
-        flashcardStatsDao.insertFlashcardStats(statistics.toEntity())
+        try {
+            flashcardStatsDao.insertFlashcardStats(statistics.toEntity())
+        } catch (e: Exception) {
+            Log.e(TAG, "updateFlashcardStatistics: Erro ao atualizar estatísticas", e)
+            throw e
+        }
     }
 
     override suspend fun getFlashcardsToReview(deckId: String, currentTimestamp: Long): List<FlashcardWithStats> {

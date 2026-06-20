@@ -1,5 +1,6 @@
 package com.lucasdpm.cognilink.ui.viewmodels
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -15,6 +16,10 @@ class TermsViewModel(
     private val repository: TermsRepository,
     private val notificationService: AppNotificationService
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "TermsViewModel"
+    }
 
     var termsText by mutableStateOf("Carregando...")
         private set
@@ -38,6 +43,7 @@ class TermsViewModel(
             } catch (e: Exception) {
                 termsText = "Erro ao carregar termos de uso."
                 notificationService.showError("Falha ao carregar termos.")
+                Log.e(TAG, "loadTerms: Erro ao carregar termos de uso", e)
             }
         }
     }

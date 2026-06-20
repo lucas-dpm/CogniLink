@@ -155,7 +155,8 @@ fun DeckScreen(
                     viewModel.toggleDeleteDeckDialog()
                 }
             },
-            isLoading = uiState.isLoading
+            isLoading = uiState.isLoading,
+            formatNextReview = { timestamp -> viewModel.formatNextReview(timestamp) }
         )
     }
 }
@@ -187,7 +188,8 @@ fun DeckContent(
     onClickDeleteDeckDialog: () -> Unit = {},
     onDismissDeleteDeckDialog: () -> Unit = {},
     isDeleteDeckDialogOpen: Boolean = false,
-    isLoading: Boolean = false
+    isLoading: Boolean = false,
+    formatNextReview: (Long) -> String = { "" }
 ) {
     val scrollState = rememberScrollState()
 
@@ -339,7 +341,7 @@ fun DeckContent(
                                         FlashcardItem(
                                             flashcardType = flashcard.cardType,
                                             flashcardQuestion = flashcard.question,
-                                            nextReview = stats?.nextReview?.let { "Revisar em $it" } ?: "Novo card",
+                                            nextReview = stats?.nextReview?.let { formatNextReview(it) } ?: "Novo card",
                                             onSelectCard = { onFlashcardClick(flashcard.id) },
                                             selectionControl = {
                                                 IconButton(

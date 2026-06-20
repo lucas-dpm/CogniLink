@@ -1,5 +1,6 @@
 package com.lucasdpm.cognilink.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lucasdpm.cognilink.data.model.UserStats
@@ -17,6 +18,11 @@ class ProfileViewModel(
     private val calculateUserRankingUseCase: CalculateUserRankingUseCase,
     private val userRepository: UserRepository
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "ProfileViewModel"
+    }
+
     private val _uiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Loading)
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
@@ -48,7 +54,8 @@ class ProfileViewModel(
                     )
                 }
             } catch (e: Exception) {
-                _uiState.value = ProfileUiState.Error(e.message ?: "Erro desconhecido")
+                _uiState.value = ProfileUiState.Error("Erro ao carregar perfil")
+                Log.e(TAG, "loadUserProfileData: Erro ao carregar dados do perfil", e)
             }
         }
     }
@@ -74,6 +81,8 @@ class ProfileViewModel(
     }
 
     fun formatLastReview(lastReviewTimestamp: Long): String {
+        if (lastReviewTimestamp <= 0L) return "Nenhuma revisão realizada"
+
         val now = System.currentTimeMillis()
         val diff = now - lastReviewTimestamp
         if (diff < 0) return "Agora mesmo"

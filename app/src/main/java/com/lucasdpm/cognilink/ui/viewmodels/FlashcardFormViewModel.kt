@@ -22,6 +22,10 @@ class FlashcardFormViewModel(
     private val notificationService: AppNotificationService
 ) : ViewModel() {
 
+    companion object {
+        private const val TAG = "FlashcardFormViewModel"
+    }
+
     private val _uiState = MutableStateFlow(FlashcardFormUiState())
     val uiState: StateFlow<FlashcardFormUiState> = _uiState.asStateFlow()
 
@@ -77,7 +81,7 @@ class FlashcardFormViewModel(
                     }
                 }
             } catch (e: Exception) {
-                Log.e("FlashcardFormViewModel", "Error loading flashcard: ${e.message}", e)
+                Log.e(TAG, "loadFlashcard: Error loading flashcard", e)
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -232,7 +236,7 @@ class FlashcardFormViewModel(
             notificationService.showSuccess("Flashcard salvo com sucesso!")
             true
         } catch (e: Exception) {
-            Log.e("FlashcardFormViewModel", "saveFlashcardSuspending: Error saving flashcard", e)
+            Log.e(TAG, "saveFlashcardSuspending: Error saving flashcard", e)
             _uiState.update { it.copy(isLoading = false) }
             notificationService.showError("Não foi possível salvar o flashcard. Tente novamente mais tarde!")
             false
@@ -254,7 +258,7 @@ class FlashcardFormViewModel(
                 }
                 notificationService.showSuccess("Flashcard excluído com sucesso!")
             } catch (e: Exception) {
-                Log.e("FlashcardFormViewModel", "deleteFlashcard: Error deleting flashcard", e)
+                Log.e(TAG, "deleteFlashcard: Error deleting flashcard", e)
                 _uiState.update { it.copy(isLoading = false) }
                 notificationService.showError("Não foi possível excluir o flashcard. Tente novamente mais tarde!")
             }
@@ -268,7 +272,7 @@ class FlashcardFormViewModel(
                 try {
                     repository.deleteFlashcard(currentState.flashcardId)
                 } catch (e: Exception) {
-                    Log.e("FlashcardFormViewModel", "discardFlashcard: Error deleting flashcard", e)
+                    Log.e(TAG, "discardFlashcard: Error deleting flashcard", e)
                 }
             }
         }

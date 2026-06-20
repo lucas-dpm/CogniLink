@@ -21,6 +21,11 @@ class DeckFormViewModel(
     private val flashcardRepository: FlashcardRepository,
     private val notificationService: AppNotificationService
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "DeckFormViewModel"
+    }
+
     private val _uiState = MutableStateFlow(DeckFormUiState())
     val uiState: StateFlow<DeckFormUiState> = _uiState.asStateFlow()
 
@@ -62,7 +67,7 @@ class DeckFormViewModel(
                 deckRepository.saveDeck(draft, userId)
                 _uiState.update { it.copy(wasEdited = true) }
             } catch (e: Exception) {
-                Log.e("DeckFormViewModel", "saveDraftDeck: error on save draft deck", e)
+                Log.e(TAG, "saveDraftDeck: error on save draft deck", e)
                 _uiState.update {
                     it.copy(
                         errorMessage = "Erro ao preparar rascunho",
@@ -76,25 +81,34 @@ class DeckFormViewModel(
     private fun loadDeckData() {
         val state = _uiState.value
         viewModelScope.launch {
-            deckRepository.getDeckById(state.deckId, state.userId!!).collect { deck ->
-                deck?.let { d ->
-                    _uiState.update {
-                        it.copy(
-                            deckName = it.deckName.ifEmpty { d.name },
-                            deckDescription = it.deckDescription.ifEmpty { d.description },
-                            deckCategories = it.deckCategories.ifEmpty { d.categories },
-                            isLoading = false
-                        )
+            try {
+                deckRepository.getDeckById(state.deckId, state.userId!!).collect { deck ->
+                    deck?.let { d ->
+                        _uiState.update {
+                            it.copy(
+                                deckName = it.deckName.ifEmpty { d.name },
+                                deckDescription = it.deckDescription.ifEmpty { d.description },
+                                deckCategories = it.deckCategories.ifEmpty { d.categories },
+                                isLoading = false
+                            )
+                        }
                     }
                 }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false) }
+                Log.e(TAG, "loadDeckData: Erro ao carregar dados do baralho", e)
             }
         }
     }
 
     private fun observeFlashcards(deckId: String) {
         viewModelScope.launch {
-            flashcardRepository.getFlashcardsForDeck(deckId).collect { list ->
-                _uiState.update { it.copy(deckFlashcards = list) }
+            try {
+                flashcardRepository.getFlashcardsForDeck(deckId).collect { list ->
+                    _uiState.update { it.copy(deckFlashcards = list) }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "observeFlashcards: Erro ao observar flashcards", e)
             }
         }
     }
@@ -126,8 +140,9 @@ class DeckFormViewModel(
                 }
                 notificationService.showSuccess("Baralho salvo com sucesso!")
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false) }
-                notificationService.showError("Erro ao salvar: ${e.message}")
+                _uiState.update { it.copy(isSaving = false, isLoading = false) }
+                notificationService.showError("Erro ao salvar baralho")
+                Log.e(TAG, "saveDeck: Erro ao salvar baralho", e)
             }
         }
     }
@@ -137,7 +152,11 @@ class DeckFormViewModel(
         // Só deleta se for um novo baralho que nunca foi salvo oficialmente
         if (!state.isEditMode && !state.isSaved) {
             viewModelScope.launch {
-                deckRepository.deleteDeck(state.deckId, state.userId!!)
+                try {
+                    deckRepository.deleteDeck(state.deckId, state.userId!!)
+                } catch (e: Exception) {
+                    Log.e(TAG, "discardDeck: Erro ao excluir rascunho", e)
+                }
             }
         }
     }
@@ -156,7 +175,14 @@ class DeckFormViewModel(
         _uiState.update { it.copy(showAddFlashcardDialog = !it.showAddFlashcardDialog) }
 
     fun removeFlashcard(id: String) =
-        viewModelScope.launch { flashcardRepository.deleteFlashcard(id) }
+        viewModelScope.launch { 
+            try {
+                flashcardRepository.deleteFlashcard(id)
+            } catch (e: Exception) {
+                notificationService.showError("Erro ao excluir flashcard")
+                Log.e(TAG, "removeFlashcard: Erro ao excluir flashcard", e)
+            }
+        }
 
     // Categorias
     fun openCategoryDialog(c: String? = null) = _uiState.update {

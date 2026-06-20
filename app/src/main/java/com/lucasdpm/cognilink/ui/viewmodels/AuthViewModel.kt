@@ -1,5 +1,6 @@
 package com.lucasdpm.cognilink.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lucasdpm.cognilink.data.repository.AuthRepository
@@ -15,6 +16,10 @@ class AuthViewModel(
     private val repository: AuthRepository,
     private val notificationService: AppNotificationService
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "AuthViewModel"
+    }
 
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
@@ -55,26 +60,37 @@ class AuthViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val user = repository.signIn(
-                _uiState.value.signInEmail,
-                _uiState.value.signInPassword
-            )
-            if (user != null) {
+            try {
+                val user = repository.signIn(
+                    _uiState.value.signInEmail,
+                    _uiState.value.signInPassword
+                )
+                if (user != null) {
+                    _uiState.update { 
+                        it.copy(
+                            loggedInUserId = user.id, 
+                            isLoading = false,
+                            signInPassword = "" // Item 1: Limpeza de segurança
+                        ) 
+                    }
+                } else {
+                    _uiState.update { 
+                        it.copy(
+                            isLoading = false,
+                            signInPassword = "" // Item 1: Limpeza de segurança em falhas
+                        ) 
+                    }
+                    notificationService.showError("E-mail ou senha incorretos!")
+                }
+            } catch (e: Exception) {
                 _uiState.update { 
                     it.copy(
-                        loggedInUserId = user.id, 
                         isLoading = false,
-                        signInPassword = "" // Item 1: Limpeza de segurança
+                        signInPassword = ""
                     ) 
                 }
-            } else {
-                _uiState.update { 
-                    it.copy(
-                        isLoading = false,
-                        signInPassword = "" // Item 1: Limpeza de segurança em falhas
-                    ) 
-                }
-                notificationService.showError("E-mail ou senha incorretos!")
+                notificationService.showError("Erro ao realizar login. Tente novamente!")
+                Log.e(TAG, "onSignInClick: Erro ao realizar login", e)
             }
         }
     }
@@ -136,30 +152,42 @@ class AuthViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val user = repository.signUp(
-                _uiState.value.signUpName,
-                _uiState.value.signUpEmail,
-                _uiState.value.signUpPassword
-            )
-            if (user != null) {
+            try {
+                val user = repository.signUp(
+                    _uiState.value.signUpName,
+                    _uiState.value.signUpEmail,
+                    _uiState.value.signUpPassword
+                )
+                if (user != null) {
+                    _uiState.update { 
+                        it.copy(
+                            loggedInUserId = user.id, 
+                            isLoading = false,
+                            signUpPassword = "", // Item 1: Limpeza de segurança
+                            signUpConfirmPassword = ""
+                        ) 
+                    }
+                    notificationService.showSuccess("Cadastro realizado com sucesso!")
+                } else {
+                    _uiState.update { 
+                        it.copy(
+                            isLoading = false,
+                            signUpPassword = "", // Item 1: Limpeza de segurança em falhas
+                            signUpConfirmPassword = ""
+                        ) 
+                    }
+                    notificationService.showError("Falha no cadastro. Tente novamente!")
+                }
+            } catch (e: Exception) {
                 _uiState.update { 
                     it.copy(
-                        loggedInUserId = user.id, 
                         isLoading = false,
-                        signUpPassword = "", // Item 1: Limpeza de segurança
+                        signUpPassword = "",
                         signUpConfirmPassword = ""
                     ) 
                 }
-                notificationService.showSuccess("Cadastro realizado com sucesso!")
-            } else {
-                _uiState.update { 
-                    it.copy(
-                        isLoading = false,
-                        signUpPassword = "", // Item 1: Limpeza de segurança em falhas
-                        signUpConfirmPassword = ""
-                    ) 
-                }
-                notificationService.showError("Falha no cadastro. Tente novamente!")
+                notificationService.showError("Erro ao realizar cadastro. Tente novamente!")
+                Log.e(TAG, "onSignUpClick: Erro ao realizar cadastro", e)
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.lucasdpm.cognilink.ui.viewmodels
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lucasdpm.cognilink.data.model.Answer
@@ -32,6 +33,10 @@ class StudySessionViewModel(
     private val notificationService: AppNotificationService,
 ) : ViewModel() {
 
+    companion object {
+        private const val TAG = "StudySessionViewModel"
+    }
+
     private val _uiState = MutableStateFlow(StudySessionUiState())
     val uiState: StateFlow<StudySessionUiState> = _uiState.asStateFlow()
 
@@ -57,44 +62,55 @@ class StudySessionViewModel(
         _uiState.update { it.copy(studyMode = studyMode, contextId = contextId, userId = userId, isLoading = true) }
         
         viewModelScope.launch {
-            val flashcards = when (studyMode) {
-                "DECK" -> repository.getFlashcardsForDeck(contextId).first().map { it.flashcard }
-                "LEECHES" -> repository.getLeeches(contextId)?.map { it.flashcard } ?: emptyList()
-                "REVIEW" -> repository.getReviewPending(contextId)?.map { it.flashcard } ?: emptyList()
-                "FLASHCARD" -> repository.getFlashcardById(contextId)?.flashcard?.let { listOf(it) }
-                    ?: emptyList()
+            try {
+                val flashcards = when (studyMode) {
+                    "DECK" -> repository.getFlashcardsForDeck(contextId).first().map { it.flashcard }
+                    "LEECHES" -> repository.getLeeches(contextId)?.map { it.flashcard } ?: emptyList()
+                    "REVIEW" -> repository.getReviewPending(contextId)?.map { it.flashcard } ?: emptyList()
+                    "FLASHCARD" -> repository.getFlashcardById(contextId)?.flashcard?.let { listOf(it) }
+                        ?: emptyList()
 
-                else -> emptyList()
-            }
-            val sessionTitle = when (studyMode) {
-                "DECK" -> repository.getDeckName(contextId) ?: "ESTUDAR DECK"
-                "LEECHES" -> "SESSÃO DE LEECHES"
-                "REVIEW" -> "REVISÃO"
-                "FLASHCARD" -> flashcards.firstOrNull()?.deckId?.let { repository.getDeckName(it) } ?: "ESTUDAR FLASHCARD"
-                else -> ""
-            }
+                    else -> emptyList()
+                }
+                val sessionTitle = when (studyMode) {
+                    "DECK" -> repository.getDeckName(contextId) ?: "ESTUDAR DECK"
+                    "LEECHES" -> "SESSÃO DE LEECHES"
+                    "REVIEW" -> "REVISÃO"
+                    "FLASHCARD" -> flashcards.firstOrNull()?.deckId?.let { repository.getDeckName(it) } ?: "ESTUDAR FLASHCARD"
+                    else -> ""
+                }
 
-            if (flashcards.isEmpty()) {
+                if (flashcards.isEmpty()) {
+                    _uiState.update { 
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = "Não há flashcards disponíveis para esta sessão.",
+                            showCriticalErrorDialog = true
+                        ) 
+                    }
+                    return@launch
+                }
+
+                _uiState.update {
+                    it.copy(
+                        sessionFlashcards = flashcards,
+                        sessionTitle = sessionTitle,
+                        currentFlashcardIndex = 0,
+                        isLoading = false,
+                        isQuestionVerified = false,
+                        selectedAnswers = emptyMap(),
+                        cardStartTimeSeconds = it.secondsElapsed
+                    )
+                }
+            } catch (e: Exception) {
                 _uiState.update { 
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Não há flashcards disponíveis para esta sessão.",
+                        errorMessage = "Ocorreu um erro ao carregar a sessão de estudos.",
                         showCriticalErrorDialog = true
                     ) 
                 }
-                return@launch
-            }
-
-            _uiState.update {
-                it.copy(
-                    sessionFlashcards = flashcards,
-                    sessionTitle = sessionTitle,
-                    currentFlashcardIndex = 0,
-                    isLoading = false,
-                    isQuestionVerified = false,
-                    selectedAnswers = emptyMap(),
-                    cardStartTimeSeconds = it.secondsElapsed
-                )
+                Log.e(TAG, "initializeSession: Erro ao carregar sessão", e)
             }
         }
     }
@@ -240,51 +256,55 @@ class StudySessionViewModel(
 
     private fun updateFlashcardStats(flashcardId: String, isCorrect: Boolean, latencyMs: Long) {
         viewModelScope.launch {
-            val currentFlashcardWithStats = repository.getFlashcardById(flashcardId)
-            val currentStats = currentFlashcardWithStats?.stats ?: FlashcardStats(flashcardId = flashcardId)
+            try {
+                val currentFlashcardWithStats = repository.getFlashcardById(flashcardId)
+                val currentStats = currentFlashcardWithStats?.stats ?: FlashcardStats(flashcardId = flashcardId)
 
-            // Cálculo da qualidade baseado no acerto e latência
-            val quality = when {
-                !isCorrect -> 0
-                latencyMs < 3000L -> 5
-                latencyMs < 8000L -> 4
-                else -> 3
-            }
+                // Cálculo da qualidade baseado no acerto e latência
+                val quality = when {
+                    !isCorrect -> 0
+                    latencyMs < 3000L -> 5
+                    latencyMs < 8000L -> 4
+                    else -> 3
+                }
 
-            val sm2Result = calculateSM2UseCase(
-                quality = quality,
-                previousInterval = currentStats.memoryStabilityDays,
-                previousEaseFactor = currentStats.easeFactor,
-                previousRepetitions = currentStats.repetitions
-            )
+                val sm2Result = calculateSM2UseCase(
+                    quality = quality,
+                    previousInterval = currentStats.memoryStabilityDays,
+                    previousEaseFactor = currentStats.easeFactor,
+                    previousRepetitions = currentStats.repetitions
+                )
 
-            val updatedHits = if (isCorrect) currentStats.hits + 1 else currentStats.hits
-            val updatedMisses = if (!isCorrect) currentStats.misses + 1 else currentStats.misses
-            val updatedStudyTime = currentStats.studyTime + latencyMs
+                val updatedHits = if (isCorrect) currentStats.hits + 1 else currentStats.hits
+                val updatedMisses = if (!isCorrect) currentStats.misses + 1 else currentStats.misses
+                val updatedStudyTime = currentStats.studyTime + latencyMs
 
-            val newStats = currentStats.copy(
-                hits = updatedHits,
-                misses = updatedMisses,
-                studyTime = updatedStudyTime,
-                nextReview = sm2Result.nextReview,
-                averageLatencyMs = if (updatedHits + updatedMisses == 1) latencyMs
-                else (currentStats.averageLatencyMs * (currentStats.hits + currentStats.misses) + latencyMs) / (updatedHits + updatedMisses),
-                memoryStabilityDays = sm2Result.intervalDays,
-                easeFactor = sm2Result.easeFactor,
-                repetitions = sm2Result.repetitions,
-                consecutiveMisses = if (isCorrect) 0 else currentStats.consecutiveMisses + 1,
-                retentionRate = (updatedHits.toFloat() / (updatedHits + updatedMisses).toFloat()),
-                mastery = if (sm2Result.repetitions > 0) {
-                    // Simples cálculo de domínio baseado em repetições e EF
-                    (sm2Result.repetitions * sm2Result.easeFactor / 20f).coerceAtMost(1.0f)
-                } else currentStats.mastery
-            )
+                val newStats = currentStats.copy(
+                    hits = updatedHits,
+                    misses = updatedMisses,
+                    studyTime = updatedStudyTime,
+                    nextReview = sm2Result.nextReview,
+                    averageLatencyMs = if (updatedHits + updatedMisses == 1) latencyMs
+                    else (currentStats.averageLatencyMs * (currentStats.hits + currentStats.misses) + latencyMs) / (updatedHits + updatedMisses),
+                    memoryStabilityDays = sm2Result.intervalDays,
+                    easeFactor = sm2Result.easeFactor,
+                    repetitions = sm2Result.repetitions,
+                    consecutiveMisses = if (isCorrect) 0 else currentStats.consecutiveMisses + 1,
+                    retentionRate = (updatedHits.toFloat() / (updatedHits + updatedMisses).toFloat()),
+                    mastery = if (sm2Result.repetitions > 0) {
+                        // Simples cálculo de domínio baseado em repetições e EF
+                        (sm2Result.repetitions * sm2Result.easeFactor / 20f).coerceAtMost(1.0f)
+                    } else currentStats.mastery
+                )
 
-            repository.updateFlashcardStatistics(newStats)
+                repository.updateFlashcardStatistics(newStats)
 
-            // Após atualizar os stats do flashcard, atualizamos os stats globais do usuário
-            _uiState.value.userId?.let { userId ->
-                updateUserStatsUseCase(userId)
+                // Após atualizar os stats do flashcard, atualizamos os stats globais do usuário
+                _uiState.value.userId?.let { userId ->
+                    updateUserStatsUseCase(userId)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "updateFlashcardStats: Erro ao atualizar estatísticas do flashcard", e)
             }
         }
     }

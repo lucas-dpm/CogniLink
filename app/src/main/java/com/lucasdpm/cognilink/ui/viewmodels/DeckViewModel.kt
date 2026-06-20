@@ -1,5 +1,6 @@
 package com.lucasdpm.cognilink.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lucasdpm.cognilink.data.repository.DeckRepository
@@ -11,12 +12,22 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.daysUntil
+import kotlinx.datetime.number
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 class DeckViewModel(
     private val deckRepository: DeckRepository,
     private val flashcardRepository: FlashcardRepository,
     private val notificationService: AppNotificationService
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "DeckViewModel"
+    }
 
     private val _uiState = MutableStateFlow(DeckUiState())
     val uiState: StateFlow<DeckUiState> = _uiState.asStateFlow()
@@ -45,7 +56,7 @@ class DeckViewModel(
                         }
                     }
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -53,6 +64,7 @@ class DeckViewModel(
                         showCriticalErrorDialog = true
                     )
                 }
+                Log.e(TAG, "loadDeckDetails: Erro ao carregar baralho", e)
             }
         }
 
@@ -66,8 +78,9 @@ class DeckViewModel(
                 flashcardRepository.getFlashcardsForDeck(deckId).collect { flashcards ->
                     _uiState.update { it.copy(flashcards = flashcards.take(3)) }
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 notificationService.showError("Erro ao carregar flashcards")
+                Log.e(TAG, "loadFlashcards: Erro ao carregar flashcards", e)
             }
         }
     }
@@ -79,8 +92,37 @@ class DeckViewModel(
                 flashcardRepository.getFlashcardsForDeck(deckId).collect { flashcards ->
                     _uiState.update { it.copy(flashcards = flashcards) }
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 notificationService.showError("Erro ao carregar flashcards")
+                Log.e(TAG, "loadAllFlashcards: Erro ao carregar todos os flashcards", e)
+            }
+        }
+    }
+
+    fun formatNextReview(nextReviewTimestamp: Long?): String {
+        if (nextReviewTimestamp == null) return "Novo card"
+
+        val now = Clock.System.now()
+        val targetInstant = Instant.fromEpochMilliseconds(nextReviewTimestamp)
+
+        // Se o momento da revisão já passou
+        if (targetInstant <= now) return "Revisar agora"
+
+        val tz = TimeZone.currentSystemDefault()
+        val today = now.toLocalDateTime(tz).date
+        val targetDate = targetInstant.toLocalDateTime(tz).date
+
+        // Calcula a diferença em dias de calendário (ex: de 23:59 de hoje para 00:01 de amanhã = 1 dia)
+        val days = today.daysUntil(targetDate)
+
+        return when {
+            days <= 0 -> "Revisar hoje"
+            days == 1 -> "Revisar amanhã"
+            days < 30 -> "Revisar em $days dias"
+            else -> {
+                val day = targetDate.day.toString().padStart(2, '0')
+                val month = targetDate.month.number.toString().padStart(2, '0')
+                "Revisar em $day/$month/${targetDate.year}"
             }
         }
     }
@@ -96,6 +138,7 @@ class DeckViewModel(
             } catch (e: Exception) {
                 _uiState.update { it.copy(isDeleting = false) }
                 notificationService.showError("Erro ao excluir baralho")
+                Log.e(TAG, "deleteDeck: ", e)
             }
         }
     }
