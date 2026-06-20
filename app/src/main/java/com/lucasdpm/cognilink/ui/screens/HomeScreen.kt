@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -128,6 +129,7 @@ fun HomeContent(
     val scrollState = rememberScrollState()
 
     Scaffold(
+        modifier = Modifier.statusBarsPadding(),
         bottomBar = {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -174,7 +176,7 @@ fun HomeContent(
                 ) { loading ->
                     if (loading) {
                         ShimmerProfileSection(
-                            modifier = Modifier.padding(top = padding.calculateTopPadding() + 20.dp)
+                            modifier = Modifier.padding(top = padding.calculateTopPadding())
                         )
                     } else {
                         ProfileSection(
@@ -185,7 +187,7 @@ fun HomeContent(
                             cardsDone = cardsDone,
                             learnRetention = learnRetention,
                             onOpenProfileClick = onNavigateToProfile,
-                            modifier = Modifier.padding(top = padding.calculateTopPadding() + 20.dp)
+                            modifier = Modifier.padding(top = padding.calculateTopPadding())
                         )
                     }
                 }
@@ -194,7 +196,7 @@ fun HomeContent(
                     onClick = onNavigateToSettings,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(top = padding.calculateTopPadding() + 25.dp, end = 8.dp)
+                        .padding(top = padding.calculateTopPadding(), end = 8.dp)
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_settings),

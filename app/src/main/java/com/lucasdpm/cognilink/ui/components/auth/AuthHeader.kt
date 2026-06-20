@@ -18,6 +18,8 @@ import com.lucasdpm.cognilink.ui.components.utils.GradientSurface
 import com.lucasdpm.cognilink.ui.theme.CogniLinkTheme
 import com.lucasdpm.cognilink.ui.theme.White
 
+import androidx.compose.foundation.layout.statusBarsPadding
+
 @Composable
 fun AuthHeader() {
     GradientSurface(shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
@@ -25,7 +27,8 @@ fun AuthHeader() {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 40.dp, bottom = 50.dp),
+                .statusBarsPadding()
+                .padding(top = 20.dp,bottom = 50.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
