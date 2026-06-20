@@ -121,9 +121,9 @@ fun HomeContent(
     onNavigateToProfile: () -> Unit = {},
     onNavigateToPlay: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {},
-    isLoadingUser: Boolean = true,
-    isLoadingDecks: Boolean = true,
-    isLoadingStats: Boolean = true
+    isLoadingUser: Boolean = false,
+    isLoadingDecks: Boolean = false,
+    isLoadingStats: Boolean = false
 ) {
 
     val scrollState = rememberScrollState()
@@ -281,7 +281,7 @@ private fun HomeContentPreview() {
             totalStudyTime = "20d",
             cardsDone = userStats.totalFlashcardsDone,
             learnRetention = userStats.retentionRate,
-            decks = decks
+            decks = decks,
         )
     }
 }
