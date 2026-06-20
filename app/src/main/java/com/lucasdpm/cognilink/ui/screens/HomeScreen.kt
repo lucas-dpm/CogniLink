@@ -214,9 +214,9 @@ fun HomeContent(
 
             Text(
                 text = "SEUS BARALHOS",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
                 color = DarkGray,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 12.sp,
                 modifier = Modifier
                     .fillMaxWidth()
             )

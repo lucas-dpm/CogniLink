@@ -70,7 +70,7 @@ val networkModule = module {
 val repositoryModule = module {
     single<AuthRepository> { AuthRepositoryImpl(get(), get(), get(), get(), get()) }
     single<UserRepository> { UserRepositoryImpl(get(), get(), get()) }
-    single<DeckRepository> { DeckRepositoryImpl(get(), get()) }
+    single<DeckRepository> { DeckRepositoryImpl(get()) }
     singleOf(::FlashcardRepositoryImpl) { bind<FlashcardRepository>() }
     singleOf(::TermsRepositoryImpl) { bind<TermsRepository>() }
     singleOf(::KtorAIService) { bind<AIService>() }

@@ -10,13 +10,6 @@ enum class DifficultyLevel(val weight: Int) {
     }
 
     companion object {
-        fun fromWeight(weight: Int): DifficultyLevel {
-            return entries.find { it.weight == weight } ?: MEDIUM
-        }
-
-        fun fromName(name: String?): DifficultyLevel {
-            return entries.find { it.name.equals(name, ignoreCase = true) } ?: MEDIUM
-        }
 
         fun fromAverage(average: Float): DifficultyLevel {
             return when {

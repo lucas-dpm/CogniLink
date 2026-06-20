@@ -86,11 +86,11 @@ class FlashcardRepositoryImpl(
         return flashcardStatsDao.getFlashcardStatsById(flashcardId).map { it?.toDomain() }
     }
 
-    override suspend fun getLeeches(userId: String): List<FlashcardWithStats>? {
+    override suspend fun getLeeches(userId: String): List<FlashcardWithStats> {
         return flashcardDao.getLeeches(userId).map { it.toDomain() }
     }
 
-    override suspend fun getReviewPending(userId: String): List<FlashcardWithStats>? {
+    override suspend fun getReviewPending(userId: String): List<FlashcardWithStats> {
         return flashcardDao.getReviewPending(userId, System.currentTimeMillis()).map { it.toDomain() }
     }
 

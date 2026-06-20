@@ -1,7 +1,6 @@
 package com.lucasdpm.cognilink.data.repository
 
 import android.util.Log
-import com.lucasdpm.cognilink.data.datebase.CogniLinkDatabase
 import com.lucasdpm.cognilink.data.datebase.dao.DeckDao
 import com.lucasdpm.cognilink.data.mappers.toDomain
 import com.lucasdpm.cognilink.data.mappers.toEntity
@@ -18,7 +17,6 @@ interface DeckRepository {
 }
 
 class DeckRepositoryImpl(
-    private val db: CogniLinkDatabase,
     private val deckDao: DeckDao
 ) : DeckRepository {
 
