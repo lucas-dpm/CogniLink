@@ -2,7 +2,22 @@ package com.lucasdpm.cognilink.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -16,6 +31,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
@@ -44,6 +60,7 @@ import com.lucasdpm.cognilink.ui.components.utils.buttons.NeonActionButton
 import com.lucasdpm.cognilink.ui.components.utils.buttons.SimpleGradientButton
 import com.lucasdpm.cognilink.ui.components.utils.dialogs.BasicCustomAlertDialog
 import com.lucasdpm.cognilink.ui.components.utils.dialogs.BasicCustomDialog
+import com.lucasdpm.cognilink.ui.components.utils.labels.CustomLabel
 import com.lucasdpm.cognilink.ui.theme.CogniLinkTheme
 import com.lucasdpm.cognilink.ui.theme.DarkGray
 import com.lucasdpm.cognilink.ui.theme.DarkNavyBlue
@@ -73,29 +90,6 @@ fun DeckEditorScreen(
         viewModel.initialize(deckId, userId)
     }
 
-    if (uiState.showCriticalErrorDialog) {
-        BasicCustomAlertDialog(
-            onDismissRequest = {
-                scope.launch {
-                    delay(150)
-                    onNavigateBack()
-                }
-            },
-            onConfirmation = {
-                scope.launch {
-                    delay(150)
-                    onNavigateBack()
-                }
-            },
-            dialogTitle = "Ocorreu um erro!",
-            dialogText = uiState.errorMessage ?: "Não foi possível carregar as informações.",
-            confirmationButtonText = "Voltar",
-            dismissButtonText = null,
-            icon = R.drawable.ic_warning,
-            iconColor = Red
-        )
-    }
-
     LaunchedEffect(uiState.isSaved) {
         if (uiState.isSaved) {
             onNavigateBack()
@@ -111,6 +105,112 @@ fun DeckEditorScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
+        if (uiState.showCategoryDialog) {
+            AlertDialog(
+                onDismissRequest = { viewModel.closeCategoryDialog() },
+                title = {
+                    Text(
+                        text = if (uiState.categoryBeingEdited == null) "Nova Categoria" else "Editar Categoria",
+                        fontWeight = FontWeight.Bold,
+                        color = DarkNavyBlue
+                    )
+                },
+                text = {
+                    CustomTextField(
+                        inputValue = uiState.categoryText,
+                        onInputValueChange = { viewModel.onCategoryTextChange(it) },
+                        placeholder = "Ex: Medicina, História..."
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = { viewModel.handleCategoryConfirmation() }) {
+                        Text("OK", fontWeight = FontWeight.Bold, color = DarkNavyBlue)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { viewModel.closeCategoryDialog() }) {
+                        Text("CANCELAR", color = DarkGray)
+                    }
+                },
+                containerColor = White,
+                shape = RoundedCornerShape(28.dp)
+            )
+        }
+
+        if (uiState.showAddFlashcardDialog) {
+            BasicCustomDialog(
+                onDismissRequest = { viewModel.toggleAddFlashcardDialog() },
+                dialogTitle = "Como deseja criar?",
+                buttons = {
+                    SimpleGradientButton(
+                        text = "Criar manualmente",
+                        height = 56.dp,
+                        onClickButton = {
+                            viewModel.toggleAddFlashcardDialog()
+                            scope.launch {
+                                delay(100)
+                                onNavigateToCreateFlashcard(uiState.deckId)
+                            }
+                        }
+                    )
+                    SimpleGradientButton(
+                        text = "Criar com IA",
+                        height = 56.dp,
+                        onClickButton = {
+                            viewModel.toggleAddFlashcardDialog()
+                            scope.launch {
+                                delay(100)
+                                onNavigateToCreateWithIA(uiState.deckId)
+                            }
+                        }
+                    )
+                }
+            )
+        }
+
+        if (uiState.showChangeDialog) {
+            BasicCustomAlertDialog(
+                onDismissRequest = { viewModel.toggleChangeDialog() },
+                onConfirmation = {
+                    viewModel.discardDeck()
+                    viewModel.toggleChangeDialog()
+                    scope.launch {
+                        delay(100)
+                        onNavigateBack()
+                    }
+                },
+                dialogTitle = "Alterações não salvas",
+                dialogText = "Você possui alterações não salvas. Deseja realmente sair e descartá-las?",
+                confirmationButtonText = "Sair e descartar",
+                dismissButtonText = "Continuar editando",
+                icon = R.drawable.ic_warning,
+                iconColor = Red
+            )
+        }
+
+        if (uiState.showCriticalErrorDialog) {
+            BasicCustomAlertDialog(
+                onDismissRequest = {
+                    scope.launch {
+                        delay(150)
+                        onNavigateBack()
+                    }
+                },
+                onConfirmation = {
+                    scope.launch {
+                        delay(150)
+                        onNavigateBack()
+                    }
+                },
+                dialogTitle = "Ocorreu um erro!",
+                dialogText = uiState.errorMessage ?: "Não foi possível carregar as informações.",
+                confirmationButtonText = "Voltar",
+                dismissButtonText = null,
+                icon = R.drawable.ic_warning,
+                iconColor = Red
+            )
+        }
+
         DeckEditorContent(
             isEditMode = uiState.isEditMode,
             deckName = uiState.deckName,
@@ -121,52 +221,17 @@ fun DeckEditorScreen(
             isDeckEmpty = uiState.deckFlashcards.isEmpty(),
             searchInput = uiState.searchInput,
             onSearchValueChange = viewModel::onSearchValueChange,
-            showCategoryDialog = uiState.showCategoryDialog,
-            categoryBeingEdited = uiState.categoryBeingEdited,
-            categoryText = uiState.categoryText,
             isRemoveMode = uiState.isRemoveMode,
-            showAddFlashcardDialog = uiState.showAddFlashcardDialog,
-            showChangeDialog = uiState.showChangeDialog,
-            onDismissChangeDialog = { viewModel.toggleChangeDialog() },
             onToggleRemoveMode = viewModel::toggleRemoveMode,
             onDeckNameChange = viewModel::onDeckNameChange,
             onDeckDescriptionChange = viewModel::onDeckDescriptionChange,
-            onCategoryTextChange = viewModel::onCategoryTextChange,
             onAddCategory = viewModel::openCategoryDialog,
             onEditCategory = { viewModel.openCategoryDialog(it) },
             onRemoveCategory = viewModel::removeCategory,
-            onConfirmCategory = viewModel::handleCategoryConfirmation,
             onRemoveFlashcard = viewModel::removeFlashcard,
-            onDismissCategoryDialog = { viewModel.closeCategoryDialog() },
             onAddFlashcard = { viewModel.toggleAddFlashcardDialog() },
             onEditFlashcard = { fId -> onNavigateToEditFlashcard(uiState.deckId, fId) },
-            onDismissAddFlashcardDialog = { viewModel.toggleAddFlashcardDialog() },
-            onConfirmDiscard = {
-                viewModel.discardDeck()
-                viewModel.toggleChangeDialog()
-                scope.launch {
-                    delay(100)
-                    onNavigateBack()
-                }
-            },
-            onCreateFlashcardManually = {
-                viewModel.toggleAddFlashcardDialog()
-                scope.launch {
-                    delay(100)
-                    onNavigateToCreateFlashcard(uiState.deckId)
-                }
-
-            },
-            onCreateFlashcardWithIA = {
-                viewModel.toggleAddFlashcardDialog()
-                scope.launch {
-                    delay(100)
-                    onNavigateToCreateWithIA(uiState.deckId)
-                }
-            },
-            onSave = {
-                viewModel.saveDeck()
-            },
+            onSave = { viewModel.saveDeck() },
             onNavigateBack = {
                 if (uiState.wasEdited) {
                     viewModel.toggleChangeDialog()
@@ -195,89 +260,21 @@ fun DeckEditorContent(
     deckCategories: List<String>,
     searchInput: String = "",
     onSearchValueChange: (String) -> Unit = {},
-    onCategoryTextChange: (String) -> Unit = {},
     onAddCategory: () -> Unit = {},
     onEditCategory: (String) -> Unit = {},
-    categoryBeingEdited: String?,
-    categoryText: String,
     deckFlashcards: List<FlashcardWithStats>,
     isDeckEmpty: Boolean = true,
-    showCategoryDialog: Boolean,
-    showAddFlashcardDialog: Boolean,
-    showChangeDialog: Boolean,
-    onDismissChangeDialog: () -> Unit = {},
     isRemoveMode: Boolean,
-    onConfirmCategory: () -> Unit = {},
     onRemoveCategory: (String) -> Unit = {},
     onRemoveFlashcard: (String) -> Unit = {},
-    onDismissCategoryDialog: () -> Unit = {},
     onToggleRemoveMode: () -> Unit = {},
     onSave: () -> Unit = {},
     onEditFlashcard: (String) -> Unit = {},
     onAddFlashcard: () -> Unit = {},
-    onDismissAddFlashcardDialog: () -> Unit = {},
-    onCreateFlashcardManually: () -> Unit = {},
-    onConfirmDiscard: () -> Unit = {},
-    onCreateFlashcardWithIA: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
     isLoading: Boolean = false,
 ) {
     val scrollState = rememberScrollState()
-
-    if (showCategoryDialog) {
-        AlertDialog(
-            onDismissRequest = onDismissCategoryDialog, title = {
-                Text(
-                    text = if (categoryBeingEdited == null) "Nova Categoria" else "Editar Categoria",
-                    fontWeight = FontWeight.Bold,
-                    color = DarkNavyBlue
-                )
-            }, text = {
-                CustomTextField(
-                    inputValue = categoryText,
-                    onInputValueChange = onCategoryTextChange,
-                    placeholder = "Ex: Medicina, História..."
-                )
-            }, confirmButton = {
-                TextButton(onClick = onConfirmCategory) {
-                    Text("OK", fontWeight = FontWeight.Bold, color = DarkNavyBlue)
-                }
-            }, dismissButton = {
-                TextButton(onClick = onDismissCategoryDialog) {
-                    Text("CANCELAR", color = DarkGray)
-                }
-            }, containerColor = White, shape = RoundedCornerShape(28.dp)
-        )
-    }
-
-    if (showAddFlashcardDialog) {
-        BasicCustomDialog(
-            onDismissRequest = onDismissAddFlashcardDialog,
-            dialogTitle = "Como deseja criar?",
-            buttons = {
-                SimpleGradientButton(
-                    text = "Criar manualmente", height = 56.dp, onClickButton = {
-                        onCreateFlashcardManually()
-                    })
-                SimpleGradientButton(
-                    text = "Criar com IA", height = 56.dp, onClickButton = {
-                        onCreateFlashcardWithIA()
-                    })
-            })
-    }
-
-    if (showChangeDialog) {
-        BasicCustomAlertDialog(
-            onDismissRequest = onDismissChangeDialog,
-            onConfirmation = onConfirmDiscard,
-            dialogTitle = "Alterações não salvas",
-            dialogText = "Você possui alterações não salvas. Deseja realmente sair e descartá-las?",
-            confirmationButtonText = "Sair e descartar",
-            dismissButtonText = "Continuar editando",
-            icon = R.drawable.ic_warning,
-            iconColor = Red
-        )
-    }
 
     Scaffold(
         modifier = Modifier.statusBarsPadding(),
@@ -337,34 +334,35 @@ fun DeckEditorContent(
                 )
 
                 if (!isDeckEmpty) {
+
                     SearchTextField(
                         searchValue = searchInput,
                         onSearchValueChange = onSearchValueChange,
                         hintText = "Pesquisar flashcards..."
                     )
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = CenterVertically
+                    ) {
+                        CustomLabel(
+                            text = "Conteúdo do Baralho",
+                            textColor = DarkGray
+                        )
+                        Text(
+                            text = if (isRemoveMode) "VOLTAR PARA SELEÇÃO" else "GERENCIAR",
+                            color = DarkNavyBlue,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                onClick = { onToggleRemoveMode() }
+                            )
+                        )
+                    }
 
                     if (deckFlashcards.isNotEmpty()) {
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = CenterVertically
-                        ) {
-                            Text(
-                                text = "Conteúdo do Baralho",
-                                color = DarkGray,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                            TextButton(
-                                onClick = { onToggleRemoveMode() },
-                                contentPadding = PaddingValues(0.dp)
-                            ) {
-                                Text(
-                                    text = if (isRemoveMode) "VOLTAR PARA SELEÇÃO" else "GERENCIAR",
-                                    color = DarkNavyBlue,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                            }
-                        }
                         Column {
                             Crossfade(
                                 targetState = isLoading,
@@ -417,14 +415,19 @@ fun DeckEditorContent(
                                     }
                                 }
                             }
+
                         }
-                    } else {
+                    } else if (!isLoading) {
                         EmptyContent(
                             title = stringResource(R.string.deck_search_no_results_title),
                             subTitle = stringResource(R.string.deck_search_no_results_subtitle)
                         )
                     }
-                } else EmptyContent()
+                }  else {
+                    if (!isLoading) {
+                        EmptyContent()
+                    }
+                }
             }
         }
     }
@@ -436,8 +439,7 @@ fun DeckEditorContent(
 private fun DeckEditorContentPreview() {
     CogniLinkTheme {
         val deck = PreviewDataProvider.deck
-        val flashcards = PreviewDataProvider.flashcardList.filter { it.deckId == deck.id }
-            .map { FlashcardWithStats(it, null) }
+        val flashcards = PreviewDataProvider.flashcardList.map { FlashcardWithStats(it, null) }
 
         DeckEditorContent(
             isEditMode = true,
@@ -445,12 +447,8 @@ private fun DeckEditorContentPreview() {
             deckDescription = deck.description,
             deckCategories = deck.categories,
             deckFlashcards = flashcards,
-            showCategoryDialog = false,
-            categoryBeingEdited = null,
-            categoryText = "",
+            isDeckEmpty = flashcards.isEmpty(),
             isRemoveMode = false,
-            showAddFlashcardDialog = false,
-            showChangeDialog = false,
             isLoading = false,
         )
 

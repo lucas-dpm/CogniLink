@@ -77,6 +77,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudySessionScreen(
     studyMode: String,
@@ -121,92 +122,16 @@ fun StudySessionScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        uiState.currentFlashcard?.let { flashcard ->
-            StudySessionContent(
-                flashcard = flashcard,
-                currentFlashcardIndex = uiState.currentFlashcardIndex,
-                totalFlashcards = uiState.sessionFlashcards.size,
-                sessionTitle = uiState.sessionTitle,
-                selectedAnswers = uiState.selectedAnswers,
-                onSelectAnswer = viewModel::onSelectAnswer,
-                isQuestionAnswered = uiState.isQuestionAnswered,
-                isQuestionVerified = uiState.isQuestionVerified,
-                isCloseDialogOpen = uiState.isCloseDialogOpen,
-                isSessionInsightDialogOpen = uiState.isSessionInsightDialogOpen,
-                isLastFlashcard = uiState.isLastFlashcard,
-                elapsedTime = viewModel.formatSeconds(uiState.secondsElapsed),
-                isAnswerCorrect = uiState.isAnswerCorrect,
-                aiFeedback = uiState.aiFeedback,
-                sequenceHits = uiState.sequenceHits,
-                isValidating = uiState.isValidating,
-                onDismissSessionInsight = {
-                    viewModel.toggleSessionInsightDialog()
-                    scope.launch {
-                        delay(100)
-                        onNavigateBack()
-                    }
-                },
-                onCloseClick = viewModel::toggleCloseDialog,
-                onAcceptCloseDialog = {
-                    viewModel.toggleCloseDialog()
-                    scope.launch {
-                        delay(120)
-                        onNavigateBack()
-                    }
-                },
-                onDismissCloseDialog = {
-                    scope.launch {
-                        delay(120)
-                        viewModel.toggleCloseDialog()
-                    }
-                },
-                onClickToVerifyQuestion = viewModel::verifyQuestion,
-                onClickToNextFlashcard = viewModel::nextFlashcard,
-            )
-        }
-
-        if (uiState.isLoading) {
-            FullScreenLoading()
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun StudySessionContent(
-    modifier: Modifier = Modifier,
-    flashcard: Flashcard,
-    currentFlashcardIndex: Int,
-    totalFlashcards: Int,
-    sessionTitle: String = "",
-    selectedAnswers: Map<Answer, String> = mapOf(),
-    onSelectAnswer: (Answer, String) -> Unit = { _, _ -> },
-    isQuestionAnswered: Boolean,
-    isQuestionVerified: Boolean,
-    isCloseDialogOpen: Boolean = false,
-    isSessionInsightDialogOpen: Boolean = false,
-    isLastFlashcard: Boolean = false,
-    elapsedTime: String,
-    isAnswerCorrect: Boolean = false,
-    aiFeedback: String? = null,
-    sequenceHits: Int = 0,
-    isValidating: Boolean = false,
-    onDismissSessionInsight: () -> Unit = {},
-    onCloseClick: () -> Unit = {},
-    onAcceptCloseDialog: () -> Unit = {},
-    onDismissCloseDialog: () -> Unit = {},
-    onClickToVerifyQuestion: () -> Unit = {},
-    onClickToNextFlashcard: () -> Unit = {},
-) {
-
-    val scrollState = rememberScrollState()
-    val isKeyboardVisible = WindowInsets.ime.asPaddingValues().calculateBottomPadding() > 0.dp
-
-    if (isCloseDialogOpen) {
+    if (uiState.isCloseDialogOpen) {
         BasicCustomAlertDialog(
-            onDismissRequest = onDismissCloseDialog,
-            onConfirmation = onAcceptCloseDialog,
+            onDismissRequest = { viewModel.toggleCloseDialog() },
+            onConfirmation = {
+                viewModel.toggleCloseDialog()
+                scope.launch {
+                    delay(120)
+                    onNavigateBack()
+                }
+            },
             dialogTitle = "Tem certeza disso?",
             dialogText = "O progresso não será salvo! Deseja realmente sair?",
             confirmationButtonText = "Sair",
@@ -216,9 +141,15 @@ fun StudySessionContent(
         )
     }
 
-    if (isSessionInsightDialogOpen) {
+    if (uiState.isSessionInsightDialogOpen) {
         BasicAlertDialog(
-            onDismissRequest = onDismissSessionInsight,
+            onDismissRequest = {
+                viewModel.toggleSessionInsightDialog()
+                scope.launch {
+                    delay(100)
+                    onNavigateBack()
+                }
+            },
         ) {
             Surface(
                 modifier = Modifier
@@ -246,12 +177,73 @@ fun StudySessionContent(
                     )
                     SimpleGradientButton(
                         text = "Voltar ao Início",
-                        onClickButton = onDismissSessionInsight
+                        onClickButton = {
+                            viewModel.toggleSessionInsightDialog()
+                            scope.launch {
+                                delay(100)
+                                onNavigateBack()
+                            }
+                        }
                     )
                 }
             }
         }
     }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        uiState.currentFlashcard?.let { flashcard ->
+            StudySessionContent(
+                flashcard = flashcard,
+                currentFlashcardIndex = uiState.currentFlashcardIndex,
+                totalFlashcards = uiState.sessionFlashcards.size,
+                sessionTitle = uiState.sessionTitle,
+                selectedAnswers = uiState.selectedAnswers,
+                onSelectAnswer = viewModel::onSelectAnswer,
+                isQuestionAnswered = uiState.isQuestionAnswered,
+                isQuestionVerified = uiState.isQuestionVerified,
+                isLastFlashcard = uiState.isLastFlashcard,
+                elapsedTime = viewModel.formatSeconds(uiState.secondsElapsed),
+                isAnswerCorrect = uiState.isAnswerCorrect,
+                aiFeedback = uiState.aiFeedback,
+                sequenceHits = uiState.sequenceHits,
+                isValidating = uiState.isValidating,
+                onCloseClick = viewModel::toggleCloseDialog,
+                onClickToVerifyQuestion = viewModel::verifyQuestion,
+                onClickToNextFlashcard = viewModel::nextFlashcard,
+            )
+        }
+
+        if (uiState.isLoading) {
+            FullScreenLoading()
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StudySessionContent(
+    modifier: Modifier = Modifier,
+    flashcard: Flashcard,
+    currentFlashcardIndex: Int,
+    totalFlashcards: Int,
+    sessionTitle: String = "",
+    selectedAnswers: Map<Answer, String> = mapOf(),
+    onSelectAnswer: (Answer, String) -> Unit = { _, _ -> },
+    isQuestionAnswered: Boolean,
+    isQuestionVerified: Boolean,
+    isLastFlashcard: Boolean = false,
+    elapsedTime: String,
+    isAnswerCorrect: Boolean = false,
+    aiFeedback: String? = null,
+    sequenceHits: Int = 0,
+    isValidating: Boolean = false,
+    onCloseClick: () -> Unit = {},
+    onClickToVerifyQuestion: () -> Unit = {},
+    onClickToNextFlashcard: () -> Unit = {},
+) {
+
+    val scrollState = rememberScrollState()
+    val isKeyboardVisible = WindowInsets.ime.asPaddingValues().calculateBottomPadding() > 0.dp
 
     Scaffold(
         modifier = modifier
@@ -556,7 +548,6 @@ private fun StudySessionContentPreview() {
             selectedAnswers = emptyMap(),
             isQuestionAnswered = false,
             isQuestionVerified = true,
-            isCloseDialogOpen = false,
             isAnswerCorrect = true,
             elapsedTime = "00:00",
         )

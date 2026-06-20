@@ -2,7 +2,20 @@ package com.lucasdpm.cognilink.ui.screens
 
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenuItem
@@ -16,6 +29,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
@@ -36,14 +50,15 @@ import com.lucasdpm.cognilink.ui.components.deck.ShimmerFlashcardItem
 import com.lucasdpm.cognilink.ui.components.deck.ShimmerViewDeckContent
 import com.lucasdpm.cognilink.ui.components.deck.ViewDeckContent
 import com.lucasdpm.cognilink.ui.components.input.SearchTextField
-import com.lucasdpm.cognilink.ui.components.utils.dialogs.BasicCustomAlertDialog
 import com.lucasdpm.cognilink.ui.components.utils.EmptyContent
 import com.lucasdpm.cognilink.ui.components.utils.NavigationHeader
 import com.lucasdpm.cognilink.ui.components.utils.buttons.NeonActionButton
 import com.lucasdpm.cognilink.ui.components.utils.buttons.SimpleGradientButton
+import com.lucasdpm.cognilink.ui.components.utils.dialogs.BasicCustomAlertDialog
 import com.lucasdpm.cognilink.ui.components.utils.dialogs.BasicCustomDialog
 import com.lucasdpm.cognilink.ui.components.utils.labels.CustomLabel
 import com.lucasdpm.cognilink.ui.theme.CogniLinkTheme
+import com.lucasdpm.cognilink.ui.theme.DarkGray
 import com.lucasdpm.cognilink.ui.theme.DarkNavyBlue
 import com.lucasdpm.cognilink.ui.theme.LightGray
 import com.lucasdpm.cognilink.ui.theme.Red
@@ -97,6 +112,63 @@ fun DeckScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         val deck = uiState.currentDeck
+
+        if (uiState.isDeleteDeckDialogOpen) {
+            BasicCustomAlertDialog(
+                dialogTitle = "Tem certeza disso?",
+                dialogText = "Essa ação não poderá ser desfeita!",
+                confirmationButtonText = "Sim",
+                dismissButtonText = "Cancelar",
+                onConfirmation = {
+                    viewModel.toggleDeleteDeckDialog()
+                    viewModel.deleteDeck()
+                    scope.launch {
+                        delay(100)
+                        onNavigateBack()
+                    }
+                },
+                onDismissRequest = {
+                    scope.launch {
+                        delay(120)
+                        viewModel.toggleDeleteDeckDialog()
+                    }
+                },
+                icon = R.drawable.ic_delete,
+                iconColor = Red
+            )
+        }
+
+        if (uiState.isAddFlashcardDialogOpen) {
+            BasicCustomDialog(
+                onDismissRequest = { viewModel.toggleAddFlashcardDialog() },
+                dialogTitle = "Como deseja criar?",
+                buttons = {
+                    SimpleGradientButton(
+                        text = "Criar manualmente",
+                        height = 56.dp,
+                        onClickButton = {
+                            viewModel.toggleAddFlashcardDialog()
+                            scope.launch {
+                                delay(100)
+                                onNavigateToCreateFlashcard(deckId)
+                            }
+                        }
+                    )
+                    SimpleGradientButton(
+                        text = "Criar com IA",
+                        height = 56.dp,
+                        onClickButton = {
+                            viewModel.toggleAddFlashcardDialog()
+                            scope.launch {
+                                delay(100)
+                                onNavigateToCreateWithIA(deckId)
+                            }
+                        }
+                    )
+                }
+            )
+        }
+
         DeckContent(
             deckName = deck?.name,
             deckCategories = deck?.categories,
@@ -110,39 +182,15 @@ fun DeckScreen(
             searchInput = uiState.searchInput,
             onSearchValueChange = viewModel::onSearchValueChange,
             isMenuExpanded = uiState.isMenuExpanded,
-            isAddFlashcardDialogOpen = uiState.isAddFlashcardDialogOpen,
-            isDeleteDeckDialogOpen = uiState.isDeleteDeckDialogOpen,
             onMenuClick = { viewModel.toggleMenu() },
             onClickAddFlashcardDialog = { viewModel.toggleAddFlashcardDialog() },
-            onDismissAddFlashcardDialog = { viewModel.toggleAddFlashcardDialog() },
-            onCreateFlashcardManually = {
-                viewModel.toggleAddFlashcardDialog()
-                scope.launch {
-                    delay(100)
-                    onNavigateToCreateFlashcard(deckId)
-                }
-            },
-            onCreateFlashcardWithIA = {
-                viewModel.toggleAddFlashcardDialog()
-                scope.launch {
-                    delay(100)
-                    onNavigateToCreateWithIA(deckId)
-                }
-            },
             onFlashcardClick = { flashcardId -> onNavigateToFlashcard(flashcardId) },
             onStudyNowClick = {
                 onNavigateToStudy(deckId)
             },
+            isShowingAll = uiState.isShowingAll,
             onClickSeeMore = { viewModel.loadAllFlashcards() },
             onBackClick = onNavigateBack,
-            onConfirmDelete = {
-                viewModel.toggleDeleteDeckDialog()
-                viewModel.deleteDeck()
-                scope.launch {
-                    delay(100)
-                    onNavigateBack()
-                }
-            },
             onEditClick = {
                 viewModel.toggleMenu()
                 scope.launch {
@@ -153,12 +201,6 @@ fun DeckScreen(
             onClickDeleteDeckDialog = {
                 viewModel.toggleMenu()
                 viewModel.toggleDeleteDeckDialog()
-            },
-            onDismissDeleteDeckDialog = {
-                scope.launch {
-                    delay(120)
-                    viewModel.toggleDeleteDeckDialog()
-                }
             },
             isLoading = uiState.isLoading,
             formatNextReview = { timestamp -> viewModel.formatNextReview(timestamp) }
@@ -181,61 +223,19 @@ fun DeckContent(
     searchInput: String = "",
     onSearchValueChange: (String) -> Unit = {},
     isMenuExpanded: Boolean = false,
-    isAddFlashcardDialogOpen: Boolean = false,
-    onCreateFlashcardWithIA: () -> Unit = {},
-    onCreateFlashcardManually: () -> Unit = {},
     onFlashcardClick: (String) -> Unit = {},
     onStudyNowClick: () -> Unit = {},
+    isShowingAll: Boolean = false,
     onClickSeeMore: () -> Unit = {},
     onBackClick: () -> Unit = {},
     onMenuClick: () -> Unit = {},
-    onConfirmDelete: () -> Unit = {},
     onEditClick: () -> Unit = {},
     onClickAddFlashcardDialog: () -> Unit = {},
-    onDismissAddFlashcardDialog: () -> Unit = {},
     onClickDeleteDeckDialog: () -> Unit = {},
-    onDismissDeleteDeckDialog: () -> Unit = {},
-    isDeleteDeckDialogOpen: Boolean = false,
     isLoading: Boolean = false,
     formatNextReview: (Long) -> String = { "" }
 ) {
     val scrollState = rememberScrollState()
-
-    if (isDeleteDeckDialogOpen) {
-        BasicCustomAlertDialog(
-            dialogTitle = "Tem certeza disso?",
-            dialogText = "Essa ação não poderá ser desfeita!",
-            confirmationButtonText = "Sim",
-            dismissButtonText = "Cancelar",
-            onConfirmation = onConfirmDelete,
-            onDismissRequest = onDismissDeleteDeckDialog,
-            icon = R.drawable.ic_delete,
-            iconColor = Red
-        )
-    }
-
-    if (isAddFlashcardDialogOpen) {
-        BasicCustomDialog(
-            onDismissRequest = onDismissAddFlashcardDialog,
-            dialogTitle = "Como deseja criar?",
-            buttons = {
-                SimpleGradientButton(
-                    text = "Criar manualmente",
-                    height = 56.dp,
-                    onClickButton = {
-                        onCreateFlashcardManually()
-                    }
-                )
-                SimpleGradientButton(
-                    text = "Criar com IA",
-                    height = 56.dp,
-                    onClickButton = {
-                        onCreateFlashcardWithIA()
-                    }
-                )
-            }
-        )
-    }
 
     Scaffold(
         modifier = Modifier.statusBarsPadding(),
@@ -332,23 +332,22 @@ fun DeckContent(
                     ) {
                         CustomLabel(
                             text = if (searchInput.isEmpty()) "Próximos tópicos" else "Resultados da busca",
-                            textColor = DarkNavyBlue
+                            textColor = DarkGray
                         )
-                        if (searchInput.isEmpty() && (deckFlashcards?.size ?: 0) < (deckTotalCards ?: 0)) {
-                            TextButton(
-                                onClick = onClickSeeMore,
-                                contentPadding = PaddingValues(0.dp)
-                            ) {
-                                Text(
-                                    text = "Ver todos",
-                                    color = DarkNavyBlue,
-                                    fontWeight = FontWeight.SemiBold,
+                        if (searchInput.isEmpty() && (deckTotalCards ?: 0) > 3) {
+                            Text(
+                                text = if (isShowingAll) "Ver menos" else "Ver todos",
+                                color = DarkNavyBlue,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    onClick = { onClickSeeMore() }
                                 )
-                            }
+                            )
                         }
                     }
                     if (!deckFlashcards.isNullOrEmpty()) {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Column {
                             Crossfade(
                                 targetState = isLoading,
                                 label = "flashcards_shimmer"
@@ -428,7 +427,8 @@ private fun DeckContentPreview() {
             deckMastery = deck.mastery,
             deckTotalCards = deck.totalCards,
             deckCardsToReview = deck.cardsToReview,
-            deckFlashcards = flashcards,
+            deckFlashcards = flashcards.take(3),
+            isShowingAll = false,
             isLoading = false
         )
     }

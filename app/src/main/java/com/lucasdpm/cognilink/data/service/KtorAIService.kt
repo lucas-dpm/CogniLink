@@ -15,11 +15,13 @@ import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
-import kotlinx.serialization.SerialName
+import io.ktor.http.isSuccess
 import kotlinx.serialization.Serializable
 
 class KtorAIService(
@@ -32,6 +34,13 @@ class KtorAIService(
 
     private val baseUrl = BuildConfig.BASE_BACKEND_URL
 
+    private suspend fun HttpResponse.ensureSuccess(errorMessage: String) {
+        if (!status.isSuccess()) {
+            val errorBody = bodyAsText()
+            throw Exception("$errorMessage (${status.value}): $errorBody")
+        }
+    }
+
     override suspend fun compareAnswer(
         question: String,
         correctAnswer: String,
@@ -41,11 +50,15 @@ class KtorAIService(
             val response = httpClient.post("${baseUrl}/ai/compare-answer") {
                 contentType(ContentType.Application.Json)
                 setBody(CompareRequest(question, correctAnswer, userAnswer))
-            }.body<CompareResponse>()
+            }
+
+            response.ensureSuccess("Erro ao comparar resposta")
+
+            val body = response.body<CompareResponse>()
 
             AIAnswerFeedback(
-                isCorrect = response.isCorrect,
-                tip = response.tip
+                isCorrect = body.isCorrect,
+                tip = body.tip
             )
         }.onFailure { e ->
             Log.e(TAG, "compareAnswer: Erro ao comparar resposta", e)
@@ -64,11 +77,15 @@ class KtorAIService(
                         append(HttpHeaders.ContentDisposition, "filename=$fileName")
                     })
                 }
-            ).body<AnalyzeDocumentResponse>()
+            )
+
+            response.ensureSuccess("Erro ao analisar documento")
+
+            val body = response.body<AnalyzeDocumentResponse>()
 
             DocumentAnalysis(
-                mainTheme = response.mainTheme,
-                topics = response.topics
+                mainTheme = body.mainTheme,
+                topics = body.topics
             )
         }.onFailure { e ->
             Log.e(TAG, "analyzeDocument: Erro ao analisar documento", e)
@@ -85,10 +102,14 @@ class KtorAIService(
         return runCatching {
             val response = httpClient.post("${baseUrl}/ai/generate-flashcards") {
                 contentType(ContentType.Application.Json)
-                setBody(IAGenerationRequest(mainTheme, topics, difficulty, type, quantity))
-            }.body<IAGenerationResponse>()
+                setBody(GenerateFlashcardsRequest(mainTheme, topics, difficulty, type, quantity))
+            }
 
-            response.flashcards.map { dto ->
+            response.ensureSuccess("Erro ao gerar flashcards")
+
+            val body = response.body<IAGenerationResponse>()
+
+            body.flashcards.map { dto ->
                 IAGeneratedFlashcard(
                     question = dto.question,
                     type = FlashcardType.valueOf(dto.type.uppercase()),
@@ -122,14 +143,13 @@ class KtorAIService(
 
     @Serializable
     private data class AnalyzeDocumentResponse(
-        @SerialName("main-theme")
         val mainTheme: String,
         val topics: List<String>
     )
 
     @Serializable
-    private data class IAGenerationRequest(
-        val mainTheme: String,
+    private data class GenerateFlashcardsRequest(
+        val mainTheme: String? = null,
         val topics: List<String>,
         val difficulty: String,
         val type: String,

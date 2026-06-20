@@ -36,7 +36,6 @@ class DeckViewModel(
     val uiState: StateFlow<DeckUiState> = _uiState.asStateFlow()
 
     private var deckJob: Job? = null
-    private var isShowingAll = false
 
     fun initialize(deckId: String, userId: String) {
         if (_uiState.value.deckId == deckId && _uiState.value.userId == userId) return
@@ -90,7 +89,7 @@ class DeckViewModel(
                     _uiState.update {
                         it.copy(
                             flashcards = flashcards,
-                            filteredFlashcards = getDisplayList(flashcards, it.searchInput),
+                            filteredFlashcards = getDisplayList(flashcards, it.searchInput, it.isShowingAll),
                             isDeckEmpty = flashcards.isEmpty()
                         )
                     }
@@ -104,9 +103,12 @@ class DeckViewModel(
     }
 
     fun loadAllFlashcards() {
-        isShowingAll = true
         _uiState.update {
-            it.copy(filteredFlashcards = getDisplayList(it.flashcards, it.searchInput))
+            val newState = !it.isShowingAll
+            it.copy(
+                isShowingAll = newState,
+                filteredFlashcards = getDisplayList(it.flashcards, it.searchInput, newState)
+            )
         }
     }
 
@@ -114,12 +116,16 @@ class DeckViewModel(
         _uiState.update {
             it.copy(
                 searchInput = newValue,
-                filteredFlashcards = getDisplayList(it.flashcards, newValue)
+                filteredFlashcards = getDisplayList(it.flashcards, newValue, it.isShowingAll)
             )
         }
     }
 
-    private fun getDisplayList(list: List<FlashcardWithStats>, query: String): List<FlashcardWithStats> {
+    private fun getDisplayList(
+        list: List<FlashcardWithStats>,
+        query: String,
+        isShowingAll: Boolean
+    ): List<FlashcardWithStats> {
         return if (query.isEmpty()) {
             if (isShowingAll) list else list.take(3)
         } else {

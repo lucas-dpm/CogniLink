@@ -74,14 +74,14 @@ fun ProfileSection(
                 text = "Dashboard",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Medium,
+                color = DarkGray
             )
             Text(
                 text = "VER PERFIL",
                 fontWeight = FontWeight.Bold,
-                color = DarkGray,
+                color = DarkNavyBlue,
                 modifier = Modifier.clickable(
                     interactionSource = remember { MutableInteractionSource() },
-                    indication = null
                 ) { onOpenProfileClick() }
             )
         }

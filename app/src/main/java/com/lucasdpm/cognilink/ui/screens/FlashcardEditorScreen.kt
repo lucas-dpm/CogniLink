@@ -128,6 +128,35 @@ fun FlashcardEditorScreen(
         }
     }
 
+    if (uiState.showDeleteDialog) {
+        BasicCustomAlertDialog(
+            dialogTitle = "Tem certeza disso?",
+            dialogText = "Essa ação não poderá ser desfeita!",
+            confirmationButtonText = "Sim",
+            dismissButtonText = "Cancelar",
+            onConfirmation = { viewModel.deleteFlashcard() },
+            onDismissRequest = { viewModel.toggleDeleteDialog() },
+        )
+    }
+
+    if (uiState.showChangeDialog) {
+        BasicCustomAlertDialog(
+            onDismissRequest = { viewModel.toggleChangeDialog() },
+            onConfirmation = {
+                viewModel.discardFlashcard()
+                viewModel.toggleChangeDialog()
+                scope.launch {
+                    delay(150)
+                    onNavigateBack()
+                }
+            },
+            dialogTitle = "Alterações não salvas",
+            dialogText = "Você possui alterações não salvas. Deseja realmente sair e descartá-las?",
+            confirmationButtonText = "Sair e descartar",
+            dismissButtonText = "Continuar editando",
+        )
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         FlashcardEditorContent(
             questionText = uiState.questionText,
@@ -152,9 +181,6 @@ fun FlashcardEditorScreen(
             onDeleteClick = { viewModel.toggleDeleteDialog() },
             isMenuExpanded = uiState.isMenuExpanded,
             onMenuClick = viewModel::toggleMenu,
-            onDismissDeleteDialog = { viewModel.toggleDeleteDialog() },
-            showDeleteDialog = uiState.showDeleteDialog,
-            onConfirmDelete = { viewModel.deleteFlashcard() },
             onBackClick = {
                 if (uiState.wasEdited) {
                     viewModel.toggleChangeDialog()
@@ -165,19 +191,9 @@ fun FlashcardEditorScreen(
                     }
                 }
             },
-            showChangeDialog = uiState.showChangeDialog,
-            onDismissChangeDialog = { viewModel.toggleChangeDialog() },
-            onConfirmDiscard = {
-                viewModel.discardFlashcard()
-                viewModel.toggleChangeDialog()
-                scope.launch {
-                    delay(150)
-                    onNavigateBack()
-                }
-            },
             snackbarHostState = snackbarHostState,
             isLoading = uiState.isLoading,
-            )
+        )
 
         if (uiState.isSaving) {
             FullScreenLoading()
@@ -209,39 +225,12 @@ fun FlashcardEditorContent(
     onDeleteClick: () -> Unit = {},
     onBackClick: () -> Unit = {},
     onMenuClick: () -> Unit = {},
-    showDeleteDialog: Boolean = false,
     isMenuExpanded: Boolean = false,
-    onDismissDeleteDialog: () -> Unit = {},
-    onConfirmDelete: () -> Unit = {},
-    showChangeDialog: Boolean = false,
-    onDismissChangeDialog: () -> Unit = {},
-    onConfirmDiscard: () -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     isLoading: Boolean = false,
     isEditMode: Boolean = false
 ) {
     val scrollState = rememberScrollState()
-
-    if (showDeleteDialog) {
-        BasicCustomAlertDialog(
-            dialogTitle = "Tem certeza disso?",
-            dialogText = "Essa ação não poderá ser desfeita!",
-            confirmationButtonText = "Sim",
-            dismissButtonText = "Cancelar",
-            onConfirmation = onConfirmDelete,
-            onDismissRequest = onDismissDeleteDialog,
-        )
-    }
-    if (showChangeDialog) {
-        BasicCustomAlertDialog(
-            onDismissRequest = onDismissChangeDialog,
-            onConfirmation = onConfirmDiscard,
-            dialogTitle = "Alterações não salvas",
-            dialogText = "Você possui alterações não salvas. Deseja realmente sair e descartá-las?",
-            confirmationButtonText = "Sair e descartar",
-            dismissButtonText = "Continuar editando",
-        )
-    }
 
     Scaffold(
         modifier = Modifier.systemBarsPadding(),

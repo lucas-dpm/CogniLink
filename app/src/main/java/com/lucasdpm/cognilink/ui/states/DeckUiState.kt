@@ -17,5 +17,6 @@ data class DeckUiState(
     val isLoading: Boolean = false,
     val showCriticalErrorDialog: Boolean = false,
     val isDeleting: Boolean = false,
+    val isShowingAll: Boolean = false,
     val errorMessage: String? = null
 )
