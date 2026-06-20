@@ -11,6 +11,8 @@ import com.lucasdpm.cognilink.domain.model.FlashcardType
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.states.FlashcardFormUiState
 import java.util.UUID
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,6 +30,8 @@ class FlashcardFormViewModel(
 
     private val _uiState = MutableStateFlow(FlashcardFormUiState())
     val uiState: StateFlow<FlashcardFormUiState> = _uiState.asStateFlow()
+
+    private var formJob: Job? = null
 
     fun initialize(deckId: String, flashcardId: String? = null) {
         if (_uiState.value.deckId == deckId && _uiState.value.flashcardId == flashcardId && _uiState.value.isInitialized) return
@@ -53,13 +57,14 @@ class FlashcardFormViewModel(
         
         if (flashcardId != null) {
             _uiState.update { it.copy(isLoading = true) }
-            loadFlashcard()
+            formJob?.cancel()
+            formJob = loadFlashcard()
         }
     }
 
-    private fun loadFlashcard() {
+    private fun loadFlashcard(): Job {
         val currentState = _uiState.value
-        viewModelScope.launch {
+        return viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
                 val flashcard = repository.getFlashcardById(currentState.flashcardId)?.flashcard
@@ -81,6 +86,7 @@ class FlashcardFormViewModel(
                     }
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 Log.e(TAG, "loadFlashcard: Error loading flashcard", e)
                 _uiState.update {
                     it.copy(
@@ -236,6 +242,7 @@ class FlashcardFormViewModel(
             notificationService.showSuccess("Flashcard salvo com sucesso!")
             true
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             Log.e(TAG, "saveFlashcardSuspending: Error saving flashcard", e)
             _uiState.update { it.copy(isLoading = false) }
             notificationService.showError("Não foi possível salvar o flashcard. Tente novamente mais tarde!")
@@ -258,6 +265,7 @@ class FlashcardFormViewModel(
                 }
                 notificationService.showSuccess("Flashcard excluído com sucesso!")
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 Log.e(TAG, "deleteFlashcard: Error deleting flashcard", e)
                 _uiState.update { it.copy(isLoading = false) }
                 notificationService.showError("Não foi possível excluir o flashcard. Tente novamente mais tarde!")
@@ -272,6 +280,7 @@ class FlashcardFormViewModel(
                 try {
                     repository.deleteFlashcard(currentState.flashcardId)
                 } catch (e: Exception) {
+                    if (e is CancellationException) throw e
                     Log.e(TAG, "discardFlashcard: Error deleting flashcard", e)
                 }
             }

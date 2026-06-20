@@ -4,7 +4,6 @@ import android.util.Log
 import com.lucasdpm.cognilink.data.model.UserStats
 import com.lucasdpm.cognilink.data.repository.FlashcardRepository
 import com.lucasdpm.cognilink.data.repository.UserRepository
-import kotlinx.coroutines.flow.firstOrNull
 
 class UpdateUserStatsUseCase(
     private val userRepository: UserRepository,
@@ -17,7 +16,7 @@ class UpdateUserStatsUseCase(
 
     suspend operator fun invoke(userId: String) {
         try {
-            val currentStats = userRepository.getUserStats(userId).firstOrNull() ?: UserStats(userId = userId)
+            val currentStats = userRepository.getStats(userId) ?: UserStats(userId = userId)
             val allFlashcardStats = flashcardRepository.getAllStatisticsForUser(userId)
 
             if (allFlashcardStats.isEmpty()) return

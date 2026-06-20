@@ -8,6 +8,8 @@ import com.lucasdpm.cognilink.data.repository.DeckRepository
 import com.lucasdpm.cognilink.data.repository.UserRepository
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.states.HomeUiState
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,90 +30,96 @@ class HomeViewModel(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
+    private var homeJob: Job? = null
+
     fun initialize(userId: String) {
         if (_uiState.value.userId == userId) return
         _uiState.update { it.copy(userId = userId) }
-        loadHomeData()
+        
+        homeJob?.cancel()
+        homeJob = loadHomeData(userId)
     }
 
-    private fun loadHomeData() {
-        val currentState = _uiState.value
-        val userId = currentState.userId ?: return
+    private fun loadHomeData(userId: String): Job {
+        return viewModelScope.launch {
+            // 1. Observar baralhos
+            launch {
+                _uiState.update { it.copy(isLoadingDecks = true) }
+                try {
+                    deckRepository.getDecks(userId).collect { decks ->
+                        _uiState.update {
+                            it.copy(
+                                decks = decks,
+                                isLoadingDecks = false
+                            )
+                        }
+                        filterDecks(_uiState.value.searchInput)
+                    }
+                } catch (e: Exception) {
+                    if (e is CancellationException) throw e
+                    _uiState.update { it.copy(isLoadingDecks = false) }
+                    notificationService.showError("Erro ao carregar baralhos")
+                    Log.e(TAG, "loadHomeData (decks): Erro ao carregar baralhos", e)
+                }
+            }
 
-        // 1. Observar baralhos
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoadingDecks = true) }
-            try {
-                deckRepository.getDecks(userId).collect { decks ->
+            // 2. Observar estatísticas
+            launch {
+                _uiState.update { it.copy(isLoadingStats = true) }
+                try {
+                    userRepository.getUserStats(userId).collect { stats ->
+                        val userStats = stats ?: UserStats(userId = userId)
+                        _uiState.update {
+                            it.copy(
+                                totalStudyTime = userStats.totalStudyTime,
+                                overallMastery = userStats.overallMastery,
+                                cardsDone = userStats.totalFlashcardsDone,
+                                retentionRate = userStats.retentionRate,
+                                isLoadingStats = false
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    if (e is CancellationException) throw e
+                    _uiState.update { it.copy(isLoadingStats = false) }
+                    notificationService.showWarning("Erro ao carregar estatísticas")
+                    Log.e(TAG, "loadHomeData (stats): Erro ao carregar estatísticas", e)
+                }
+            }
+
+            // 3. Carregar Perfil (Nome)
+            launch {
+                _uiState.update { it.copy(isLoadingUser = true) }
+                try {
+                    val user = userRepository.getUserById(userId = userId)
+                    if (user == null) {
+                        _uiState.update {
+                            it.copy(
+                                isLoadingUser = false,
+                                errorMessage = "Usuário não encontrado. Por favor, faça login novamente.",
+                                showCriticalErrorDialog = true
+                            )
+                        }
+                        return@launch
+                    }
+
                     _uiState.update {
                         it.copy(
-                            decks = decks,
-                            isLoadingDecks = false
+                            userName = user.name,
+                            isLoadingUser = false
                         )
                     }
-                    filterDecks(_uiState.value.searchInput)
-                }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(isLoadingDecks = false) }
-                notificationService.showError("Erro ao carregar baralhos")
-                Log.e(TAG, "loadHomeData (decks): Erro ao carregar baralhos", e)
-            }
-        }
-
-        // 2. Observar estatísticas
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoadingStats = true) }
-            try {
-                userRepository.getUserStats(userId).collect { stats ->
-                    val userStats = stats ?: UserStats(userId = userId)
-                    _uiState.update {
-                        it.copy(
-                            totalStudyTime = userStats.totalStudyTime,
-                            overallMastery = userStats.overallMastery,
-                            cardsDone = userStats.totalFlashcardsDone,
-                            retentionRate = userStats.retentionRate,
-                            isLoadingStats = false
-                        )
-                    }
-                }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(isLoadingStats = false) }
-                notificationService.showWarning("Erro ao carregar estatísticas")
-                Log.e(TAG, "loadHomeData (stats): Erro ao carregar estatísticas", e)
-            }
-        }
-
-        // 3. Carregar Perfil (Nome)
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoadingUser = true) }
-            try {
-                val user = userRepository.getUserById(userId = userId)
-                if (user == null) {
+                } catch (e: Exception) {
+                    if (e is CancellationException) throw e
                     _uiState.update {
                         it.copy(
                             isLoadingUser = false,
-                            errorMessage = "Usuário não encontrado. Por favor, faça login novamente.",
+                            errorMessage = "Falha ao conectar com o servidor.",
                             showCriticalErrorDialog = true
                         )
                     }
-                    return@launch
+                    Log.e(TAG, "loadHomeData (user): Falha ao conectar com o servidor", e)
                 }
-
-                _uiState.update {
-                    it.copy(
-                        userName = user.name,
-                        isLoadingUser = false
-                    )
-                }
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isLoadingUser = false,
-                        errorMessage = "Falha ao conectar com o servidor.",
-                        showCriticalErrorDialog = true
-                    )
-                }
-                Log.e(TAG, "loadHomeData (user): Falha ao conectar com o servidor", e)
             }
         }
     }

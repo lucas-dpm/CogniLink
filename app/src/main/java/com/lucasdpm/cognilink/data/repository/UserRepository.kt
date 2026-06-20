@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.map
 interface UserRepository {
     suspend fun getUserById(userId: String): User?
     fun getUserStats(userId: String): Flow<UserStats?>
+    suspend fun getStats(userId: String): UserStats?
     suspend fun updateUser(user: User)
 }
 
@@ -31,7 +32,9 @@ class UserRepositoryImpl(
     override suspend fun getUserById(userId: String): User? {
         return try {
             val userEntity = userDao.findUserById(userId) ?: return null
-            userEntity.toDomain(UserStats(userId = userId))
+            val statsEntity = userStatsDao.getUserStatsById(userId)
+            val stats = statsEntity?.toDomain() ?: UserStats(userId = userId)
+            userEntity.toDomain(stats)
         } catch (e: Exception) {
             Log.e(TAG, "getUserById: Erro ao buscar usuário $userId", e)
             null
@@ -40,6 +43,10 @@ class UserRepositoryImpl(
 
     override fun getUserStats(userId: String): Flow<UserStats?> {
         return userStatsDao.getUserStatsByUserId(userId).map { it?.toDomain() }
+    }
+
+    override suspend fun getStats(userId: String): UserStats? {
+        return userStatsDao.getUserStatsById(userId)?.toDomain()
     }
 
     override suspend fun updateUser(user: User) {

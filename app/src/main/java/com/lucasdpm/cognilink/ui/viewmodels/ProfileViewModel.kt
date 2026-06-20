@@ -7,6 +7,8 @@ import com.lucasdpm.cognilink.data.model.UserStats
 import com.lucasdpm.cognilink.data.repository.UserRepository
 import com.lucasdpm.cognilink.domain.usecase.CalculateUserRankingUseCase
 import com.lucasdpm.cognilink.ui.states.ProfileUiState
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,14 +28,18 @@ class ProfileViewModel(
     private val _uiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Loading)
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
+    private var profileJob: Job? = null
+
     fun initialize(userId: String) {
         val currentState = _uiState.value
         if (currentState is ProfileUiState.Success && currentState.userId == userId) return
-        loadUserProfileData(userId)
+        
+        profileJob?.cancel()
+        profileJob = loadUserProfileData(userId)
     }
 
-    private fun loadUserProfileData(userId: String) {
-        viewModelScope.launch {
+    private fun loadUserProfileData(userId: String): Job {
+        return viewModelScope.launch {
             _uiState.value = ProfileUiState.Loading
             try {
                 val user = userRepository.getUserById(userId)
@@ -54,6 +60,7 @@ class ProfileViewModel(
                     )
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 _uiState.value = ProfileUiState.Error("Erro ao carregar perfil")
                 Log.e(TAG, "loadUserProfileData: Erro ao carregar dados do perfil", e)
             }
@@ -103,6 +110,18 @@ class ProfileViewModel(
     }
 
     fun formatLatency(latencyMs: Long): String {
-        return String.format(Locale.getDefault(), "%.1f ms", latencyMs.toDouble())
+        if (latencyMs < 1000) {
+            return String.format(Locale.getDefault(), "%.1f ms", latencyMs.toDouble())
+        }
+
+        val seconds = TimeUnit.MILLISECONDS.toSeconds(latencyMs)
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(latencyMs)
+        val hours = TimeUnit.MILLISECONDS.toHours(latencyMs)
+
+        return when {
+            hours > 0 -> String.format(Locale.getDefault(), "%dh %dm %ds", hours, minutes % 60, seconds % 60)
+            minutes > 0 -> String.format(Locale.getDefault(), "%dm %ds", minutes, seconds % 60)
+            else -> String.format(Locale.getDefault(), "%.1f s", latencyMs / 1000.0)
+        }
     }
 }

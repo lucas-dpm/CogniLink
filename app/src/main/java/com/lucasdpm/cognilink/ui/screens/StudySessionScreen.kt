@@ -81,14 +81,15 @@ import org.koin.androidx.compose.koinViewModel
 fun StudySessionScreen(
     studyMode: String,
     contextId: String,
+    userId: String,
     onNavigateBack: () -> Unit,
     viewModel: StudySessionViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(studyMode, contextId) {
-        viewModel.initializeSession(studyMode, contextId)
+    LaunchedEffect(studyMode, contextId, userId) {
+        viewModel.initializeSession(studyMode, contextId, userId)
     }
 
     if (uiState.showCriticalErrorDialog) {

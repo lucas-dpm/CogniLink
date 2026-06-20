@@ -9,6 +9,8 @@ import com.lucasdpm.cognilink.data.repository.FlashcardRepository
 import com.lucasdpm.cognilink.domain.model.DifficultyLevel
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.states.DeckFormUiState
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,6 +31,8 @@ class DeckFormViewModel(
     private val _uiState = MutableStateFlow(DeckFormUiState())
     val uiState: StateFlow<DeckFormUiState> = _uiState.asStateFlow()
 
+    private var deckFormJob: Job? = null
+
     fun initialize(deckId: String?, userId: String) {
         // Se já inicializamos este ViewModel (seja rascunho ou edição), não fazemos nada.
         if (_uiState.value.deckId.isNotEmpty()) return
@@ -43,37 +47,39 @@ class DeckFormViewModel(
             )
         }
 
-        if (deckId != null) {
-            _uiState.update { it.copy(isLoading = true) }
-            loadDeckData()
-        } else {
-            // Cria o rascunho imediatamente para permitir adicionar flashcards
-            saveDraftDeck(targetId, userId)
-            _uiState.update { it.copy(wasEdited = true) }
-        }
+        deckFormJob?.cancel()
+        deckFormJob = viewModelScope.launch {
+            if (deckId != null) {
+                _uiState.update { it.copy(isLoading = true) }
+                loadDeckData()
+            } else {
+                // Cria o rascunho imediatamente para permitir adicionar flashcards
+                saveDraftDeck(targetId, userId)
+                _uiState.update { it.copy(wasEdited = true) }
+            }
 
-        // Começa a observar os flashcards deste ID para sempre
-        observeFlashcards(targetId)
+            // Começa a observar os flashcards deste ID para sempre
+            observeFlashcards(targetId)
+        }
     }
 
-    private fun saveDraftDeck(id: String, userId: String) {
-        viewModelScope.launch {
-            try {
-                val draft = Deck(
-                    id = id, userId = userId, name = "", description = "",
-                    categories = emptyList(), difficulty = DifficultyLevel.EASY,
-                    mastery = 0f, totalCards = 0, cardsToReview = 0,
+    private suspend fun saveDraftDeck(id: String, userId: String) {
+        try {
+            val draft = Deck(
+                id = id, userId = userId, name = "", description = "",
+                categories = emptyList(), difficulty = DifficultyLevel.EASY,
+                mastery = 0f, totalCards = 0, cardsToReview = 0,
+            )
+            deckRepository.saveDeck(draft, userId)
+            _uiState.update { it.copy(wasEdited = true) }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Log.e(TAG, "saveDraftDeck: error on save draft deck", e)
+            _uiState.update {
+                it.copy(
+                    errorMessage = "Erro ao preparar rascunho",
+                    showCriticalErrorDialog = true
                 )
-                deckRepository.saveDeck(draft, userId)
-                _uiState.update { it.copy(wasEdited = true) }
-            } catch (e: Exception) {
-                Log.e(TAG, "saveDraftDeck: error on save draft deck", e)
-                _uiState.update {
-                    it.copy(
-                        errorMessage = "Erro ao preparar rascunho",
-                        showCriticalErrorDialog = true
-                    )
-                }
             }
         }
     }
@@ -95,6 +101,7 @@ class DeckFormViewModel(
                     }
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 _uiState.update { it.copy(isLoading = false) }
                 Log.e(TAG, "loadDeckData: Erro ao carregar dados do baralho", e)
             }
@@ -108,6 +115,7 @@ class DeckFormViewModel(
                     _uiState.update { it.copy(deckFlashcards = list) }
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 Log.e(TAG, "observeFlashcards: Erro ao observar flashcards", e)
             }
         }
@@ -140,6 +148,7 @@ class DeckFormViewModel(
                 }
                 notificationService.showSuccess("Baralho salvo com sucesso!")
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 _uiState.update { it.copy(isSaving = false, isLoading = false) }
                 notificationService.showError("Erro ao salvar baralho")
                 Log.e(TAG, "saveDeck: Erro ao salvar baralho", e)
@@ -155,6 +164,7 @@ class DeckFormViewModel(
                 try {
                     deckRepository.deleteDeck(state.deckId, state.userId!!)
                 } catch (e: Exception) {
+                    if (e is CancellationException) throw e
                     Log.e(TAG, "discardDeck: Erro ao excluir rascunho", e)
                 }
             }
@@ -179,6 +189,7 @@ class DeckFormViewModel(
             try {
                 flashcardRepository.deleteFlashcard(id)
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 notificationService.showError("Erro ao excluir flashcard")
                 Log.e(TAG, "removeFlashcard: Erro ao excluir flashcard", e)
             }

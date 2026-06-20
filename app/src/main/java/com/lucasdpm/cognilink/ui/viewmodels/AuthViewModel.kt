@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.lucasdpm.cognilink.data.repository.AuthRepository
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.states.AuthUiState
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -83,6 +84,7 @@ class AuthViewModel(
                     notificationService.showError("E-mail ou senha incorretos!")
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 _uiState.update { 
                     it.copy(
                         isLoading = false,
@@ -179,6 +181,7 @@ class AuthViewModel(
                     notificationService.showError("Falha no cadastro. Tente novamente!")
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 _uiState.update { 
                     it.copy(
                         isLoading = false,

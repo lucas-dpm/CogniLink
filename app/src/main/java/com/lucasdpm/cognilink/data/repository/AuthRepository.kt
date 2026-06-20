@@ -38,43 +38,53 @@ class AuthRepositoryImpl(
             val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
             val firebaseUser = result.user ?: return null
             
-            // Tenta buscar dados adicionais no Firestore com timeout para evitar travamentos
+            // 1. Tenta buscar dados do usuário (Nome) no Firestore
             val userDoc = withTimeoutOrNull(5000) {
                 firestore.collection("users").document(firebaseUser.uid).get().await()
             }
+            val remoteName = userDoc?.getString("name") ?: ""
+
+            // 2. Tenta buscar estatísticas locais primeiro (Prioridade Room)
+            val localStats = userRepository.getStats(firebaseUser.uid)
             
-            val name = userDoc?.getString("name") ?: ""
-            
-            // Busca estatísticas
-            val statsDoc = withTimeoutOrNull(5000) {
-                firestore.collection("users").document(firebaseUser.uid)
-                    .collection("stats").document("global").get().await()
-            }
-            
-            val stats = if (statsDoc != null && statsDoc.exists()) {
-                UserStats(
-                    userId = firebaseUser.uid,
-                    totalFlashcardsDone = statsDoc.getLong("totalFlashcardsDone")?.toInt() ?: 0,
-                    totalFlashcardsMisses = statsDoc.getLong("totalFlashcardsMisses")?.toInt() ?: 0,
-                    totalFlashcardsHits = statsDoc.getLong("totalFlashcardsHits")?.toInt() ?: 0,
-                    lastReview = statsDoc.getLong("lastReview") ?: 0L,
-                    totalStudyTime = statsDoc.getLong("totalStudyTime") ?: 0L,
-                    totalFlashcardsReviewed = statsDoc.getLong("totalFlashcardsReviewed")?.toInt() ?: 0,
-                    overallMastery = statsDoc.getDouble("overallMastery")?.toFloat() ?: 0f,
-                    retentionRate = statsDoc.getDouble("retentionRate")?.toFloat() ?: 0f
-                )
+            val finalStats = if (localStats != null) {
+                // Se já temos stats locais, mantemos elas (Offline-first)
+                localStats
             } else {
-                UserStats(userId = firebaseUser.uid)
+                // Se não há nada local, tentamos o Firestore como fallback
+                val statsDoc = withTimeoutOrNull(5000) {
+                    firestore.collection("users").document(firebaseUser.uid)
+                        .collection("stats").document("global").get().await()
+                }
+
+                if (statsDoc != null && statsDoc.exists()) {
+                    UserStats(
+                        userId = firebaseUser.uid,
+                        totalFlashcardsDone = statsDoc.getLong("totalFlashcardsDone")?.toInt() ?: 0,
+                        totalFlashcardsMisses = statsDoc.getLong("totalFlashcardsMisses")?.toInt() ?: 0,
+                        totalFlashcardsHits = statsDoc.getLong("totalFlashcardsHits")?.toInt() ?: 0,
+                        lastReview = statsDoc.getLong("lastReview") ?: 0L,
+                        totalStudyTime = statsDoc.getLong("totalStudyTime") ?: 0L,
+                        totalFlashcardsReviewed = statsDoc.getLong("totalFlashcardsReviewed")?.toInt() ?: 0,
+                        overallMastery = statsDoc.getDouble("overallMastery")?.toFloat() ?: 0f,
+                        retentionRate = statsDoc.getDouble("retentionRate")?.toFloat() ?: 0f,
+                        cognitiveEfficiencyIndex = statsDoc.getDouble("cognitiveEfficiencyIndex")?.toFloat() ?: 0f,
+                        globalAverageLatencyMs = statsDoc.getLong("globalAverageLatencyMs") ?: 0L,
+                        activeLeechesCount = statsDoc.getLong("activeLeechesCount")?.toInt() ?: 0
+                    )
+                } else {
+                    UserStats(userId = firebaseUser.uid)
+                }
             }
 
             val user = User(
                 id = firebaseUser.uid,
-                name = name,
+                name = remoteName.ifEmpty { firebaseUser.displayName ?: "" },
                 email = firebaseUser.email ?: "",
-                stats = stats
+                stats = finalStats
             )
 
-            // Salva no banco local (Room) para garantir o Offline-First
+            // Salva/Atualiza no banco local apenas o que for necessário
             userRepository.updateUser(user)
 
             user

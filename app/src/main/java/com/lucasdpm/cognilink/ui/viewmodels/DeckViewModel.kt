@@ -7,6 +7,8 @@ import com.lucasdpm.cognilink.data.repository.DeckRepository
 import com.lucasdpm.cognilink.data.repository.FlashcardRepository
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.states.DeckUiState
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,44 +34,51 @@ class DeckViewModel(
     private val _uiState = MutableStateFlow(DeckUiState())
     val uiState: StateFlow<DeckUiState> = _uiState.asStateFlow()
 
+    private var deckJob: Job? = null
+
     fun initialize(deckId: String, userId: String) {
         if (_uiState.value.deckId == deckId && _uiState.value.userId == userId) return
         _uiState.update { it.copy(deckId = deckId, userId = userId) }
-        loadDeckDetails(deckId, userId)
+        
+        deckJob?.cancel()
+        deckJob = loadDeckDetails(deckId, userId)
     }
 
-    private fun loadDeckDetails(deckId: String, userId: String) {
-        viewModelScope.launch {
+    private fun loadDeckDetails(deckId: String, userId: String): Job {
+        return viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            try {
-                deckRepository.getDeckById(deckId, userId).collect { deck ->
-                    if (deck != null) {
-                        _uiState.update { it.copy(currentDeck = deck, isLoading = false) }
-                        // Flashcards já estão sendo observados reativamente via loadFlashcards
-                    } else if (!_uiState.value.isDeleting) {
-                        _uiState.update { 
-                            it.copy(
-                                errorMessage = "Baralho não encontrado", 
-                                isLoading = false,
-                                showCriticalErrorDialog = true
-                            ) 
+            launch {
+                try {
+                    deckRepository.getDeckById(deckId, userId).collect { deck ->
+                        if (deck != null) {
+                            _uiState.update { it.copy(currentDeck = deck, isLoading = false) }
+                            // Flashcards já estão sendo observados reativamente via loadFlashcards
+                        } else if (!_uiState.value.isDeleting) {
+                            _uiState.update {
+                                it.copy(
+                                    errorMessage = "Baralho não encontrado",
+                                    isLoading = false,
+                                    showCriticalErrorDialog = true
+                                )
+                            }
                         }
                     }
+                } catch (e: Exception) {
+                    if (e is CancellationException) throw e
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = "Erro ao carregar baralho",
+                            showCriticalErrorDialog = true
+                        )
+                    }
+                    Log.e(TAG, "loadDeckDetails: Erro ao carregar baralho", e)
                 }
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = "Erro ao carregar baralho",
-                        showCriticalErrorDialog = true
-                    )
-                }
-                Log.e(TAG, "loadDeckDetails: Erro ao carregar baralho", e)
             }
-        }
 
-        // Inicia a observação dos flashcards separadamente
-        loadFlashcards(deckId)
+            // Inicia a observação dos flashcards separadamente
+            loadFlashcards(deckId)
+        }
     }
 
     private fun loadFlashcards(deckId: String) {
@@ -79,6 +88,7 @@ class DeckViewModel(
                     _uiState.update { it.copy(flashcards = flashcards.take(3)) }
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 notificationService.showError("Erro ao carregar flashcards")
                 Log.e(TAG, "loadFlashcards: Erro ao carregar flashcards", e)
             }
@@ -93,6 +103,7 @@ class DeckViewModel(
                     _uiState.update { it.copy(flashcards = flashcards) }
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 notificationService.showError("Erro ao carregar flashcards")
                 Log.e(TAG, "loadAllFlashcards: Erro ao carregar todos os flashcards", e)
             }
@@ -136,6 +147,7 @@ class DeckViewModel(
                 deckRepository.deleteDeck(deckId, userId)
                 notificationService.showSuccess("Baralho excluído com sucesso!")
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 _uiState.update { it.copy(isDeleting = false) }
                 notificationService.showError("Erro ao excluir baralho")
                 Log.e(TAG, "deleteDeck: ", e)

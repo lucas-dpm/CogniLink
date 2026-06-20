@@ -13,6 +13,9 @@ interface UserStatsDao {
     @Query("SELECT * FROM users_stats WHERE userId = :userId")
     fun getUserStatsByUserId(userId: String): Flow<UserStatsEntity?>
 
+    @Query("SELECT * FROM users_stats WHERE userId = :userId")
+    suspend fun getUserStatsById(userId: String): UserStatsEntity?
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertUserStats(stats: UserStatsEntity): Long
 

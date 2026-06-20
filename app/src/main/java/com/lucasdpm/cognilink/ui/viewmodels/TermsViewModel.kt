@@ -8,7 +8,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lucasdpm.cognilink.data.repository.TermsRepository
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -24,6 +26,8 @@ class TermsViewModel(
     var termsText by mutableStateOf("Carregando...")
         private set
 
+    private var termsJob: Job? = null
+
     init {
         loadTerms()
     }
@@ -33,7 +37,8 @@ class TermsViewModel(
     }
 
     private fun loadTerms() {
-        viewModelScope.launch {
+        termsJob?.cancel()
+        termsJob = viewModelScope.launch {
             termsText = "Carregando..."
             try {
                 val content = withContext(Dispatchers.IO) {
@@ -41,6 +46,7 @@ class TermsViewModel(
                 }
                 termsText = content
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 termsText = "Erro ao carregar termos de uso."
                 notificationService.showError("Falha ao carregar termos.")
                 Log.e(TAG, "loadTerms: Erro ao carregar termos de uso", e)

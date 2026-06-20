@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -41,6 +42,7 @@ class StudySessionViewModel(
     val uiState: StateFlow<StudySessionUiState> = _uiState.asStateFlow()
 
     private var timerJob: Job? = null
+    private var sessionJob: Job? = null
 
     init {
         startTimer()
@@ -61,7 +63,8 @@ class StudySessionViewModel(
         
         _uiState.update { it.copy(studyMode = studyMode, contextId = contextId, userId = userId, isLoading = true) }
         
-        viewModelScope.launch {
+        sessionJob?.cancel()
+        sessionJob = viewModelScope.launch {
             try {
                 val flashcards = when (studyMode) {
                     "DECK" -> repository.getFlashcardsForDeck(contextId).first().map { it.flashcard }
@@ -103,6 +106,7 @@ class StudySessionViewModel(
                     )
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 _uiState.update { 
                     it.copy(
                         isLoading = false,
@@ -304,6 +308,7 @@ class StudySessionViewModel(
                     updateUserStatsUseCase(userId)
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 Log.e(TAG, "updateFlashcardStats: Erro ao atualizar estatísticas do flashcard", e)
             }
         }

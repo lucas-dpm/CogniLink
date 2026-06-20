@@ -24,6 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
@@ -45,11 +46,22 @@ import com.lucasdpm.cognilink.ui.components.utils.GradientSurface
 import com.lucasdpm.cognilink.ui.components.utils.NavigationHeader
 import com.lucasdpm.cognilink.ui.components.utils.ProgressBar
 import com.lucasdpm.cognilink.ui.components.utils.buttons.NeonActionButton
-import com.lucasdpm.cognilink.ui.theme.*
 import com.lucasdpm.cognilink.ui.states.ProfileUiState
+import com.lucasdpm.cognilink.ui.theme.DarkGray
+import com.lucasdpm.cognilink.ui.theme.DarkNavyBlue
+import com.lucasdpm.cognilink.ui.theme.DarkRed
+import com.lucasdpm.cognilink.ui.theme.Green
+import com.lucasdpm.cognilink.ui.theme.LavenderBlue
+import com.lucasdpm.cognilink.ui.theme.MutedBlue
+import com.lucasdpm.cognilink.ui.theme.OffWhite
+import com.lucasdpm.cognilink.ui.theme.Red
+import com.lucasdpm.cognilink.ui.theme.VeryLightRed
+import com.lucasdpm.cognilink.ui.theme.White
+import com.lucasdpm.cognilink.ui.theme.shimmerEffect
 import com.lucasdpm.cognilink.ui.viewmodels.ProfileViewModel
 import org.koin.androidx.compose.koinViewModel
-import androidx.compose.runtime.LaunchedEffect
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 @Composable
 fun ProfileScreen(
@@ -69,6 +81,7 @@ fun ProfileScreen(
             is ProfileUiState.Loading -> {
                 ShimmerProfileContent(onNavigateBack = onNavigateBack)
             }
+
             is ProfileUiState.Success -> {
                 ProfileContent(
                     userName = state.userName,
@@ -83,6 +96,7 @@ fun ProfileScreen(
                     onReviewLeeches = { onNavigateToStudy("LEECHES") }
                 )
             }
+
             is ProfileUiState.Error -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(text = state.message, color = Red)
@@ -180,7 +194,11 @@ fun ProfileContent(
                                 Box(contentAlignment = Alignment.Center) {
                                     Column(horizontalAlignment = CenterHorizontally) {
                                         Text(
-                                            text = "${userStats.cognitiveEfficiencyIndex}",
+                                            text = "${
+                                                BigDecimal(userStats.cognitiveEfficiencyIndex.toString())
+                                                    .setScale(2, RoundingMode.DOWN)
+                                                    .toFloat()
+                                            }",
                                             fontSize = 48.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = DarkNavyBlue,
@@ -264,7 +282,9 @@ fun ProfileContent(
                     Surface(
                         shape = RoundedCornerShape(24.dp),
                         color = White,
-                        modifier = Modifier.weight(0.5f).height(200.dp)
+                        modifier = Modifier
+                            .weight(0.5f)
+                            .height(200.dp)
                     ) {
                         Column(
                             modifier = Modifier.padding(24.dp),
@@ -581,16 +601,16 @@ fun ProfileContent(
                                     tint = DarkNavyBlue
                                 )
                             }
-                                Text(
-                                    text = "TEMPO DE ESTUDO",
-                                    color = DarkGray.copy(alpha = 0.7f),
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.W700
-                                )
-                            }
                             Text(
-                                text = formattedStudyTime,
-                                fontSize = 30.sp,
+                                text = "TEMPO DE ESTUDO",
+                                color = DarkGray.copy(alpha = 0.7f),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.W700
+                            )
+                        }
+                        Text(
+                            text = formattedStudyTime,
+                            fontSize = 30.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = DarkGray
                         )
