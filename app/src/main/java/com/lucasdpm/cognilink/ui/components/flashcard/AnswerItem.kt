@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.lucasdpm.cognilink.ui.theme.Black
 import com.lucasdpm.cognilink.ui.theme.CogniLinkTheme
 import com.lucasdpm.cognilink.ui.theme.DarkNavyBlue
 import com.lucasdpm.cognilink.ui.theme.MutedBlue
@@ -82,6 +83,8 @@ fun AnswerItem(
                     unfocusedBorderColor = Color.Transparent,
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
+                    focusedTextColor = Black,
+                    unfocusedTextColor = Black
                 ),
                 placeholder = { Text("Digite a resposta...") },
                 shape = CircleShape,

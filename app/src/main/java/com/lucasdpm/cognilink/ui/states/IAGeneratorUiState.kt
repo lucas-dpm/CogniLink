@@ -16,6 +16,4 @@ data class IAGeneratorUiState(
     val selectedFileName: String? = null,
     val selectedFileUri: String? = null,
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
-    val themeError: String? = null
 )

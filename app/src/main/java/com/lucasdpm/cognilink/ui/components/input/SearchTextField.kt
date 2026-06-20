@@ -20,6 +20,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.lucasdpm.cognilink.R
+import com.lucasdpm.cognilink.ui.theme.Black
 import com.lucasdpm.cognilink.ui.theme.CogniLinkTheme
 import com.lucasdpm.cognilink.ui.theme.DarkGray
 import com.lucasdpm.cognilink.ui.theme.White
@@ -56,6 +57,8 @@ fun SearchTextField(modifier: Modifier = Modifier,
                     errorBorderColor = Color.Transparent,
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
+                    focusedTextColor = Black,
+                    unfocusedTextColor = Black
                 ),
                 placeholder = {
                     Text(

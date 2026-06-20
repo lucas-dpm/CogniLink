@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.lucasdpm.cognilink.ui.components.utils.buttons.DeleteButton
+import com.lucasdpm.cognilink.ui.theme.Black
 import com.lucasdpm.cognilink.ui.theme.DarkNavyBlue
 import com.lucasdpm.cognilink.ui.theme.MutedBlue
 import com.lucasdpm.cognilink.ui.theme.White
@@ -69,6 +70,8 @@ fun HintItem(
                         unfocusedBorderColor = Color.Transparent,
                         focusedContainerColor = Color.Transparent,
                         unfocusedContainerColor = Color.Transparent,
+                        focusedTextColor = Black,
+                        unfocusedTextColor = Black
                         ),
                     placeholder = { Text("Digite a dica...") },
                     readOnly = readOnly

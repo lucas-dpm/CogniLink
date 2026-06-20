@@ -25,9 +25,7 @@ import com.lucasdpm.cognilink.R
 import com.lucasdpm.cognilink.ui.components.utils.GradientSurface
 import com.lucasdpm.cognilink.ui.components.utils.ProgressBar
 import com.lucasdpm.cognilink.ui.theme.CogniLinkTheme
-import com.lucasdpm.cognilink.ui.theme.LavenderBlue
 import com.lucasdpm.cognilink.ui.theme.MutedBlue
-import com.lucasdpm.cognilink.ui.theme.VividCyan
 import com.lucasdpm.cognilink.ui.theme.White
 
 @Composable
