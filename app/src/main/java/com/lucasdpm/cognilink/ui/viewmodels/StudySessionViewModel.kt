@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lucasdpm.cognilink.data.model.Answer
+import com.lucasdpm.cognilink.data.model.FlashcardStats
 import com.lucasdpm.cognilink.data.repository.FlashcardRepository
 import com.lucasdpm.cognilink.domain.model.FlashcardType
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
@@ -19,11 +20,15 @@ import kotlinx.coroutines.launch
 
 import com.lucasdpm.cognilink.domain.model.ValidationResult
 import com.lucasdpm.cognilink.domain.model.ValidationType
+import com.lucasdpm.cognilink.domain.usecase.CalculateSM2UseCase
+import com.lucasdpm.cognilink.domain.usecase.UpdateUserStatsUseCase
 import com.lucasdpm.cognilink.domain.usecase.ValidateBasicAnswerUseCase
 
 class StudySessionViewModel(
     private val repository: FlashcardRepository,
     private val validateBasicAnswerUseCase: ValidateBasicAnswerUseCase,
+    private val calculateSM2UseCase: CalculateSM2UseCase,
+    private val updateUserStatsUseCase: UpdateUserStatsUseCase,
     private val notificationService: AppNotificationService,
 ) : ViewModel() {
 
@@ -46,10 +51,10 @@ class StudySessionViewModel(
         }
     }
 
-    fun initializeSession(studyMode: String, contextId: String) {
+    fun initializeSession(studyMode: String, contextId: String, userId: String? = null) {
         if (_uiState.value.studyMode == studyMode && _uiState.value.contextId == contextId) return
         
-        _uiState.update { it.copy(studyMode = studyMode, contextId = contextId, isLoading = true) }
+        _uiState.update { it.copy(studyMode = studyMode, contextId = contextId, userId = userId, isLoading = true) }
         
         viewModelScope.launch {
             val flashcards = when (studyMode) {
@@ -87,7 +92,8 @@ class StudySessionViewModel(
                     currentFlashcardIndex = 0,
                     isLoading = false,
                     isQuestionVerified = false,
-                    selectedAnswers = emptyMap()
+                    selectedAnswers = emptyMap(),
+                    cardStartTimeSeconds = it.secondsElapsed
                 )
             }
         }
@@ -118,7 +124,8 @@ class StudySessionViewModel(
                 it.copy(
                     currentFlashcardIndex = nextIndex,
                     selectedAnswers = emptyMap(),
-                    isQuestionVerified = false
+                    isQuestionVerified = false,
+                    cardStartTimeSeconds = it.secondsElapsed
                 )
             }
         }
@@ -206,6 +213,9 @@ class StudySessionViewModel(
                 }
             }
 
+            val latencyMs = (currentState.secondsElapsed - currentState.cardStartTimeSeconds) * 1000L
+            updateFlashcardStats(currentFlashcard.id, isCorrect, latencyMs)
+
             _uiState.update {
                 it.copy(
                     isQuestionVerified = true,
@@ -226,6 +236,57 @@ class StudySessionViewModel(
 
     fun toggleCloseDialog() {
         _uiState.update { it.copy(isCloseDialogOpen = !it.isCloseDialogOpen) }
+    }
+
+    private fun updateFlashcardStats(flashcardId: String, isCorrect: Boolean, latencyMs: Long) {
+        viewModelScope.launch {
+            val currentFlashcardWithStats = repository.getFlashcardById(flashcardId)
+            val currentStats = currentFlashcardWithStats?.stats ?: FlashcardStats(flashcardId = flashcardId)
+
+            // Cálculo da qualidade baseado no acerto e latência
+            val quality = when {
+                !isCorrect -> 0
+                latencyMs < 3000L -> 5
+                latencyMs < 8000L -> 4
+                else -> 3
+            }
+
+            val sm2Result = calculateSM2UseCase(
+                quality = quality,
+                previousInterval = currentStats.memoryStabilityDays,
+                previousEaseFactor = currentStats.easeFactor,
+                previousRepetitions = currentStats.repetitions
+            )
+
+            val updatedHits = if (isCorrect) currentStats.hits + 1 else currentStats.hits
+            val updatedMisses = if (!isCorrect) currentStats.misses + 1 else currentStats.misses
+            val updatedStudyTime = currentStats.studyTime + latencyMs
+
+            val newStats = currentStats.copy(
+                hits = updatedHits,
+                misses = updatedMisses,
+                studyTime = updatedStudyTime,
+                nextReview = sm2Result.nextReview,
+                averageLatencyMs = if (updatedHits + updatedMisses == 1) latencyMs
+                else (currentStats.averageLatencyMs * (currentStats.hits + currentStats.misses) + latencyMs) / (updatedHits + updatedMisses),
+                memoryStabilityDays = sm2Result.intervalDays,
+                easeFactor = sm2Result.easeFactor,
+                repetitions = sm2Result.repetitions,
+                consecutiveMisses = if (isCorrect) 0 else currentStats.consecutiveMisses + 1,
+                retentionRate = (updatedHits.toFloat() / (updatedHits + updatedMisses).toFloat()),
+                mastery = if (sm2Result.repetitions > 0) {
+                    // Simples cálculo de domínio baseado em repetições e EF
+                    (sm2Result.repetitions * sm2Result.easeFactor / 20f).coerceAtMost(1.0f)
+                } else currentStats.mastery
+            )
+
+            repository.updateFlashcardStatistics(newStats)
+
+            // Após atualizar os stats do flashcard, atualizamos os stats globais do usuário
+            _uiState.value.userId?.let { userId ->
+                updateUserStatsUseCase(userId)
+            }
+        }
     }
 
     @SuppressLint("DefaultLocale")

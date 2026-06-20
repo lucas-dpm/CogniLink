@@ -69,7 +69,7 @@ class AuthRepositoryImpl(
             Log.e("AuthRepository", "Firebase Auth Error: ${e.errorCode}")
             null
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Unknown Auth Error")
+            Log.e("AuthRepository", "Unknown Auth Error: ${e.message}")
             null
         }
     }
@@ -98,8 +98,8 @@ class AuthRepositoryImpl(
                     firestore.collection("users").document(firebaseUser.uid)
                         .collection("stats").document("global").set(newUser.stats).await()
                 }
-            } catch (firestoreError: Exception) {
-                Log.e("AuthRepository", "Firestore Sync Error")
+            } catch (e: Exception) {
+                Log.e("AuthRepository", "Firestore Sync Error: ${e.message}")
             }
 
             // Salva no banco local (Room) para prioridade de uso offline
@@ -110,7 +110,7 @@ class AuthRepositoryImpl(
             Log.e("AuthRepository", "Firebase Auth Error: ${e.errorCode}")
             null
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Unknown Auth Error")
+            Log.e("AuthRepository", "Unknown Auth Error: ${e.message}")
             null
         }
     }

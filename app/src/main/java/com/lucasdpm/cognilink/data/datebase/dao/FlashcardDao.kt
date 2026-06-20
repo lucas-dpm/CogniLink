@@ -28,7 +28,7 @@ interface FlashcardDao {
     @androidx.room.Update
     suspend fun updateFlashcard(flashcard: FlashcardEntity)
 
-    @androidx.room.Transaction
+    @Transaction
     suspend fun upsertFlashcard(flashcard: FlashcardEntity) {
         val id = insertFlashcard(flashcard)
         if (id == -1L) {
@@ -44,4 +44,23 @@ interface FlashcardDao {
 
     @Query("DELETE FROM flashcards WHERE id = :id")
     suspend fun deleteFlashcardById(id: String)
+
+    @Transaction
+    @Query("""
+        SELECT f.* FROM flashcards f
+        INNER JOIN decks d ON f.deckId = d.id
+        WHERE d.userId = :userId AND f.id IN (
+            SELECT flashcardId FROM flashcards_stats WHERE consecutiveMisses >= 4
+        )
+    """)
+    suspend fun getLeeches(userId: String): List<FlashcardWithStatsEntity>
+
+    @Transaction
+    @Query("""
+        SELECT f.* FROM flashcards f
+        INNER JOIN decks d ON f.deckId = d.id
+        LEFT JOIN flashcards_stats fs ON f.id = fs.flashcardId
+        WHERE d.userId = :userId AND (fs.nextReview <= :currentTime OR fs.nextReview IS NULL)
+    """)
+    suspend fun getReviewPending(userId: String, currentTime: Long): List<FlashcardWithStatsEntity>
 }

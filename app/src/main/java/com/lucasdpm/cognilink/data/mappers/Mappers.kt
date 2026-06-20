@@ -34,7 +34,8 @@ fun UserStatsEntity.toDomain(): UserStats = UserStats(
     globalAverageLatencyMs = globalAverageLatencyMs,
     retentionByContext = retentionByContext,
     contextTriggerConversionRate = contextTriggerConversionRate,
-    activeLeechesCount = activeLeechesCount
+    activeLeechesCount = activeLeechesCount,
+    ranking = ranking
 )
 
 fun UserStats.toEntity(): UserStatsEntity = UserStatsEntity(
@@ -51,7 +52,8 @@ fun UserStats.toEntity(): UserStatsEntity = UserStatsEntity(
     globalAverageLatencyMs = globalAverageLatencyMs,
     retentionByContext = retentionByContext,
     contextTriggerConversionRate = contextTriggerConversionRate,
-    activeLeechesCount = activeLeechesCount
+    activeLeechesCount = activeLeechesCount,
+    ranking = ranking
 )
 
 // Deck Mappers
@@ -123,6 +125,7 @@ fun FlashcardStatsEntity.toDomain(): FlashcardStats = FlashcardStats(
     averageLatencyMs = averageLatencyMs,
     memoryStabilityDays = memoryStabilityDays,
     easeFactor = easeFactor,
+    repetitions = repetitions,
     bestPerformingContext = bestPerformingContext,
     consecutiveMisses = consecutiveMisses,
     retentionRate = retentionRate,
@@ -138,6 +141,7 @@ fun FlashcardStats.toEntity(): FlashcardStatsEntity = FlashcardStatsEntity(
     averageLatencyMs = averageLatencyMs,
     memoryStabilityDays = memoryStabilityDays,
     easeFactor = easeFactor,
+    repetitions = repetitions,
     bestPerformingContext = bestPerformingContext,
     consecutiveMisses = consecutiveMisses,
     retentionRate = retentionRate,

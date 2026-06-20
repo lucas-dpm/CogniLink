@@ -28,7 +28,12 @@ data class FlashcardStats(
      * Mede o quão "fácil" ou "difícil" esse card é para o usuário com base no histórico.
      * Default começa em 2.5f. Diminui a cada erro e aumenta a cada acerto fácil.
      */
-    val easeFactor: Float = 0f,
+    val easeFactor: Float = 2.5f,
+
+    /**
+     * NÚMERO DE REPETIÇÕES: Número de vezes que o card foi acertado consecutivamente.
+     */
+    val repetitions: Int = 0,
 
     /**
      * CONTEXTO ANCORA: O contexto onde este card específico performa melhor.

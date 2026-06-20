@@ -19,8 +19,19 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE email = :email")
     suspend fun findUserByEmail(email: String): UserEntity?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun saveUser(user: UserEntity)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertUser(user: UserEntity): Long
+
+    @androidx.room.Update
+    suspend fun updateUser(user: UserEntity)
+
+    @androidx.room.Transaction
+    suspend fun saveUser(user: UserEntity) {
+        val id = insertUser(user)
+        if (id == -1L) {
+            updateUser(user)
+        }
+    }
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveAllUsers(users: List<UserEntity>)

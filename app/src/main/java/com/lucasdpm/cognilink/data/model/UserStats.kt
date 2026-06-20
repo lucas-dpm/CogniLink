@@ -1,5 +1,7 @@
 package com.lucasdpm.cognilink.data.model
 
+import com.lucasdpm.cognilink.domain.model.UserRankingResult
+
 data class UserStats(
     val userId: String,
     val totalFlashcardsMisses: Int = 0,
@@ -15,4 +17,5 @@ data class UserStats(
     val retentionByContext: Map<String, Float> = emptyMap(),
     val contextTriggerConversionRate: Float = 0f,
     val activeLeechesCount: Int = 0,
+    val ranking: UserRankingResult? = null
 )

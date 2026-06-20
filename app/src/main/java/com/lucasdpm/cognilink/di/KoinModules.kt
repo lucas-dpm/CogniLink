@@ -19,7 +19,9 @@ import com.lucasdpm.cognilink.domain.repository.NetworkMonitor
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.domain.usecase.CalculateDeckReviewCountUseCase
 import com.lucasdpm.cognilink.domain.usecase.CalculateDifficultyLevelUseCase
+import com.lucasdpm.cognilink.domain.usecase.CalculateSM2UseCase
 import com.lucasdpm.cognilink.domain.usecase.CalculateUserRankingUseCase
+import com.lucasdpm.cognilink.domain.usecase.UpdateUserStatsUseCase
 import com.lucasdpm.cognilink.domain.usecase.ValidateBasicAnswerUseCase
 import com.lucasdpm.cognilink.ui.viewmodels.AuthViewModel
 import com.lucasdpm.cognilink.ui.viewmodels.DeckFormViewModel
@@ -80,7 +82,9 @@ val domainModule = module {
     factoryOf(::CalculateDifficultyLevelUseCase)
     factoryOf(::CalculateDeckReviewCountUseCase)
     factoryOf(::CalculateUserRankingUseCase)
+    factoryOf(::UpdateUserStatsUseCase)
     factoryOf(::ValidateBasicAnswerUseCase)
+    factoryOf(::CalculateSM2UseCase)
 }
 
 val viewModelModule = module {

@@ -34,7 +34,7 @@ class UserRepositoryImpl(
     override suspend fun updateUser(user: User) {
         db.withTransaction {
             userDao.saveUser(user.toEntity())
-            userStatsDao.insertUserStats(user.stats.toEntity())
+            userStatsDao.saveUserStats(user.stats.toEntity())
         }
     }
 }

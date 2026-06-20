@@ -24,4 +24,12 @@ interface FlashcardStatsDao {
 
     @Query("DELETE FROM flashcards_stats WHERE flashcardId = :flashcardId")
     suspend fun deleteFlashcardStatsById(flashcardId: String)
+
+    @Query("""
+        SELECT fs.* FROM flashcards_stats fs
+        INNER JOIN flashcards f ON fs.flashcardId = f.id
+        INNER JOIN decks d ON f.deckId = d.id
+        WHERE d.userId = :userId
+    """)
+    suspend fun getAllFlashcardStatsForUser(userId: String): List<FlashcardStatsEntity>
 }

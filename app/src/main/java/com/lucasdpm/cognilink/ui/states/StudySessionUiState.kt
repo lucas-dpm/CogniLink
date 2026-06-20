@@ -22,7 +22,9 @@ data class StudySessionUiState(
     val isAnswerCorrect: Boolean = false,
     val aiFeedback: String? = null,
     val showCriticalErrorDialog: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val cardStartTimeSeconds: Long = 0L,
+    val userId: String? = null
 ) {
     val isQuestionAnswered: Boolean = selectedAnswers.isNotEmpty()
     val currentFlashcard: Flashcard? = sessionFlashcards.getOrNull(currentFlashcardIndex)

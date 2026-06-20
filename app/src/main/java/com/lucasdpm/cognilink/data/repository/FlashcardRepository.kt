@@ -26,6 +26,7 @@ interface FlashcardRepository {
     suspend fun updateFlashcardStatistics(statistics: FlashcardStats)
     suspend fun getFlashcardsToReview(deckId: String, currentTimestamp: Long): List<FlashcardWithStats>
     suspend fun resetStatistics(flashcardId: String)
+    suspend fun getAllStatisticsForUser(userId: String): List<FlashcardStats>
 }
 
 class FlashcardRepositoryImpl(
@@ -60,16 +61,11 @@ class FlashcardRepositoryImpl(
     }
 
     override suspend fun getLeeches(userId: String): List<FlashcardWithStats>? {
-        // TODO:
-        // Implementar lógica de busca de leeches baseada nas estatísticas
-        // Por agora retornamos vazio ou implementamos se houver query no DAO
-        return null
+        return flashcardDao.getLeeches(userId).map { it.toDomain() }
     }
 
     override suspend fun getReviewPending(userId: String): List<FlashcardWithStats>? {
-        // TODO:
-        // Implementar lógica de cards pendentes
-        return null
+        return flashcardDao.getReviewPending(userId, System.currentTimeMillis()).map { it.toDomain() }
     }
 
     override suspend fun getDeckName(deckId: String): String? {
@@ -92,5 +88,9 @@ class FlashcardRepositoryImpl(
 
     override suspend fun resetStatistics(flashcardId: String) {
         flashcardStatsDao.deleteFlashcardStatsById(flashcardId)
+    }
+
+    override suspend fun getAllStatisticsForUser(userId: String): List<FlashcardStats> {
+        return flashcardStatsDao.getAllFlashcardStatsForUser(userId).map { it.toDomain() }
     }
 }
