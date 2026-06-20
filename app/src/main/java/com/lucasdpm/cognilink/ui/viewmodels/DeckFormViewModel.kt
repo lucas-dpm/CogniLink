@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lucasdpm.cognilink.data.model.Deck
+import com.lucasdpm.cognilink.data.model.FlashcardWithStats
 import com.lucasdpm.cognilink.data.repository.DeckRepository
 import com.lucasdpm.cognilink.data.repository.FlashcardRepository
 import com.lucasdpm.cognilink.domain.model.DifficultyLevel
@@ -112,12 +113,34 @@ class DeckFormViewModel(
         viewModelScope.launch {
             try {
                 flashcardRepository.getFlashcardsForDeck(deckId).collect { list ->
-                    _uiState.update { it.copy(deckFlashcards = list) }
+                    _uiState.update { 
+                        it.copy(
+                            deckFlashcards = list,
+                            filteredFlashcards = filterFlashcards(list, it.searchInput)
+                        ) 
+                    }
                 }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
                 Log.e(TAG, "observeFlashcards: Erro ao observar flashcards", e)
             }
+        }
+    }
+
+    fun onSearchValueChange(newValue: String) {
+        _uiState.update { 
+            it.copy(
+                searchInput = newValue,
+                filteredFlashcards = filterFlashcards(it.deckFlashcards, newValue)
+            ) 
+        }
+    }
+
+    private fun filterFlashcards(list: List<FlashcardWithStats>, query: String): List<FlashcardWithStats> {
+        return if (query.isBlank()) {
+            list
+        } else {
+            list.filter { it.flashcard.question.contains(query, ignoreCase = true) }
         }
     }
 

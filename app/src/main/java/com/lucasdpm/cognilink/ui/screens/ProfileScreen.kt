@@ -438,59 +438,61 @@ fun ProfileContent(
                     }
                 }
 
-
-                Surface(
-                    color = VeryLightRed.copy(alpha = 0.2f),
-                    shape = RoundedCornerShape(24.dp),
-                    border = BorderStroke(2.dp, VeryLightRed)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        horizontalAlignment = CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                if (userStats.activeLeechesCount > 0) {
+                    Surface(
+                        color = VeryLightRed.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(24.dp),
+                        border = BorderStroke(2.dp, VeryLightRed)
                     ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(24.dp),
-                            verticalAlignment = CenterVertically
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            horizontalAlignment = CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Surface(
-                                color = VeryLightRed,
-                                shape = CircleShape
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(24.dp),
+                                verticalAlignment = CenterVertically
                             ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_warning),
-                                    contentDescription = null,
-                                    modifier = Modifier.padding(16.dp),
-                                    tint = DarkRed
+                                Surface(
+                                    color = VeryLightRed,
+                                    shape = CircleShape
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_warning),
+                                        contentDescription = null,
+                                        modifier = Modifier.padding(16.dp),
+                                        tint = DarkRed
+                                    )
+                                }
+                                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Text(
+                                        text = "Sanguessugas Detectadas",
+                                        color = DarkRed,
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "Há ${userStats.activeLeechesCount} conceitos travados no limbo. Eles precisam ser reestruturados para evitar a queda na taxa de retenção",
+                                        color = DarkGray,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Normal
+                                    )
+                                }
+                            }
+                            Column(modifier = Modifier.width(200.dp)) {
+                                NeonActionButton(
+                                    text = "Rever Sanguessugas",
+                                    height = 60.dp,
+                                    onClickButton = onReviewLeeches,
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             }
-                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text(
-                                    text = "Sanguessugas Detectadas",
-                                    color = DarkRed,
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = "Há ${userStats.activeLeechesCount} conceitos travados no limbo. Eles precisam ser reestruturados para evitar a queda na taxa de retenção",
-                                    color = DarkGray,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Normal
-                                )
-                            }
-                        }
-                        Column(modifier = Modifier.width(200.dp)) {
-                            NeonActionButton(
-                                text = "Rever Sanguessugas",
-                                height = 60.dp,
-                                onClickButton = onReviewLeeches,
-                                modifier = Modifier.fillMaxWidth()
-                            )
                         }
                     }
                 }
+
                 Surface(color = White, shape = RoundedCornerShape(24.dp)) {
                     Column(
                         Modifier.padding(24.dp),
@@ -623,7 +625,7 @@ fun ProfileContent(
                                     tint = DarkNavyBlue
                                 )
                                 Text(
-                                    text = formattedLastReview,
+                                    text = "Última Revisão: $formattedLastReview",
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.W700,
                                     color = DarkNavyBlue

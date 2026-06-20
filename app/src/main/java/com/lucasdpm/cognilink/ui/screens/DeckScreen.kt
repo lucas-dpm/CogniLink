@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,6 +35,7 @@ import com.lucasdpm.cognilink.ui.components.deck.FlashcardItem
 import com.lucasdpm.cognilink.ui.components.deck.ShimmerFlashcardItem
 import com.lucasdpm.cognilink.ui.components.deck.ShimmerViewDeckContent
 import com.lucasdpm.cognilink.ui.components.deck.ViewDeckContent
+import com.lucasdpm.cognilink.ui.components.input.SearchTextField
 import com.lucasdpm.cognilink.ui.components.utils.dialogs.BasicCustomAlertDialog
 import com.lucasdpm.cognilink.ui.components.utils.EmptyContent
 import com.lucasdpm.cognilink.ui.components.utils.NavigationHeader
@@ -103,7 +105,10 @@ fun DeckScreen(
             deckMastery = deck?.mastery,
             deckTotalCards = deck?.totalCards,
             deckCardsToReview = deck?.cardsToReview,
-            deckFlashcards = uiState.flashcards,
+            deckFlashcards = uiState.filteredFlashcards,
+            isDeckEmpty = uiState.isDeckEmpty,
+            searchInput = uiState.searchInput,
+            onSearchValueChange = viewModel::onSearchValueChange,
             isMenuExpanded = uiState.isMenuExpanded,
             isAddFlashcardDialogOpen = uiState.isAddFlashcardDialogOpen,
             isDeleteDeckDialogOpen = uiState.isDeleteDeckDialogOpen,
@@ -172,6 +177,9 @@ fun DeckContent(
     deckTotalCards: Int?,
     deckCardsToReview: Int?,
     deckFlashcards: List<FlashcardWithStats>?,
+    isDeckEmpty: Boolean = true,
+    searchInput: String = "",
+    onSearchValueChange: (String) -> Unit = {},
     isMenuExpanded: Boolean = false,
     isAddFlashcardDialogOpen: Boolean = false,
     onCreateFlashcardWithIA: () -> Unit = {},
@@ -309,60 +317,89 @@ fun DeckContent(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                if (!deckFlashcards.isNullOrEmpty()) {
+                if (!isDeckEmpty) {
+
+                    SearchTextField(
+                        searchValue = searchInput,
+                        onSearchValueChange = onSearchValueChange,
+                        hintText = "Pesquisar flashcards..."
+                    )
+
                     Row(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = CenterVertically
                     ) {
-                        CustomLabel(text = "Próximos tópicos", textColor = DarkNavyBlue)
-                        TextButton(onClick = onClickSeeMore, contentPadding = PaddingValues(0.dp)) {
-                            Text(
-                                text = "Ver todos",
-                                color = DarkNavyBlue,
-                                fontWeight = FontWeight.SemiBold,
-                            )
+                        CustomLabel(
+                            text = if (searchInput.isEmpty()) "Próximos tópicos" else "Resultados da busca",
+                            textColor = DarkNavyBlue
+                        )
+                        if (searchInput.isEmpty() && (deckFlashcards?.size ?: 0) < (deckTotalCards ?: 0)) {
+                            TextButton(
+                                onClick = onClickSeeMore,
+                                contentPadding = PaddingValues(0.dp)
+                            ) {
+                                Text(
+                                    text = "Ver todos",
+                                    color = DarkNavyBlue,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
                         }
                     }
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Crossfade(targetState = isLoading, label = "flashcards_shimmer") { loading ->
-                            if (loading) {
-                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    repeat(3) {
-                                        ShimmerFlashcardItem()
+                    if (!deckFlashcards.isNullOrEmpty()) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Crossfade(
+                                targetState = isLoading,
+                                label = "flashcards_shimmer"
+                            ) { loading ->
+                                if (loading) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        repeat(3) {
+                                            ShimmerFlashcardItem()
+                                        }
                                     }
-                                }
-                            } else {
-                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    deckFlashcards.forEach { flashcardWithStats ->
-                                        val flashcard = flashcardWithStats.flashcard
-                                        val stats = flashcardWithStats.stats
+                                } else {
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        deckFlashcards.forEach { flashcardWithStats ->
+                                            val flashcard = flashcardWithStats.flashcard
+                                            val stats = flashcardWithStats.stats
 
-                                        FlashcardItem(
-                                            flashcardType = flashcard.cardType,
-                                            flashcardQuestion = flashcard.question,
-                                            nextReview = stats?.nextReview?.let { formatNextReview(it) } ?: "Novo card",
-                                            onSelectCard = { onFlashcardClick(flashcard.id) },
-                                            selectionControl = {
-                                                IconButton(
-                                                    onClick = { onFlashcardClick(flashcard.id) },
-                                                    modifier = Modifier
-                                                        .offset(x = 10.dp)
-                                                        .size(32.dp)
-                                                ) {
-                                                    Icon(
-                                                        painterResource(id = R.drawable.ic_keyboard_arrow_down),
-                                                        contentDescription = null,
-                                                        tint = LightGray,
-                                                        modifier = Modifier.rotate(-90f)
+                                            FlashcardItem(
+                                                flashcardType = flashcard.cardType,
+                                                flashcardQuestion = flashcard.question,
+                                                nextReview = stats?.nextReview?.let {
+                                                    formatNextReview(
+                                                        it
                                                     )
+                                                } ?: "Novo card",
+                                                onSelectCard = { onFlashcardClick(flashcard.id) },
+                                                selectionControl = {
+                                                    IconButton(
+                                                        onClick = { onFlashcardClick(flashcard.id) },
+                                                        modifier = Modifier
+                                                            .offset(x = 10.dp)
+                                                            .size(32.dp)
+                                                    ) {
+                                                        Icon(
+                                                            painterResource(id = R.drawable.ic_keyboard_arrow_down),
+                                                            contentDescription = null,
+                                                            tint = LightGray,
+                                                            modifier = Modifier.rotate(-90f)
+                                                        )
+                                                    }
                                                 }
-                                            }
-                                        )
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
+                    } else if (!isLoading) {
+                        EmptyContent(
+                            title = stringResource(R.string.deck_search_no_results_title),
+                            subTitle = stringResource(R.string.deck_search_no_results_subtitle)
+                        )
                     }
                 } else {
                     if (!isLoading) {

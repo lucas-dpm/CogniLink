@@ -6,4 +6,6 @@
     <string name="home_empty_content_subtitle">Crie um novo baralho para começar a estudar.</string>
     <string name="home_search_no_results_title">Nenhum baralho encontrado</string>
     <string name="home_search_no_results_subtitle">Tente pesquisar com termos diferentes.</string>
+    <string name="deck_search_no_results_title">Nenhum flashcard encontrado</string>
+    <string name="deck_search_no_results_subtitle">Nenhum flashcard corresponde à sua pesquisa neste baralho.</string>
 </resources>

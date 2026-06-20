@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,6 +35,7 @@ import com.lucasdpm.cognilink.ui.components.deck.FlashcardItem
 import com.lucasdpm.cognilink.ui.components.deck.ShimmerEditDeckContent
 import com.lucasdpm.cognilink.ui.components.deck.ShimmerFlashcardItem
 import com.lucasdpm.cognilink.ui.components.input.CustomTextField
+import com.lucasdpm.cognilink.ui.components.input.SearchTextField
 import com.lucasdpm.cognilink.ui.components.utils.EmptyContent
 import com.lucasdpm.cognilink.ui.components.utils.FullScreenLoading
 import com.lucasdpm.cognilink.ui.components.utils.NavigationHeader
@@ -115,7 +117,10 @@ fun DeckEditorScreen(
             deckNameError = uiState.deckNameError,
             deckDescription = uiState.deckDescription,
             deckCategories = uiState.deckCategories,
-            deckFlashcards = uiState.deckFlashcards,
+            deckFlashcards = uiState.filteredFlashcards,
+            isDeckEmpty = uiState.deckFlashcards.isEmpty(),
+            searchInput = uiState.searchInput,
+            onSearchValueChange = viewModel::onSearchValueChange,
             showCategoryDialog = uiState.showCategoryDialog,
             categoryBeingEdited = uiState.categoryBeingEdited,
             categoryText = uiState.categoryText,
@@ -188,12 +193,15 @@ fun DeckEditorContent(
     deckDescription: String,
     onDeckDescriptionChange: (String) -> Unit = {},
     deckCategories: List<String>,
+    searchInput: String = "",
+    onSearchValueChange: (String) -> Unit = {},
     onCategoryTextChange: (String) -> Unit = {},
     onAddCategory: () -> Unit = {},
     onEditCategory: (String) -> Unit = {},
     categoryBeingEdited: String?,
     categoryText: String,
     deckFlashcards: List<FlashcardWithStats>,
+    isDeckEmpty: Boolean = true,
     showCategoryDialog: Boolean,
     showAddFlashcardDialog: Boolean,
     showChangeDialog: Boolean,
@@ -328,75 +336,93 @@ fun DeckEditorContent(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                if (deckFlashcards.isNotEmpty()) {
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = CenterVertically
-                    ) {
-                        Text(
-                            text = "Conteúdo do Baralho",
-                            color = DarkGray,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        TextButton(
-                            onClick = { onToggleRemoveMode() }, contentPadding = PaddingValues(0.dp)
+                if (!isDeckEmpty) {
+                    SearchTextField(
+                        searchValue = searchInput,
+                        onSearchValueChange = onSearchValueChange,
+                        hintText = "Pesquisar flashcards..."
+                    )
+
+                    if (deckFlashcards.isNotEmpty()) {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = CenterVertically
                         ) {
                             Text(
-                                text = if (isRemoveMode) "VOLTAR PARA SELEÇÃO" else "GERENCIAR",
-                                color = DarkNavyBlue,
+                                text = "Conteúdo do Baralho",
+                                color = DarkGray,
                                 fontWeight = FontWeight.SemiBold,
                             )
+                            TextButton(
+                                onClick = { onToggleRemoveMode() },
+                                contentPadding = PaddingValues(0.dp)
+                            ) {
+                                Text(
+                                    text = if (isRemoveMode) "VOLTAR PARA SELEÇÃO" else "GERENCIAR",
+                                    color = DarkNavyBlue,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
                         }
-                    }
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Crossfade(
-                            targetState = isLoading,
-                            label = "flashcards_shimmer"
-                        ) { loading ->
-                            if (loading) {
-                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    repeat(5) {
-                                        ShimmerFlashcardItem()
+                        Column {
+                            Crossfade(
+                                targetState = isLoading,
+                                label = "flashcards_shimmer"
+                            ) { loading ->
+                                if (loading) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        repeat(5) {
+                                            ShimmerFlashcardItem()
+                                        }
                                     }
-                                }
-                            } else {
-                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    deckFlashcards.forEach { cardWithStats ->
-                                        val card = cardWithStats.flashcard
-                                        FlashcardItem(
-                                            flashcardType = card.cardType,
-                                            flashcardQuestion = card.question,
-                                            nextReview = null,
-                                            onSelectCard = {
-                                                if (!isRemoveMode) {
-                                                    onEditFlashcard(card.id)
-                                                }
-                                            },
-                                            selectionControl = {
-                                                if (isRemoveMode) {
-                                                    DeleteButton(onClick = { onRemoveFlashcard(card.id) })
-                                                } else {
-                                                    IconButton(
-                                                        onClick = { onEditFlashcard(card.id) },
-                                                        modifier = Modifier
-                                                            .offset(x = 10.dp)
-                                                            .size(32.dp)
-                                                    ) {
-                                                        Icon(
-                                                            painterResource(id = R.drawable.ic_keyboard_arrow_down),
-                                                            contentDescription = null,
-                                                            tint = LightGray,
-                                                            modifier = Modifier.rotate(-90f)
-                                                        )
+                                } else {
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        deckFlashcards.forEach { cardWithStats ->
+                                            val card = cardWithStats.flashcard
+                                            FlashcardItem(
+                                                flashcardType = card.cardType,
+                                                flashcardQuestion = card.question,
+                                                nextReview = null,
+                                                onSelectCard = {
+                                                    if (!isRemoveMode) {
+                                                        onEditFlashcard(card.id)
+                                                    }
+                                                },
+                                                selectionControl = {
+                                                    if (isRemoveMode) {
+                                                        DeleteButton(onClick = {
+                                                            onRemoveFlashcard(
+                                                                card.id
+                                                            )
+                                                        })
+                                                    } else {
+                                                        IconButton(
+                                                            onClick = { onEditFlashcard(card.id) },
+                                                            modifier = Modifier
+                                                                .offset(x = 10.dp)
+                                                                .size(32.dp)
+                                                        ) {
+                                                            Icon(
+                                                                painterResource(id = R.drawable.ic_keyboard_arrow_down),
+                                                                contentDescription = null,
+                                                                tint = LightGray,
+                                                                modifier = Modifier.rotate(-90f)
+                                                            )
+                                                        }
                                                     }
                                                 }
-                                            }
-                                        )
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
+                    } else {
+                        EmptyContent(
+                            title = stringResource(R.string.deck_search_no_results_title),
+                            subTitle = stringResource(R.string.deck_search_no_results_subtitle)
+                        )
                     }
                 } else EmptyContent()
             }
@@ -425,7 +451,7 @@ private fun DeckEditorContentPreview() {
             isRemoveMode = false,
             showAddFlashcardDialog = false,
             showChangeDialog = false,
-            isLoading = true,
+            isLoading = false,
         )
 
     }

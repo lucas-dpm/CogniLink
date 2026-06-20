@@ -101,10 +101,10 @@ class ProfileViewModel(
         val minutes = TimeUnit.MILLISECONDS.toMinutes(diff) % 60
 
         return when {
-            years > 0 -> "$years anos atrás Última Revisão"
-            days > 0 -> "$days dias atrás Última Revisão"
-            hours > 0 -> "${hours}h atrás Última Revisão"
-            minutes > 0 -> "${minutes}min atrás Última Revisão"
+            years > 0 -> "$years anos atrás"
+            days > 0 -> "$days dias atrás"
+            hours > 0 -> "${hours}h atrás"
+            minutes > 0 -> "${minutes}min atrás"
             else -> "Agora mesmo"
         }
     }

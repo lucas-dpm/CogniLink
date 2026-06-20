@@ -152,7 +152,10 @@ class HomeViewModel(
         val filteredList = if (query.isEmpty()) {
             _uiState.value.decks
         } else {
-            _uiState.value.decks.filter { it.name.contains(query, ignoreCase = true) }
+            _uiState.value.decks.filter { deck ->
+                deck.name.contains(query, ignoreCase = true) ||
+                        deck.categories.any { it.contains(query, ignoreCase = true) }
+            }
         }
         _uiState.update { it.copy(filteredDecks = filteredList) }
     }

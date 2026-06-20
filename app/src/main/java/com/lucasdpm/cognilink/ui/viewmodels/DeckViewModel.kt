@@ -3,6 +3,7 @@ package com.lucasdpm.cognilink.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lucasdpm.cognilink.data.model.FlashcardWithStats
 import com.lucasdpm.cognilink.data.repository.DeckRepository
 import com.lucasdpm.cognilink.data.repository.FlashcardRepository
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
@@ -35,6 +36,7 @@ class DeckViewModel(
     val uiState: StateFlow<DeckUiState> = _uiState.asStateFlow()
 
     private var deckJob: Job? = null
+    private var isShowingAll = false
 
     fun initialize(deckId: String, userId: String) {
         if (_uiState.value.deckId == deckId && _uiState.value.userId == userId) return
@@ -85,7 +87,13 @@ class DeckViewModel(
         viewModelScope.launch {
             try {
                 flashcardRepository.getFlashcardsForDeck(deckId).collect { flashcards ->
-                    _uiState.update { it.copy(flashcards = flashcards.take(3)) }
+                    _uiState.update {
+                        it.copy(
+                            flashcards = flashcards,
+                            filteredFlashcards = getDisplayList(flashcards, it.searchInput),
+                            isDeckEmpty = flashcards.isEmpty()
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
@@ -96,17 +104,26 @@ class DeckViewModel(
     }
 
     fun loadAllFlashcards() {
-        val deckId = _uiState.value.deckId ?: return
-        viewModelScope.launch {
-            try {
-                flashcardRepository.getFlashcardsForDeck(deckId).collect { flashcards ->
-                    _uiState.update { it.copy(flashcards = flashcards) }
-                }
-            } catch (e: Exception) {
-                if (e is CancellationException) throw e
-                notificationService.showError("Erro ao carregar flashcards")
-                Log.e(TAG, "loadAllFlashcards: Erro ao carregar todos os flashcards", e)
-            }
+        isShowingAll = true
+        _uiState.update {
+            it.copy(filteredFlashcards = getDisplayList(it.flashcards, it.searchInput))
+        }
+    }
+
+    fun onSearchValueChange(newValue: String) {
+        _uiState.update {
+            it.copy(
+                searchInput = newValue,
+                filteredFlashcards = getDisplayList(it.flashcards, newValue)
+            )
+        }
+    }
+
+    private fun getDisplayList(list: List<FlashcardWithStats>, query: String): List<FlashcardWithStats> {
+        return if (query.isEmpty()) {
+            if (isShowingAll) list else list.take(3)
+        } else {
+            list.filter { it.flashcard.question.contains(query, ignoreCase = true) }
         }
     }
 

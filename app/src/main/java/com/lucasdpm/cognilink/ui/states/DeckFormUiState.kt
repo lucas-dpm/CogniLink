@@ -9,6 +9,8 @@ data class DeckFormUiState(
     val deckDescription: String = "",
     val deckCategories: List<String> = emptyList(),
     val deckFlashcards: List<FlashcardWithStats> = emptyList(),
+    val filteredFlashcards: List<FlashcardWithStats> = emptyList(),
+    val searchInput: String = "",
     val showCategoryDialog: Boolean = false,
     val categoryBeingEdited: String? = null,
     val categoryText: String = "",
