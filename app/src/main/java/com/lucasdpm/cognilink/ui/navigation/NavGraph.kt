@@ -16,6 +16,7 @@ import androidx.navigation.compose.rememberNavController
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.components.utils.CustomSnackbar
 import com.lucasdpm.cognilink.ui.screens.AuthScreen
+import com.lucasdpm.cognilink.ui.screens.ContextEditorScreen
 import com.lucasdpm.cognilink.ui.screens.CreateFlashcardWithIAScreen
 import com.lucasdpm.cognilink.ui.screens.DeckEditorScreen
 import com.lucasdpm.cognilink.ui.screens.DeckScreen
@@ -63,6 +64,15 @@ sealed class Screen(val route: String) {
 
     object PlayFlashcard : Screen("playFlashcard/{studyMode}/{contextId}/{userId}") {
         fun createRoute(studyMode: String, contextId: String, userId: String) = "playFlashcard/$studyMode/$contextId/$userId"
+    }
+
+    object CreateContext : Screen("createContext/{userId}?deckId={deckId}") {
+        fun createRoute(userId: String, deckId: String? = null) = 
+            "createContext/$userId" + if (deckId != null) "?deckId=$deckId" else ""
+    }
+
+    object EditContext : Screen("editContext/{contextId}/{userId}") {
+        fun createRoute(contextId: String, userId: String) = "editContext/$contextId/$userId"
     }
 
 }
@@ -164,6 +174,9 @@ fun CogniLinkNavGraph(
                     },
                     onNavigateToEditFlashcard = { dId, flashcardId ->
                         dId?.let { navController.navigate(Screen.EditFlashcard.createRoute(it, flashcardId)) }
+                    },
+                    onNavigateToCreateContext = { uId, dId ->
+                        navController.navigate(Screen.CreateContext.createRoute(uId, dId))
                     }
                 )
             }
@@ -188,6 +201,9 @@ fun CogniLinkNavGraph(
                     onNavigateToEditFlashcard = { dId, flashcardId ->
                         val targetId = dId ?: deckId
                         navController.navigate(Screen.EditFlashcard.createRoute(targetId, flashcardId))
+                    },
+                    onNavigateToCreateContext = { uId, dId ->
+                        navController.navigate(Screen.CreateContext.createRoute(uId, dId))
                     }
                 )
             }
@@ -252,6 +268,26 @@ fun CogniLinkNavGraph(
                             popUpTo(0) { inclusive = true }
                         }
                     }
+                )
+            }
+
+            composable(Screen.CreateContext.route) { backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId") ?: ""
+                val deckId = backStackEntry.arguments?.getString("deckId")
+                ContextEditorScreen(
+                    userId = userId,
+                    deckId = deckId,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.EditContext.route) { backStackEntry ->
+                val contextId = backStackEntry.arguments?.getString("contextId") ?: ""
+                val userId = backStackEntry.arguments?.getString("userId") ?: ""
+                ContextEditorScreen(
+                    userId = userId,
+                    contextId = contextId,
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
         }

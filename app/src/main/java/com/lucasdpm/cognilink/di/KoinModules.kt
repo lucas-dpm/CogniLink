@@ -1,6 +1,7 @@
 package com.lucasdpm.cognilink.di
 
 import androidx.room.Room
+import com.google.android.gms.location.LocationServices
 import com.lucasdpm.cognilink.data.datebase.CogniLinkDatabase
 import com.lucasdpm.cognilink.data.repository.AuthRepository
 import com.lucasdpm.cognilink.data.repository.AuthRepositoryImpl
@@ -29,6 +30,7 @@ import com.lucasdpm.cognilink.domain.usecase.CalculateUserRankingUseCase
 import com.lucasdpm.cognilink.domain.usecase.UpdateUserStatsUseCase
 import com.lucasdpm.cognilink.domain.usecase.ValidateBasicAnswerUseCase
 import com.lucasdpm.cognilink.ui.viewmodels.AuthViewModel
+import com.lucasdpm.cognilink.ui.viewmodels.ContextFormViewModel
 import com.lucasdpm.cognilink.ui.viewmodels.DeckFormViewModel
 import com.lucasdpm.cognilink.ui.viewmodels.DeckViewModel
 import com.lucasdpm.cognilink.ui.viewmodels.FlashcardFormViewModel
@@ -97,6 +99,7 @@ val domainModule = module {
 
 val viewModelModule = module {
     viewModelOf(::AuthViewModel)
+    viewModelOf(::ContextFormViewModel)
     viewModelOf(::HomeViewModel)
     viewModelOf(::ProfileViewModel)
     viewModelOf(::DeckViewModel)
@@ -116,6 +119,7 @@ val databaseModule = module {
         ).fallbackToDestructiveMigration(true)
             .build()
     }
+    single { LocationServices.getFusedLocationProviderClient(androidContext()) }
     single { get<CogniLinkDatabase>().userDao() }
     single { get<CogniLinkDatabase>().deckDao() }
     single { get<CogniLinkDatabase>().flashcardDao() }

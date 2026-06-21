@@ -1,27 +1,46 @@
 package com.lucasdpm.cognilink.ui.viewmodels
 
+import android.location.Location
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.location.CurrentLocationRequest
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.Priority
 import com.lucasdpm.cognilink.data.model.Deck
 import com.lucasdpm.cognilink.data.model.FlashcardWithStats
+import com.lucasdpm.cognilink.data.model.StudyContext
 import com.lucasdpm.cognilink.data.repository.DeckRepository
 import com.lucasdpm.cognilink.data.repository.FlashcardRepository
+import com.lucasdpm.cognilink.data.repository.StudyContextRepository
 import com.lucasdpm.cognilink.domain.model.DifficultyLevel
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
+import com.lucasdpm.cognilink.domain.service.GeofenceManager
 import com.lucasdpm.cognilink.ui.states.DeckFormUiState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.util.UUID
+
+sealed class DeckFormEvent {
+    data class NavigateToCreateContext(val deckId: String) : DeckFormEvent()
+}
 
 class DeckFormViewModel(
     private val deckRepository: DeckRepository,
     private val flashcardRepository: FlashcardRepository,
+    private val studyContextRepository: StudyContextRepository,
+    private val geofenceManager: GeofenceManager,
+    private val fusedLocationProviderClient: FusedLocationProviderClient,
     private val notificationService: AppNotificationService
 ) : ViewModel() {
 
@@ -31,6 +50,9 @@ class DeckFormViewModel(
 
     private val _uiState = MutableStateFlow(DeckFormUiState())
     val uiState: StateFlow<DeckFormUiState> = _uiState.asStateFlow()
+
+    private val _events = MutableSharedFlow<DeckFormEvent>()
+    val events: SharedFlow<DeckFormEvent> = _events.asSharedFlow()
 
     private var deckFormJob: Job? = null
 
@@ -61,6 +83,79 @@ class DeckFormViewModel(
 
             // Começa a observar os flashcards deste ID para sempre
             observeFlashcards(targetId)
+            observeStudyContexts(targetId, userId)
+        }
+    }
+
+    private fun observeStudyContexts(deckId: String, userId: String) {
+        viewModelScope.launch {
+            studyContextRepository.getContextsForDeck(deckId).collectLatest { list ->
+                _uiState.update { it.copy(deckContexts = list) }
+            }
+        }
+        viewModelScope.launch {
+            studyContextRepository.getContextsForUser(userId).collectLatest { list ->
+                _uiState.update { it.copy(allUserContexts = list) }
+            }
+        }
+    }
+
+    fun markCurrentLocation() {
+        viewModelScope.launch {
+            try {
+                // Tenta o cache primeiro
+                var location = fusedLocationProviderClient.lastLocation.await()
+                
+                // Se o cache for nulo, solicita a localização atual em tempo real
+                if (location == null) {
+                    val request = CurrentLocationRequest.Builder()
+                        .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+                        .build()
+                    location = fusedLocationProviderClient.getCurrentLocation(request, null).await()
+                }
+
+                if (location != null) {
+                    val existingContext = findNearbyContext(location.latitude, location.longitude)
+                    
+                    if (existingContext != null) {
+                        studyContextRepository.linkDeckToContext(_uiState.value.deckId, existingContext.id)
+                        notificationService.showSuccess("Local '${existingContext.name}' vinculado ao baralho.")
+                    } else {
+                        _events.emit(DeckFormEvent.NavigateToCreateContext(_uiState.value.deckId))
+                    }
+                } else {
+                    notificationService.showError("Não foi possível obter a localização. Verifique se o GPS está em alta precisão.")
+                }
+            } catch (e: SecurityException) {
+                notificationService.showError("Permissão de localização negada.")
+            } catch (e: Exception) {
+                Log.e(TAG, "markCurrentLocation: ", e)
+                notificationService.showError("Erro ao obter localização.")
+            }
+        }
+    }
+
+    private fun findNearbyContext(lat: Double, lng: Double): StudyContext? {
+        val results = FloatArray(1)
+        return _uiState.value.allUserContexts.find { context ->
+            Location.distanceBetween(lat, lng, context.latitude, context.longitude, results)
+            results[0] <= context.radius // Se estiver dentro do raio do local
+        }
+    }
+
+    fun toggleContextSelectionDialog() {
+        _uiState.update { it.copy(showContextSelectionDialog = !it.showContextSelectionDialog) }
+    }
+
+    fun linkContext(contextId: String) {
+        viewModelScope.launch {
+            studyContextRepository.linkDeckToContext(_uiState.value.deckId, contextId)
+        }
+    }
+
+    fun unlinkContext(contextId: String) {
+        viewModelScope.launch {
+            studyContextRepository.unlinkDeckFromContext(_uiState.value.deckId, contextId)
         }
     }
 

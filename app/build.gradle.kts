@@ -83,6 +83,7 @@ dependencies {
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.material3)
     implementation(libs.play.services.location)
+    implementation(libs.maps.compose)
     implementation(libs.gson)
 
     // Ktor

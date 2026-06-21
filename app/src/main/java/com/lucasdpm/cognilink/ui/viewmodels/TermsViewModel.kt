@@ -32,10 +32,6 @@ class TermsViewModel(
         loadTerms()
     }
 
-    fun refreshTerms() {
-        loadTerms()
-    }
-
     private fun loadTerms() {
         termsJob?.cancel()
         termsJob = viewModelScope.launch {

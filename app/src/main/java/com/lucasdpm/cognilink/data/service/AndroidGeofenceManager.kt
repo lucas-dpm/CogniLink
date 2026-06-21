@@ -7,7 +7,6 @@ import android.content.Intent
 import android.util.Log
 import com.lucasdpm.cognilink.data.model.StudyContext
 import com.lucasdpm.cognilink.domain.service.GeofenceManager
-import com.lucasdpm.cognilink.data.service.GeofenceBroadcastReceiver
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.location.LocationServices

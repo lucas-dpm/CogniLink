@@ -27,8 +27,11 @@ import com.lucasdpm.cognilink.ui.theme.White
 fun SimpleGradientButton(
     modifier: Modifier = Modifier,
     text: String = "ADICIONAR FLASHCARD",
+    textColor: Color = White,
     height: Dp = 70.dp,
     icon: Int? = null,
+    initialColor: Color = Color(0xFF000666),
+    finalColor: Color = Color(0xFF1222B0),
     iconColor: Color = White,
     iconRightSide: Boolean = false,
     isEnabled: Boolean = true,
@@ -37,13 +40,14 @@ fun SimpleGradientButton(
     GradientSurface(
         modifier = modifier,
         shape = RoundedCornerShape(26.dp),
-        initialColor = if (isEnabled) Color(0xFF000666) else Gray,
-        finalColor = if (isEnabled) Color(0xFF1222B0) else OffWhite,
+        initialColor = if (isEnabled) initialColor else Gray,
+        finalColor = if (isEnabled) finalColor else OffWhite,
     )
     {
         Row(
             modifier = Modifier
-                .height(height).fillMaxWidth()
+                .height(height)
+                .fillMaxWidth()
                 .clickable(enabled = isEnabled, onClick = onClickButton),
             verticalAlignment = CenterVertically,
             horizontalArrangement = Arrangement.Center,
@@ -53,13 +57,13 @@ fun SimpleGradientButton(
                     painter = painterResource(id = icon),
                     contentDescription = null,
                     tint = iconColor,
+                    modifier = Modifier.padding(end = 20.dp)
                 )
             }
             Text(
                 text = text,
-                color = if (isEnabled) White else Gray,
+                color = if (isEnabled) textColor else Gray,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 0.dp)
             )
             if (icon != null && iconRightSide) {
 
@@ -67,6 +71,7 @@ fun SimpleGradientButton(
                     painter = painterResource(id = icon),
                     contentDescription = null,
                     tint = iconColor,
+                    modifier = Modifier.padding(start = 20.dp)
                 )
 
             }

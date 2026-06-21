@@ -21,9 +21,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -40,9 +42,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lucasdpm.cognilink.R
 import com.lucasdpm.cognilink.data.model.FlashcardWithStats
+import com.lucasdpm.cognilink.data.model.StudyContext
 import com.lucasdpm.cognilink.data.preview.PreviewDataProvider
 import com.lucasdpm.cognilink.ui.components.deck.EditDeckContent
 import com.lucasdpm.cognilink.ui.components.deck.FlashcardItem
@@ -62,11 +66,16 @@ import com.lucasdpm.cognilink.ui.components.utils.labels.CustomLabel
 import com.lucasdpm.cognilink.ui.theme.CogniLinkTheme
 import com.lucasdpm.cognilink.ui.theme.DarkGray
 import com.lucasdpm.cognilink.ui.theme.DarkNavyBlue
+import com.lucasdpm.cognilink.ui.theme.Green
 import com.lucasdpm.cognilink.ui.theme.LightGray
+import com.lucasdpm.cognilink.ui.theme.MutedBlue
 import com.lucasdpm.cognilink.ui.theme.Red
 import com.lucasdpm.cognilink.ui.theme.White
+import com.lucasdpm.cognilink.ui.theme.dashedBorder
+import com.lucasdpm.cognilink.ui.viewmodels.DeckFormEvent
 import com.lucasdpm.cognilink.ui.viewmodels.DeckFormViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -79,6 +88,7 @@ fun DeckEditorScreen(
     onNavigateToCreateFlashcard: (String?) -> Unit,
     onNavigateToEditFlashcard: (String?, String) -> Unit,
     onNavigateToCreateWithIA: (String?) -> Unit,
+    onNavigateToCreateContext: (String, String?) -> Unit,
     viewModel: DeckFormViewModel = koinViewModel()
 ) {
     val scope = rememberCoroutineScope()
@@ -86,6 +96,17 @@ fun DeckEditorScreen(
 
     LaunchedEffect(userId, deckId) {
         viewModel.initialize(deckId, userId)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collectLatest { event ->
+            when (event) {
+                is DeckFormEvent.NavigateToCreateContext -> onNavigateToCreateContext(
+                    userId,
+                    event.deckId
+                )
+            }
+        }
     }
 
     LaunchedEffect(uiState.isSaved) {
@@ -209,12 +230,99 @@ fun DeckEditorScreen(
             )
         }
 
+        if (uiState.showContextSelectionDialog) {
+            AlertDialog(
+                onDismissRequest = { viewModel.toggleContextSelectionDialog() },
+                title = {
+                    Text(
+                        "Vincular Localização", fontWeight = FontWeight.Bold,
+                    )
+                },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.toggleContextSelectionDialog()
+                                    onNavigateToCreateContext(userId, uiState.deckId)
+                                }
+                                .padding(8.dp),
+                            verticalAlignment = CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_add),
+                                contentDescription = null,
+                                tint = DarkNavyBlue,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                "CADASTRAR NOVA LOCALIZAÇÃO",
+                                fontWeight = FontWeight.Bold,
+                                color = DarkNavyBlue,
+                                fontSize = 14.sp
+                            )
+                        }
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            thickness = 0.5.dp,
+                            color = LightGray
+                        )
+
+                        if (uiState.allUserContexts.isEmpty()) {
+                            Text(
+                                "Você ainda não cadastrou nenhuma localização.",
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        } else {
+                            uiState.allUserContexts.forEach { context ->
+                                val isLinked = uiState.deckContexts.any { it.id == context.id }
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            if (isLinked) viewModel.unlinkContext(context.id)
+                                            else viewModel.linkContext(context.id)
+                                        }
+                                        .padding(8.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = CenterVertically
+                                ) {
+                                    Text(context.name)
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (isLinked) R.drawable.ic_check_circle else R.drawable.ic_add
+                                        ),
+                                        contentDescription = null,
+                                        tint = if (isLinked) Green else DarkNavyBlue
+                                    )
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { viewModel.toggleContextSelectionDialog() }) {
+                        Text("FECHAR", fontWeight = FontWeight.Bold, color = DarkNavyBlue)
+                    }
+                },
+                containerColor = White,
+                shape = RoundedCornerShape(28.dp)
+            )
+        }
+
         DeckEditorContent(
             isEditMode = uiState.isEditMode,
             deckName = uiState.deckName,
             deckNameError = uiState.deckNameError,
             deckDescription = uiState.deckDescription,
             deckCategories = uiState.deckCategories,
+            deckContexts = uiState.deckContexts,
+            onMarkCurrentLocation = viewModel::markCurrentLocation,
+            onAddOtherLocation = viewModel::toggleContextSelectionDialog,
+            onRemoveContext = { viewModel.unlinkContext(it.id) },
             deckFlashcards = uiState.filteredFlashcards,
             isDeckEmpty = uiState.deckFlashcards.isEmpty(),
             searchInput = uiState.searchInput,
@@ -256,6 +364,10 @@ fun DeckEditorContent(
     deckDescription: String,
     onDeckDescriptionChange: (String) -> Unit = {},
     deckCategories: List<String>,
+    deckContexts: List<StudyContext> = emptyList(),
+    onMarkCurrentLocation: () -> Unit = {},
+    onAddOtherLocation: () -> Unit = {},
+    onRemoveContext: (StudyContext) -> Unit = {},
     searchInput: String = "",
     onSearchValueChange: (String) -> Unit = {},
     onAddCategory: () -> Unit = {},
@@ -324,6 +436,87 @@ fun DeckEditorContent(
                     }
                 }
 
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    CustomLabel(text = "Contexto de estudo")
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = CenterVertically
+                    ) {
+                        deckContexts.forEach { context ->
+                            Surface(
+                                color = MutedBlue,
+                                shape = RoundedCornerShape(9999.dp),
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(
+                                        horizontal = 12.dp,
+                                        vertical = 6.dp
+                                    ),
+                                    verticalAlignment = CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Text(
+                                        text = context.name.uppercase(),
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = DarkNavyBlue,
+                                    )
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_close),
+                                        contentDescription = "Remover",
+                                        modifier = Modifier
+                                            .size(10.dp)
+                                            .clickable { onRemoveContext(context) },
+                                        tint = DarkNavyBlue
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    SimpleGradientButton(
+                        text = "MARCAR LOCALIZAÇÃO ATUAL",
+                        height = 50.dp,
+                        icon = R.drawable.ic_target_loc,
+                        onClickButton = onMarkCurrentLocation
+                    )
+
+                    Surface(
+                        shape = RoundedCornerShape(26.dp),
+                        modifier = Modifier.dashedBorder(DarkGray, cornerRadius = 26.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .height(44.dp)
+                                .fillMaxWidth()
+                                .clickable(onClick = onAddOtherLocation),
+                            verticalAlignment = CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                        ) {
+                            Icon(
+                                painterResource(id = R.drawable.ic_loc),
+                                contentDescription = null,
+                                tint = DarkNavyBlue,
+                                modifier = Modifier.padding(end = 20.dp)
+                            )
+                            Text(
+                                text = "ADICIONAR OUTRA LOCALIZAÇÃO",
+                                color = DarkNavyBlue,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
+
+                }
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 4.dp),
+                    thickness = 0.5.dp,
+                    color = LightGray
+                )
+
                 NeonActionButton(
                     text = "ADICIONAR FLASHCARD",
                     icon = R.drawable.ic_add,
@@ -333,11 +526,6 @@ fun DeckEditorContent(
 
                 if (!isDeckEmpty) {
 
-                    SearchTextField(
-                        searchValue = searchInput,
-                        onSearchValueChange = onSearchValueChange,
-                        hintText = "Pesquisar flashcards..."
-                    )
                     Row(
                         Modifier
                             .fillMaxWidth()
@@ -359,6 +547,12 @@ fun DeckEditorContent(
                             )
                         )
                     }
+
+                    SearchTextField(
+                        searchValue = searchInput,
+                        onSearchValueChange = onSearchValueChange,
+                        hintText = "Pesquisar flashcards..."
+                    )
 
                     if (deckFlashcards.isNotEmpty()) {
                         Column {
@@ -421,7 +615,7 @@ fun DeckEditorContent(
                             subTitle = stringResource(R.string.deck_search_no_results_subtitle)
                         )
                     }
-                }  else {
+                } else {
                     if (!isLoading) {
                         EmptyContent()
                     }
@@ -444,10 +638,11 @@ private fun DeckEditorContentPreview() {
             deckName = deck.name,
             deckDescription = deck.description,
             deckCategories = deck.categories,
+            deckContexts = emptyList(),
             deckFlashcards = flashcards,
             isDeckEmpty = flashcards.isEmpty(),
             isRemoveMode = false,
-            isLoading = false,
+            isLoading = false
         )
 
     }
