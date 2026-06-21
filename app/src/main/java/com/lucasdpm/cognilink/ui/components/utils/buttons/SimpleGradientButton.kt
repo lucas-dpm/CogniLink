@@ -28,7 +28,6 @@ fun SimpleGradientButton(
     modifier: Modifier = Modifier,
     text: String = "ADICIONAR FLASHCARD",
     textColor: Color = White,
-    height: Dp = 70.dp,
     icon: Int? = null,
     initialColor: Color = Color(0xFF000666),
     finalColor: Color = Color(0xFF1222B0),
@@ -45,9 +44,7 @@ fun SimpleGradientButton(
     )
     {
         Row(
-            modifier = Modifier
-                .height(height)
-                .fillMaxWidth()
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 .clickable(enabled = isEnabled, onClick = onClickButton),
             verticalAlignment = CenterVertically,
             horizontalArrangement = Arrangement.Center,
@@ -84,7 +81,7 @@ fun SimpleGradientButton(
 private fun SimpleGradientButtonPreview() {
     SimpleGradientButton(
         text = "ADICIONAR FLASHCARD",
-        height = 56.dp,
-        onClickButton = { }
+        onClickButton = { },
+        modifier = Modifier.height(50.dp).fillMaxWidth()
     )
 }

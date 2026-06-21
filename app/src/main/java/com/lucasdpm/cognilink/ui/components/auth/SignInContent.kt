@@ -97,10 +97,10 @@ fun SignInContent(
 
         SimpleGradientButton(
             text = "ENTRAR",
-            height = 40.dp,
             icon = R.drawable.ic_arrow_forward,
             iconRightSide = true,
-            onClickButton = onSignInClick
+            onClickButton = onSignInClick,
+            modifier = Modifier.height(40.dp).fillMaxWidth()
         )
 
         Row(

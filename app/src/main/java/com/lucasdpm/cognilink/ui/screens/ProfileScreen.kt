@@ -122,9 +122,7 @@ fun ProfileContent(
 ) {
     val scrollState = rememberScrollState()
     Scaffold(
-        modifier = modifier
-            .padding()
-            .statusBarsPadding(),
+        modifier = modifier.statusBarsPadding(),
         topBar = {
             NavigationHeader(title = "Perfil", onBackClick = onNavigateBack)
         },

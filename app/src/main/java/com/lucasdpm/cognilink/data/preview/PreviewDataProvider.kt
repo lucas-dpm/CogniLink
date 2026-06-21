@@ -46,17 +46,6 @@ object PreviewDataProvider {
     )
 
     /**
-     * Resultado de ranking do usuário
-     */
-    val userRanking = UserRankingResult(
-        currentRank = UserRank.SILICON_MEMORY,
-        finalScore = 65.5f,
-        dynamicInsight = "Sua memória está se tornando altamente estável.",
-        efficiencyInsight = "Você responde rápido, mas cuidado com a precisão.",
-        retentionInsight = "Retenção excelente em temas de tecnologia."
-    )
-
-    /**
      * Lista de Decks fakes
      */
     val deckList = listOf(
@@ -163,5 +152,37 @@ object PreviewDataProvider {
      */
     val deck = deckList.first()
     val flashcard = flashcardList.first()
-    val flashcardStats = flashcardStatsList.first()
+
+    /**
+     * Lista de Contextos de Estudo fakes
+     */
+    val studyContextList = listOf(
+        StudyContext(
+            id = "ctx-home",
+            userId = USER_ID,
+            name = "Casa",
+            latitude = -23.5505,
+            longitude = -46.6333,
+            radius = 100f,
+            dwellTimeMillis = 300000L
+        ),
+        StudyContext(
+            id = "ctx-work",
+            userId = USER_ID,
+            name = "Trabalho",
+            latitude = -23.5505,
+            longitude = -46.6333,
+            radius = 500f,
+            dwellTimeMillis = 600000L
+        ),
+        StudyContext(
+            id = "ctx-library",
+            userId = USER_ID,
+            name = "Biblioteca Central",
+            latitude = -23.5505,
+            longitude = -46.6333,
+            radius = 200f,
+            dwellTimeMillis = 900000L
+        )
+    )
 }

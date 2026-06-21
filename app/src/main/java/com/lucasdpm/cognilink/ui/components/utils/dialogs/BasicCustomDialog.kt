@@ -3,6 +3,7 @@ package com.lucasdpm.cognilink.ui.components.utils.dialogs
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BasicAlertDialog
@@ -76,17 +77,17 @@ fun BasicCustomDialogPreview() {
         buttons = {
             SimpleGradientButton(
                 text = "Confirm",
-                height = 56.dp,
+                modifier = Modifier.height(56.dp).fillMaxWidth(),
                 onClickButton = { }
             )
             SimpleGradientButton(
                 text = "No",
-                height = 56.dp,
+                modifier = Modifier.height(56.dp).fillMaxWidth(),
                 onClickButton = { }
             )
             SimpleGradientButton(
                 text = "Maybe",
-                height = 56.dp,
+                modifier = Modifier.height(56.dp).fillMaxWidth(),
                 onClickButton = { }
             )
         }

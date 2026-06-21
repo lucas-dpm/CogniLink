@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -84,13 +85,13 @@ fun BasicCustomAlertDialog(
                 }
                 SimpleGradientButton(
                     text = confirmationButtonText,
-                    height = 56.dp,
+                    modifier = Modifier.height(56.dp).fillMaxWidth(),
                     onClickButton = onConfirmation,
                 )
                 dismissButtonText?.let {
                     SimpleGradientButton(
                         text = it,
-                        height = 56.dp,
+                        modifier = Modifier.height(56.dp).fillMaxWidth(),
                         onClickButton = onDismissRequest
                     )
                 }

@@ -14,6 +14,8 @@ import kotlinx.coroutines.withTimeoutOrNull
 interface AuthRepository {
     suspend fun signIn(email: String, password: String): User?
     suspend fun signUp(name: String, email: String, password: String): User?
+    suspend fun signOut()
+    suspend fun changePassword(newPassword: String): Boolean
 }
 
 class AuthRepositoryImpl(
@@ -140,6 +142,20 @@ class AuthRepositoryImpl(
         } catch (e: Exception) {
             Log.e(TAG, "signUp: Unknown Auth Error", e)
             null
+        }
+    }
+
+    override suspend fun signOut() {
+        firebaseAuth.signOut()
+    }
+
+    override suspend fun changePassword(newPassword: String): Boolean {
+        return try {
+            firebaseAuth.currentUser?.updatePassword(newPassword)?.await()
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "changePassword: Error", e)
+            false
         }
     }
 }

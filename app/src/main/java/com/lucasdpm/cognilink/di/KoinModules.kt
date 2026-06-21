@@ -38,6 +38,8 @@ import com.lucasdpm.cognilink.ui.viewmodels.StudySessionViewModel
 import com.lucasdpm.cognilink.ui.viewmodels.HomeViewModel
 import com.lucasdpm.cognilink.ui.viewmodels.IAGeneratorViewModel
 import com.lucasdpm.cognilink.ui.viewmodels.ProfileViewModel
+import com.lucasdpm.cognilink.ui.viewmodels.SettingsViewModel
+import com.lucasdpm.cognilink.ui.viewmodels.ChangePasswordViewModel
 import com.lucasdpm.cognilink.ui.viewmodels.TermsViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -108,6 +110,8 @@ val viewModelModule = module {
     viewModelOf(::StudySessionViewModel)
     viewModelOf(::TermsViewModel)
     viewModelOf(::IAGeneratorViewModel)
+    viewModelOf(::SettingsViewModel)
+    viewModelOf(::ChangePasswordViewModel)
 }
 
 val databaseModule = module {

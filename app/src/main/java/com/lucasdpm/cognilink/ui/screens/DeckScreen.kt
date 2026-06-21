@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -142,7 +143,7 @@ fun DeckScreen(
                 buttons = {
                     SimpleGradientButton(
                         text = "Criar manualmente",
-                        height = 56.dp,
+                        modifier = Modifier.height(56.dp).fillMaxWidth(),
                         onClickButton = {
                             viewModel.toggleAddFlashcardDialog()
                             scope.launch {
@@ -153,7 +154,7 @@ fun DeckScreen(
                     )
                     SimpleGradientButton(
                         text = "Criar com IA",
-                        height = 56.dp,
+                        modifier = Modifier.height(56.dp).fillMaxWidth(),
                         onClickButton = {
                             viewModel.toggleAddFlashcardDialog()
                             scope.launch {
@@ -272,7 +273,7 @@ fun DeckContent(
                 Column(modifier = Modifier.padding(24.dp)) {
                     SimpleGradientButton(
                         text = "ESTUDAR AGORA",
-                        height = 40.dp,
+                        modifier = Modifier.height(40.dp).fillMaxWidth(),
                         icon = R.drawable.ic_arrow_forward,
                         iconRightSide = true,
                         onClickButton = onStudyNowClick

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
@@ -137,12 +138,11 @@ fun SignUpContent(
 
         SimpleGradientButton(
             text = "CRIAR CONTA",
-            height = 40.dp,
             icon = R.drawable.ic_arrow_forward,
             iconRightSide = true,
             isEnabled = isTermsAccepted,
             onClickButton = onSignUpClick,
-            modifier = Modifier.padding(bottom = 12.dp)
+            modifier = Modifier.height(50.dp).fillMaxWidth().padding(bottom = 12.dp),
         )
 
     }

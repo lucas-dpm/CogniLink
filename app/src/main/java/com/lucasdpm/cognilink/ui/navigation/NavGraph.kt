@@ -16,6 +16,7 @@ import androidx.navigation.compose.rememberNavController
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.components.utils.CustomSnackbar
 import com.lucasdpm.cognilink.ui.screens.AuthScreen
+import com.lucasdpm.cognilink.ui.screens.ChangePasswordScreen
 import com.lucasdpm.cognilink.ui.screens.ContextEditorScreen
 import com.lucasdpm.cognilink.ui.screens.CreateFlashcardWithIAScreen
 import com.lucasdpm.cognilink.ui.screens.DeckEditorScreen
@@ -23,6 +24,7 @@ import com.lucasdpm.cognilink.ui.screens.DeckScreen
 import com.lucasdpm.cognilink.ui.screens.FlashcardEditorScreen
 import com.lucasdpm.cognilink.ui.screens.HomeScreen
 import com.lucasdpm.cognilink.ui.screens.ProfileScreen
+import com.lucasdpm.cognilink.ui.screens.SettingsScreen
 import com.lucasdpm.cognilink.ui.screens.StudySessionScreen
 import com.lucasdpm.cognilink.ui.screens.TermsScreen
 import com.lucasdpm.cognilink.ui.states.CustomSnackbarVisuals
@@ -74,6 +76,12 @@ sealed class Screen(val route: String) {
     object EditContext : Screen("editContext/{contextId}/{userId}") {
         fun createRoute(contextId: String, userId: String) = "editContext/$contextId/$userId"
     }
+
+    object Settings : Screen("settings/{userId}") {
+        fun createRoute(userId: String) = "settings/$userId"
+    }
+
+    object ChangePassword : Screen("changePassword")
 
 }
 
@@ -267,7 +275,41 @@ fun CogniLinkNavGraph(
                         navController.navigate(Screen.Auth.route) {
                             popUpTo(0) { inclusive = true }
                         }
+                    },
+                    onNavigateToSettings = {
+                        navController.navigate(Screen.Settings.createRoute(userId))
                     }
+                )
+            }
+
+            composable(Screen.Settings.route) { backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId") ?: ""
+                SettingsScreen(
+                    userId = userId,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToChangePassword = {
+                        navController.navigate(Screen.ChangePassword.route)
+                    },
+                    onNavigateToEditContext = { contextId ->
+                        navController.navigate(Screen.EditContext.createRoute(contextId, userId))
+                    },
+                    onNavigateToCreateContext = { uId ->
+                        navController.navigate(Screen.CreateContext.createRoute(uId))
+                    },
+                    onNavigateToTerms = {
+                        navController.navigate(Screen.Terms.route)
+                    },
+                    onNavigateToLogin = {
+                        navController.navigate(Screen.Auth.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            composable(Screen.ChangePassword.route) {
+                ChangePasswordScreen(
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
 

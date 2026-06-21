@@ -264,7 +264,7 @@ fun FlashcardEditorContent(
             Column(modifier = Modifier.padding(24.dp)) {
                 SimpleGradientButton(
                     text = if (isEditMode) "SALVAR" else "CRIAR",
-                    height = 40.dp,
+                    modifier = Modifier.height(40.dp).fillMaxWidth(),
                     icon = R.drawable.ic_check,
                     onClickButton = onSaveChanges
                 )

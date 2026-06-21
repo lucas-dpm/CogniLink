@@ -163,7 +163,7 @@ fun DeckEditorScreen(
                 buttons = {
                     SimpleGradientButton(
                         text = "Criar manualmente",
-                        height = 56.dp,
+                        modifier = Modifier.height(56.dp).fillMaxWidth(),
                         onClickButton = {
                             viewModel.toggleAddFlashcardDialog()
                             scope.launch {
@@ -174,7 +174,7 @@ fun DeckEditorScreen(
                     )
                     SimpleGradientButton(
                         text = "Criar com IA",
-                        height = 56.dp,
+                        modifier = Modifier.height(56.dp).fillMaxWidth(),
                         onClickButton = {
                             viewModel.toggleAddFlashcardDialog()
                             scope.launch {
@@ -399,7 +399,7 @@ fun DeckEditorContent(
             Column(modifier = Modifier.padding(24.dp)) {
                 SimpleGradientButton(
                     text = if (isEditMode) "SALVAR" else "CRIAR",
-                    height = 40.dp,
+                    modifier = Modifier.height(40.dp).fillMaxWidth(),
                     icon = R.drawable.ic_check,
                     onClickButton = onSave
                 )
@@ -478,7 +478,7 @@ fun DeckEditorContent(
 
                     SimpleGradientButton(
                         text = "MARCAR LOCALIZAÇÃO ATUAL",
-                        height = 50.dp,
+                        modifier = Modifier.height(50.dp).fillMaxWidth(),
                         icon = R.drawable.ic_target_loc,
                         onClickButton = onMarkCurrentLocation
                     )
