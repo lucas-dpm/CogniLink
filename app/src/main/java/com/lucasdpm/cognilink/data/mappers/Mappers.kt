@@ -147,3 +147,24 @@ fun FlashcardStats.toEntity(): FlashcardStatsEntity = FlashcardStatsEntity(
     retentionRate = retentionRate,
     mastery = mastery
 )
+
+// StudyContext Mappers
+fun StudyContextEntity.toDomain(): StudyContext = StudyContext(
+    id = id,
+    userId = userId,
+    name = name,
+    latitude = latitude,
+    longitude = longitude,
+    radius = radius,
+    dwellTimeMillis = dwellTimeMillis
+)
+
+fun StudyContext.toEntity(): StudyContextEntity = StudyContextEntity(
+    id = id,
+    userId = userId,
+    name = name,
+    latitude = latitude,
+    longitude = longitude,
+    radius = radius,
+    dwellTimeMillis = dwellTimeMillis
+)

@@ -8,15 +8,20 @@ import com.lucasdpm.cognilink.data.repository.DeckRepository
 import com.lucasdpm.cognilink.data.repository.DeckRepositoryImpl
 import com.lucasdpm.cognilink.data.repository.FlashcardRepository
 import com.lucasdpm.cognilink.data.repository.FlashcardRepositoryImpl
+import com.lucasdpm.cognilink.data.repository.StudyContextRepository
+import com.lucasdpm.cognilink.data.repository.StudyContextRepositoryImpl
 import com.lucasdpm.cognilink.data.repository.TermsRepository
 import com.lucasdpm.cognilink.data.repository.TermsRepositoryImpl
 import com.lucasdpm.cognilink.data.repository.UserRepository
 import com.lucasdpm.cognilink.data.repository.UserRepositoryImpl
+import com.lucasdpm.cognilink.data.service.AndroidGeofenceManager
 import com.lucasdpm.cognilink.data.service.AndroidNetworkMonitor
 import com.lucasdpm.cognilink.data.service.KtorAIService
+import com.lucasdpm.cognilink.data.service.SystemNotificationService
 import com.lucasdpm.cognilink.domain.repository.AIService
 import com.lucasdpm.cognilink.domain.repository.NetworkMonitor
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
+import com.lucasdpm.cognilink.domain.service.GeofenceManager
 import com.lucasdpm.cognilink.domain.usecase.CalculateDeckReviewCountUseCase
 import com.lucasdpm.cognilink.domain.usecase.CalculateDifficultyLevelUseCase
 import com.lucasdpm.cognilink.domain.usecase.CalculateSM2UseCase
@@ -72,8 +77,11 @@ val repositoryModule = module {
     single<UserRepository> { UserRepositoryImpl(get(), get(), get()) }
     single<DeckRepository> { DeckRepositoryImpl(get()) }
     singleOf(::FlashcardRepositoryImpl) { bind<FlashcardRepository>() }
+    singleOf(::StudyContextRepositoryImpl) { bind<StudyContextRepository>() }
     singleOf(::TermsRepositoryImpl) { bind<TermsRepository>() }
     singleOf(::KtorAIService) { bind<AIService>() }
+    single<GeofenceManager> { AndroidGeofenceManager(get()) }
+    single { SystemNotificationService(get()) }
 }
 
 val domainModule = module {
@@ -113,6 +121,7 @@ val databaseModule = module {
     single { get<CogniLinkDatabase>().flashcardDao() }
     single { get<CogniLinkDatabase>().userStatsDao() }
     single { get<CogniLinkDatabase>().flashcardStatsDao() }
+    single { get<CogniLinkDatabase>().studyContextDao() }
 }
 
 val appModule = listOf(

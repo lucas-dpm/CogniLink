@@ -6,11 +6,14 @@ import androidx.room.TypeConverters
 import com.lucasdpm.cognilink.data.datebase.dao.DeckDao
 import com.lucasdpm.cognilink.data.datebase.dao.FlashcardDao
 import com.lucasdpm.cognilink.data.datebase.dao.FlashcardStatsDao
+import com.lucasdpm.cognilink.data.datebase.dao.StudyContextDao
 import com.lucasdpm.cognilink.data.datebase.dao.UserDao
 import com.lucasdpm.cognilink.data.datebase.dao.UserStatsDao
+import com.lucasdpm.cognilink.data.datebase.entities.DeckContextJoinEntity
 import com.lucasdpm.cognilink.data.datebase.entities.DeckEntity
 import com.lucasdpm.cognilink.data.datebase.entities.FlashcardEntity
 import com.lucasdpm.cognilink.data.datebase.entities.FlashcardStatsEntity
+import com.lucasdpm.cognilink.data.datebase.entities.StudyContextEntity
 import com.lucasdpm.cognilink.data.datebase.entities.UserEntity
 import com.lucasdpm.cognilink.data.datebase.entities.UserStatsEntity
 
@@ -20,9 +23,11 @@ import com.lucasdpm.cognilink.data.datebase.entities.UserStatsEntity
         UserStatsEntity::class,
         DeckEntity::class,
         FlashcardEntity::class,
-        FlashcardStatsEntity::class
+        FlashcardStatsEntity::class,
+        StudyContextEntity::class,
+        DeckContextJoinEntity::class
     ],
-    version = 5
+    version = 6
 )
 @TypeConverters(Converters::class)
 abstract class CogniLinkDatabase : RoomDatabase() {
@@ -32,4 +37,5 @@ abstract class CogniLinkDatabase : RoomDatabase() {
     abstract fun deckDao(): DeckDao
     abstract fun flashcardDao(): FlashcardDao
     abstract fun flashcardStatsDao(): FlashcardStatsDao
+    abstract fun studyContextDao(): StudyContextDao
 }

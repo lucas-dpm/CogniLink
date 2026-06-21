@@ -50,7 +50,7 @@ fun SignInContent(
     onSignInClick: () -> Unit = {},
     onSignUpClick: () -> Unit = {}
 ) {
-    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+    Column(modifier = modifier.fillMaxWidth().padding(bottom = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
 
         CustomTextField(
             label = {
