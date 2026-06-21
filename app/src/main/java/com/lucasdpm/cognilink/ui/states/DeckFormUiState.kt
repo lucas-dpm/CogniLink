@@ -1,6 +1,7 @@
 package com.lucasdpm.cognilink.ui.states
 
 import com.lucasdpm.cognilink.data.model.FlashcardWithStats
+import com.lucasdpm.cognilink.data.model.StudyContext
 
 data class DeckFormUiState(
     val userId: String? = null,
@@ -10,8 +11,11 @@ data class DeckFormUiState(
     val deckCategories: List<String> = emptyList(),
     val deckFlashcards: List<FlashcardWithStats> = emptyList(),
     val filteredFlashcards: List<FlashcardWithStats> = emptyList(),
+    val deckContexts: List<StudyContext> = emptyList(),
+    val allUserContexts: List<StudyContext> = emptyList(),
     val searchInput: String = "",
     val showCategoryDialog: Boolean = false,
+    val showContextSelectionDialog: Boolean = false,
     val categoryBeingEdited: String? = null,
     val categoryText: String = "",
     val isRemoveMode: Boolean = false,
