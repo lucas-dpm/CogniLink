@@ -27,9 +27,14 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun ChangePasswordScreen(
     onNavigateBack: () -> Unit,
+    oobCode: String? = null,
     viewModel: ChangePasswordViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(oobCode) {
+        oobCode?.let { viewModel.setOobCode(it) }
+    }
 
     LaunchedEffect(uiState.isPasswordChanged) {
         if (uiState.isPasswordChanged) {

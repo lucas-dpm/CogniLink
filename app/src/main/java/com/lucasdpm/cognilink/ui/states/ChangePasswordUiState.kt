@@ -1,6 +1,7 @@
 package com.lucasdpm.cognilink.ui.states
 
 data class ChangePasswordUiState(
+    val oobCode: String? = null,
     val newPassword: String = "",
     val confirmPassword: String = "",
     val passwordError: String? = null,

@@ -93,6 +93,7 @@ fun AuthScreen(
             onSignUpClick = {
                 viewModel.onSignUpClick()
             },
+            onForgotPasswordClick = viewModel::onForgotPasswordClick,
             onNavigateToTerms = onNavigateToTerms
         )
 
@@ -129,6 +130,7 @@ fun AuthContent(
     onSignUpConfirmPasswordChange: (String) -> Unit,
     onTermsAcceptedChange: (Boolean) -> Unit,
     onSignUpClick: () -> Unit,
+    onForgotPasswordClick: () -> Unit,
     onNavigateToTerms: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
@@ -233,7 +235,8 @@ fun AuthContent(
                         onPasswordChange = onSignInPasswordChange,
                         passwordError = signInPasswordError,
                         onSignInClick = onSignInClick,
-                        onSignUpClick = { onModeChange(true) }
+                        onSignUpClick = { onModeChange(true) },
+                        onForgotPasswordClick = onForgotPasswordClick
                     )
                 }
             }
@@ -266,7 +269,8 @@ private fun AuthScreenPreview() {
             onSignUpPasswordChange = { state = state.copy(signUpPassword = it) },
             onSignUpConfirmPasswordChange = { state = state.copy(signUpConfirmPassword = it) },
             onTermsAcceptedChange = { state = state.copy(isTermsAccepted = it) },
-            onSignUpClick = { /* No-op in preview */ }
+            onSignUpClick = { /* No-op in preview */ },
+            onForgotPasswordClick = {}
         )
     }
 }

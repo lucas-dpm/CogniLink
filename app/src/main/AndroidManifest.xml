@@ -40,8 +40,21 @@
             android:theme="@style/Theme.CogniLink">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Deep Link para Recuperação de Senha -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="cognilink-lucasdpm.firebaseapp.com" />
+                <data
+                    android:pathPrefix="/__/auth/action" />
+                <data
+                    android:pathPrefix="/reset-password" />
             </intent-filter>
         </activity>
     </application>

@@ -3,6 +3,7 @@ package com.lucasdpm.cognilink.data.repository
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
+import com.google.firebase.auth.actionCodeSettings
 import com.google.firebase.firestore.FirebaseFirestore
 import com.lucasdpm.cognilink.data.model.User
 import com.lucasdpm.cognilink.data.model.UserStats
@@ -16,6 +17,8 @@ interface AuthRepository {
     suspend fun signUp(name: String, email: String, password: String): User?
     suspend fun signOut()
     suspend fun changePassword(newPassword: String): Boolean
+    suspend fun sendPasswordResetEmail(email: String): Boolean
+    suspend fun confirmPasswordReset(code: String, newPassword: String): Boolean
 }
 
 class AuthRepositoryImpl(
@@ -155,6 +158,36 @@ class AuthRepositoryImpl(
             true
         } catch (e: Exception) {
             Log.e(TAG, "changePassword: Error", e)
+            false
+        }
+    }
+
+    override suspend fun sendPasswordResetEmail(email: String): Boolean {
+        val actionCodeSettings = actionCodeSettings {
+            url = "https://cognilink-lucasdpm.firebaseapp.com/reset-password"
+            handleCodeInApp = true
+            setAndroidPackageName(
+                "com.lucasdpm.cognilink",
+                true,
+                "26"
+            )
+        }
+
+        return try {
+            firebaseAuth.sendPasswordResetEmail(email, actionCodeSettings).await()
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "sendPasswordResetEmail: Error", e)
+            false
+        }
+    }
+
+    override suspend fun confirmPasswordReset(code: String, newPassword: String): Boolean {
+        return try {
+            firebaseAuth.confirmPasswordReset(code, newPassword).await()
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "confirmPasswordReset: Error", e)
             false
         }
     }

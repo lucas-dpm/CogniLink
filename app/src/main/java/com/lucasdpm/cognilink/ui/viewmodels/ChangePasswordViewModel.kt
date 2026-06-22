@@ -19,6 +19,10 @@ class ChangePasswordViewModel(
     private val _uiState = MutableStateFlow(ChangePasswordUiState())
     val uiState: StateFlow<ChangePasswordUiState> = _uiState.asStateFlow()
 
+    fun setOobCode(code: String) {
+        _uiState.update { it.copy(oobCode = code) }
+    }
+
     fun onNewPasswordChange(password: String) {
         _uiState.update { it.copy(newPassword = password, passwordError = null) }
     }
@@ -61,12 +65,19 @@ class ChangePasswordViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val success = authRepository.changePassword(_uiState.value.newPassword)
+            val oobCode = _uiState.value.oobCode
+            
+            val success = if (oobCode != null) {
+                authRepository.confirmPasswordReset(oobCode, _uiState.value.newPassword)
+            } else {
+                authRepository.changePassword(_uiState.value.newPassword)
+            }
+
             if (success) {
                 notificationService.showSuccess("Senha alterada com sucesso")
                 _uiState.update { it.copy(isPasswordChanged = true, isLoading = false) }
             } else {
-                notificationService.showError("Erro ao alterar senha")
+                notificationService.showError("Erro ao alterar senha. O link pode ter expirado.")
                 _uiState.update { it.copy(isLoading = false) }
             }
         }

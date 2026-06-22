@@ -81,7 +81,10 @@ sealed class Screen(val route: String) {
         fun createRoute(userId: String) = "settings/$userId"
     }
 
-    object ChangePassword : Screen("changePassword")
+    object ChangePassword : Screen("changePassword?oobCode={oobCode}") {
+        fun createRoute(oobCode: String? = null) = 
+            "changePassword" + if (oobCode != null) "?oobCode=$oobCode" else ""
+    }
 
 }
 
@@ -288,7 +291,7 @@ fun CogniLinkNavGraph(
                     userId = userId,
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToChangePassword = {
-                        navController.navigate(Screen.ChangePassword.route)
+                        navController.navigate(Screen.ChangePassword.createRoute())
                     },
                     onNavigateToEditContext = { contextId ->
                         navController.navigate(Screen.EditContext.createRoute(contextId, userId))
@@ -307,9 +310,11 @@ fun CogniLinkNavGraph(
                 )
             }
 
-            composable(Screen.ChangePassword.route) {
+            composable(Screen.ChangePassword.route) { backStackEntry ->
+                val oobCode = backStackEntry.arguments?.getString("oobCode")
                 ChangePasswordScreen(
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    oobCode = oobCode
                 )
             }
 

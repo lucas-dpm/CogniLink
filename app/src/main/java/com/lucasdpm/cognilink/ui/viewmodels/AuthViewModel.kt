@@ -202,4 +202,24 @@ class AuthViewModel(
     fun clearNavigationEvent() {
         _uiState.update { it.copy(loggedInUserId = null) }
     }
+
+    fun onForgotPasswordClick() {
+        val email = _uiState.value.signInEmail
+        if (email.isBlank() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            _uiState.update { it.copy(signInEmailError = "Insira um e-mail válido para recuperação!") }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            val success = repository.sendPasswordResetEmail(email)
+            _uiState.update { it.copy(isLoading = false) }
+            
+            if (success) {
+                notificationService.showSuccess("E-mail de recuperação enviado para $email")
+            } else {
+                notificationService.showError("Erro ao enviar e-mail. Verifique se o e-mail está cadastrado.")
+            }
+        }
+    }
 }

@@ -48,7 +48,8 @@ fun SignInContent(
     onPasswordChange: (String) -> Unit = {},
     passwordError: String? = null,
     onSignInClick: () -> Unit = {},
-    onSignUpClick: () -> Unit = {}
+    onSignUpClick: () -> Unit = {},
+    onForgotPasswordClick: () -> Unit = {}
 ) {
     Column(modifier = modifier.fillMaxWidth().padding(bottom = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
 
@@ -84,7 +85,7 @@ fun SignInContent(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
                     ) {
-                        /* TODO */
+                        onForgotPasswordClick()
                     }
                 )
             }
