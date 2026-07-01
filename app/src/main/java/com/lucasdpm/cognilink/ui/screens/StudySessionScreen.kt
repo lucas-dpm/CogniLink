@@ -6,7 +6,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,9 +21,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BasicAlertDialog
@@ -47,7 +44,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -64,8 +60,11 @@ import com.lucasdpm.cognilink.domain.model.FlashcardType
 import com.lucasdpm.cognilink.domain.repository.FeynmanChatMessage
 import com.lucasdpm.cognilink.ui.components.flashcard.AIFeedbackSection
 import com.lucasdpm.cognilink.ui.components.flashcard.AnswerSelector
+import com.lucasdpm.cognilink.ui.components.flashcard.FeynmanChatBubble
+import com.lucasdpm.cognilink.ui.components.flashcard.FeynmanTypingIndicator
 import com.lucasdpm.cognilink.ui.components.flashcard.FlashcardHeader
 import com.lucasdpm.cognilink.ui.components.flashcard.HintReveal
+import com.lucasdpm.cognilink.ui.components.flashcard.ManualValidationDialog
 import com.lucasdpm.cognilink.ui.components.flashcard.TrueFalseToggle
 import com.lucasdpm.cognilink.ui.components.input.CustomTextField
 import com.lucasdpm.cognilink.ui.components.utils.FullScreenLoading
@@ -85,6 +84,7 @@ import com.lucasdpm.cognilink.ui.viewmodels.StudySessionViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import kotlin.collections.forEach
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -231,7 +231,14 @@ fun StudySessionScreen(
             FullScreenLoading()
         }
     }
+
+    if (uiState.isOfflineValidationDialogOpen) {
+        ManualValidationDialog(
+            onAnswerResult = viewModel::onManualValidationResult
+        )
+    }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -612,7 +619,7 @@ fun StudySessionContent(
                                         modifier = Modifier.fillMaxWidth()
                                     )
                                 }
-                                
+
                                 if (isQuestionVerified) {
                                     Surface(
                                         color = Green.copy(alpha = 0.1f),
@@ -649,61 +656,6 @@ fun StudySessionContent(
     }
 }
 
-@Composable
-fun FeynmanChatBubble(message: FeynmanChatMessage) {
-    val arrangement = if (message.isFromUser) Arrangement.End else Arrangement.Start
-    val bubbleColor = if (message.isFromUser) DarkNavyBlue else White
-    val textColor = if (message.isFromUser) White else DarkGray
-    val shape = if (message.isFromUser) {
-        RoundedCornerShape(20.dp, 20.dp, 4.dp, 20.dp)
-    } else {
-        RoundedCornerShape(20.dp, 20.dp, 20.dp, 4.dp)
-    }
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = arrangement
-    ) {
-        Surface(
-            shape = shape,
-            color = bubbleColor,
-            shadowElevation = 1.dp,
-            modifier = Modifier.widthIn(max = 280.dp)
-        ) {
-            Text(
-                text = message.text,
-                color = textColor,
-                modifier = Modifier.padding(12.dp),
-                fontSize = 14.sp,
-                lineHeight = 20.sp
-            )
-        }
-    }
-}
-
-@Composable
-fun FeynmanTypingIndicator(personaName: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(8.dp)
-                .clip(CircleShape)
-                .background(DarkGray.copy(alpha = 0.5f))
-        )
-        Spacer(modifier = Modifier.size(4.dp))
-        Text(
-            text = "$personaName está pensando...",
-            fontSize = 12.sp,
-            color = DarkGray,
-            fontWeight = FontWeight.Medium
-        )
-    }
-}
-
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun StudySessionContentPreview() {
@@ -721,3 +673,4 @@ private fun StudySessionContentPreview() {
         )
     }
 }
+

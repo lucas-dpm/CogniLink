@@ -264,6 +264,10 @@ class StudySessionViewModel(
                             validationType = ValidationType.FALLBACK
                             aiFeedback = result.feedback
                         }
+                        ValidationResult.Offline -> {
+                            _uiState.update { it.copy(isValidating = false, isOfflineValidationDialogOpen = true) }
+                            return@launch
+                        }
                     }
                 }
 
@@ -283,6 +287,7 @@ class StudySessionViewModel(
                         aiFeedback = when (result) {
                             is ValidationResult.Correct -> result.feedback
                             is ValidationResult.Fallback -> result.feedback
+                            ValidationResult.Offline -> null
                         }
                     }
                 }
@@ -304,6 +309,7 @@ class StudySessionViewModel(
                         aiFeedback = when (result) {
                             is ValidationResult.Correct -> result.feedback
                             is ValidationResult.Fallback -> result.feedback
+                            ValidationResult.Offline -> null
                         }
                     }
                 }
@@ -336,6 +342,23 @@ class StudySessionViewModel(
 
     fun toggleCloseDialog() {
         _uiState.update { it.copy(isCloseDialogOpen = !it.isCloseDialogOpen) }
+    }
+
+    fun onManualValidationResult(isCorrect: Boolean) {
+        val currentState = _uiState.value
+        val currentFlashcard = currentState.currentFlashcard ?: return
+        val latencyMs = (currentState.secondsElapsed - currentState.cardStartTimeSeconds) * 1000L
+
+        updateFlashcardStats(currentFlashcard.id, isCorrect, latencyMs)
+
+        _uiState.update {
+            it.copy(
+                isQuestionVerified = true,
+                sequenceHits = if (isCorrect) it.sequenceHits + 1 else 0,
+                isAnswerCorrect = isCorrect,
+                isOfflineValidationDialogOpen = false
+            )
+        }
     }
 
     private fun updateFlashcardStats(

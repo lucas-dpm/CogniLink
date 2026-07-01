@@ -26,6 +26,7 @@ data class StudySessionUiState(
     val feynmanPersonaName: String? = null,
     val isFeynmanTyping: Boolean = false,
     val feynmanErrorMessage: String? = null,
+    val isOfflineValidationDialogOpen: Boolean = false,
     val showCriticalErrorDialog: Boolean = false,
     val errorMessage: String? = null,
     val cardStartTimeSeconds: Long = 0L,

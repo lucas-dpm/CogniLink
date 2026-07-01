@@ -38,19 +38,9 @@ class ValidateBasicAnswerUseCase(
                 Log.e(TAG, "Erro na chamada da IA", error)
                 notificationService.showWarning("Erro ao conectar com a IA. Usando validação local.")
             }
-        } else {
-            Log.d(TAG, "Dispositivo offline. Lançando aviso e seguindo para fallback local.")
-            notificationService.showWarning("Você está offline. A validação será feita localmente.")
         }
 
-        // Fallback para comparação local se não houver internet ou se a chamada falhar
-        val isCorrectLocal = userAnswer.trim().equals(correctAnswer.trim(), ignoreCase = true)
-        Log.d(TAG, "Executando fallback local. Resultado: $isCorrectLocal")
-
-        return if (isCorrectLocal) {
-            ValidationResult.Correct()
-        } else {
-            ValidationResult.Fallback()
-        }
+        Log.d(TAG, "Dispositivo offline. Solicitando autoavaliação.")
+        return ValidationResult.Offline
     }
 }
