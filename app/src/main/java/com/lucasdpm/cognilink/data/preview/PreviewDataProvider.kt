@@ -102,17 +102,6 @@ object PreviewDataProvider {
             ),
             hints = listOf("Oposto de collect")
         ),
-        Flashcard(
-            id = FLASHCARD_ID_3,
-            deckId = DECK_ID_2,
-            question = "A Primeira Guerra Mundial terminou no ano de [[1918]].",
-            cardType = FlashcardType.OMISSION,
-            difficulty = DifficultyLevel.EASY,
-            answerOptions = listOf(
-                Answer("1918", true)
-            ),
-            hints = listOf("Início do século XX")
-        )
     )
 
     /**

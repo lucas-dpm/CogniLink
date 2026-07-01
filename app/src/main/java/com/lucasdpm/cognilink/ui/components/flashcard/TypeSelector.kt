@@ -132,7 +132,7 @@ fun TypeSelector(
 @Composable
 private fun TypeSelectorPreview() {
     CogniLinkTheme {
-        TypeSelector(options = listOf(FlashcardType.BASIC, FlashcardType.MULTIPLE_CHOICE, FlashcardType.OMISSION, FlashcardType.TRUE_OR_FALSE, FlashcardType.CHAT_FEYNMAN),
+        TypeSelector(options = listOf(FlashcardType.BASIC, FlashcardType.MULTIPLE_CHOICE, FlashcardType.TRUE_OR_FALSE, FlashcardType.CHAT_FEYNMAN),
             selectedOption = FlashcardType.BASIC,
             onOptionSelected = {})
     }

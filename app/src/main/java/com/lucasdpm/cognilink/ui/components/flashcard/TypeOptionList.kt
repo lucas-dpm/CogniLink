@@ -48,7 +48,7 @@ fun TypeOptionList(
 @Composable
 private fun TypeOptionListPreview() {
     CogniLinkTheme {
-        val options = listOf(FlashcardType.BASIC, FlashcardType.MULTIPLE_CHOICE, FlashcardType.OMISSION, FlashcardType.TRUE_OR_FALSE, FlashcardType.CHAT_FEYNMAN )
+        val options = listOf(FlashcardType.BASIC, FlashcardType.MULTIPLE_CHOICE, FlashcardType.TRUE_OR_FALSE, FlashcardType.CHAT_FEYNMAN )
         var selectedOption by remember { mutableStateOf<FlashcardType?>(null) }
 
         TypeOptionList(

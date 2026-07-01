@@ -505,22 +505,6 @@ fun StudySessionContent(
                             }
                         }
 
-                        FlashcardType.OMISSION -> {
-                            CustomTextField(
-                                inputValue = selectedAnswers.values.firstOrNull() ?: "",
-                                onInputValueChange = { newAnswer ->
-                                    onSelectAnswer(Answer("", false), newAnswer)
-                                },
-                                placeholder = "Preencha a lacuna",
-                                enabled = !isQuestionVerified
-                            )
-                            if (isQuestionVerified) {
-                                AIFeedbackSection(
-                                    aiFeedback = aiFeedback,
-                                )
-                            }
-                        }
-
                         FlashcardType.CHAT_FEYNMAN -> {
 
                         }

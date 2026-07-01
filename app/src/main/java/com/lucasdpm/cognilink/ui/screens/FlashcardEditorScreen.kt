@@ -452,12 +452,6 @@ fun FlashcardEditorContent(
                                     )
                                 }
 
-                                FlashcardType.OMISSION -> {
-
-                                    // Implementação para FlashcardType.OMISSION
-
-                                }
-
                                 FlashcardType.CHAT_FEYNMAN -> {
 
                                     // Implementação para FlashcardType.CHAT_FEYNMAN

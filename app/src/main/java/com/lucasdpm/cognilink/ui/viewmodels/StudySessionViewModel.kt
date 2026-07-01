@@ -163,7 +163,7 @@ class StudySessionViewModel(
             var aiFeedback: String? = null
 
             when (currentFlashcard.cardType) {
-                FlashcardType.BASIC, FlashcardType.OMISSION -> {
+                FlashcardType.BASIC -> {
                     val userAnswer = currentState.selectedAnswers.values.firstOrNull() ?: ""
                     val correctAnswer = currentFlashcard.answerOptions.firstOrNull()?.answer ?: ""
 
