@@ -135,7 +135,16 @@ class StudySessionViewModel(
         }
     }
 
-    fun nextFlashcard() {
+    fun nextFlashcard(isManualValidation: Boolean = false) {
+        if (!isManualValidation) {
+            val currentState = _uiState.value
+            if (currentState.currentFlashcard?.cardType == FlashcardType.BASIC && !currentState.isOfflineValidationDialogOpen) {
+                _uiState.update { it.copy(isOfflineValidationDialogOpen = true) }
+                return
+            }
+        }
+
+        closeCurrentFeynmanSession()
         if (_uiState.value.isLastFlashcard) {
             _uiState.update {
                 it.copy(
@@ -191,6 +200,22 @@ class StudySessionViewModel(
         }
     }
 
+    fun closeCurrentFeynmanSession() {
+        val sessionId = _uiState.value.feynmanSessionId ?: return
+        Log.d(TAG, "closeCurrentFeynmanSession: Closing session $sessionId")
+        _uiState.update { it.copy(feynmanSessionId = null) }
+        viewModelScope.launch {
+            aiService.closeFeynmanChat(sessionId)
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        closeCurrentFeynmanSession()
+        timerJob?.cancel()
+        sessionJob?.cancel()
+    }
+
     fun sendFeynmanChatMessage(message: String) {
         val sessionId = _uiState.value.feynmanSessionId ?: return
         val currentFlashcard = _uiState.value.currentFlashcard ?: return
@@ -199,7 +224,7 @@ class StudySessionViewModel(
             _uiState.update {
                 it.copy(
                     feynmanChatMessages = it.feynmanChatMessages + FeynmanChatMessage(message, true),
-                    isFeynmanTyping = true
+                    isFeynmanTyping = true,
                 )
             }
 
@@ -215,7 +240,13 @@ class StudySessionViewModel(
                     if (response.isFinished) {
                         val latencyMs = (_uiState.value.secondsElapsed - _uiState.value.cardStartTimeSeconds) * 1000L
                         updateFlashcardStats(currentFlashcard.id, true, latencyMs, response.sm2Quality ?: 4)
-                        _uiState.update { it.copy(isQuestionVerified = true, isAnswerCorrect = true) }
+                        _uiState.update { 
+                            it.copy(
+                                isQuestionVerified = true, 
+                                isAnswerCorrect = true,
+                                feynmanSessionId = null // Session is finished on backend, clear local id
+                            ) 
+                        }
                     }
                 }
                 .onFailure { e ->
@@ -241,6 +272,7 @@ class StudySessionViewModel(
             var isCorrect: Boolean
             var validationType = ValidationType.NONE
             var aiFeedback: String? = null
+            var skipStatsUpdate = false
 
             when (currentFlashcard.cardType) {
                 FlashcardType.BASIC -> {
@@ -265,12 +297,17 @@ class StudySessionViewModel(
                             aiFeedback = result.feedback
                         }
                         ValidationResult.Offline -> {
-                            _uiState.update { it.copy(isValidating = false, isOfflineValidationDialogOpen = true) }
-                            return@launch
+                            val userAnswer = currentState.selectedAnswers.values.firstOrNull() ?: ""
+                            val correctAnswer = currentFlashcard.answerOptions.firstOrNull()?.answer ?: ""
+                            isCorrect = userAnswer.trim().equals(correctAnswer.trim(), ignoreCase = true)
+                            validationType = ValidationType.NONE
+                            aiFeedback = null
+                            // Se estiver offline, não atualizamos as estatísticas aqui. 
+                            // Elas serão atualizadas no onManualValidationResult com a decisão final do usuário.
+                            skipStatsUpdate = true
                         }
                     }
                 }
-
                 FlashcardType.MULTIPLE_CHOICE -> {
                     val selectedAnswer = currentState.selectedAnswers.keys.firstOrNull()
                     val correctAnswer = currentFlashcard.answerOptions.find { it.isCorrect }
@@ -291,7 +328,6 @@ class StudySessionViewModel(
                         }
                     }
                 }
-
                 FlashcardType.TRUE_OR_FALSE -> {
                     isCorrect = currentState.selectedAnswers.all { (answer, choice) ->
                         (choice == "T" && answer.isCorrect) || (choice == "F" && !answer.isCorrect)
@@ -313,23 +349,26 @@ class StudySessionViewModel(
                         }
                     }
                 }
-
                 else -> {
                     isCorrect = true
                 }
             }
 
             val latencyMs = (currentState.secondsElapsed - currentState.cardStartTimeSeconds) * 1000L
-            updateFlashcardStats(currentFlashcard.id, isCorrect, latencyMs)
+
+            if (!skipStatsUpdate) {
+                updateFlashcardStats(currentFlashcard.id, isCorrect, latencyMs)
+            }
 
             _uiState.update {
                 it.copy(
                     isQuestionVerified = true,
-                    sequenceHits = if (isCorrect) it.sequenceHits + 1 else 0,
+                    sequenceHits = if (!skipStatsUpdate && isCorrect) it.sequenceHits + 1 else it.sequenceHits,
                     isAnswerCorrect = isCorrect,
                     validationType = validationType,
                     aiFeedback = aiFeedback,
-                    isValidating = false
+                    isValidating = false,
+                    currentCardLatencyMs = latencyMs
                 )
             }
         }
@@ -347,18 +386,21 @@ class StudySessionViewModel(
     fun onManualValidationResult(isCorrect: Boolean) {
         val currentState = _uiState.value
         val currentFlashcard = currentState.currentFlashcard ?: return
-        val latencyMs = (currentState.secondsElapsed - currentState.cardStartTimeSeconds) * 1000L
+        val latencyMs = currentState.currentCardLatencyMs
 
-        updateFlashcardStats(currentFlashcard.id, isCorrect, latencyMs)
+        // Aqui forçamos a qualidade com base na decisão manual do usuário
+        // Se o usuário diz que errou, qualidade 0. Se diz que acertou, mapeamos para uma nota alta (ex: 4)
+        val forcedQuality = if (isCorrect) 4 else 0
+
+        updateFlashcardStats(currentFlashcard.id, isCorrect, latencyMs, forcedQuality)
 
         _uiState.update {
             it.copy(
-                isQuestionVerified = true,
                 sequenceHits = if (isCorrect) it.sequenceHits + 1 else 0,
-                isAnswerCorrect = isCorrect,
-                isOfflineValidationDialogOpen = false
+                isOfflineValidationDialogOpen = false,
             )
         }
+        nextFlashcard(isManualValidation = true)
     }
 
     private fun updateFlashcardStats(

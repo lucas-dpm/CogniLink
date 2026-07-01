@@ -149,9 +149,13 @@ fun HomeContent(
                     size = 70.dp,
                     initialBackgroundColor = DarkNavyBlue,
                     finalBackgroundColor = Color(0xFF1222B0),
-                    buttonDescription = "Criar baralho de flashcards",
-                    iconColor = White,
-                    icon = R.drawable.ic_add,
+                    icon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_add),
+                            contentDescription = "Adicionar baralho de flashcards",
+                            tint = Color.White
+                        )
+                    },
                     onClick = onNavigateToCreateDeck
                 )
             }

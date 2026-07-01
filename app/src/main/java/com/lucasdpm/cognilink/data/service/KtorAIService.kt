@@ -178,6 +178,22 @@ class KtorAIService(
         }
     }
 
+    override suspend fun closeFeynmanChat(sessionId: String): Result<Unit> {
+        return runCatching {
+            Log.d(TAG, "closeFeynmanChat: Closing session $sessionId")
+            val response = httpClient.post("${baseUrl}/ai/feynman/close/$sessionId")
+            
+            if (response.status.value == 404) {
+                Log.w(TAG, "closeFeynmanChat: Session $sessionId not found (404). It might be already closed.")
+                return@runCatching
+            }
+
+            response.ensureSuccess("Erro ao fechar chat de Feynman")
+        }.onFailure { e ->
+            Log.e(TAG, "closeFeynmanChat: Erro ao fechar chat", e)
+        }
+    }
+
     @Serializable
     private data class FeynmanStartRequest(
         val theme: String,

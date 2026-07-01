@@ -453,9 +453,11 @@ fun FlashcardEditorContent(
                                 }
 
                                 FlashcardType.CHAT_FEYNMAN -> {
-
-                                    // Implementação para FlashcardType.CHAT_FEYNMAN
-
+                                    CustomTextField(
+                                        inputValue = answerOptions.firstOrNull()?.answer ?: "",
+                                        onInputValueChange = onBasicAnswerChange,
+                                        placeholder = "Ex: Paris"
+                                    )
                                 }
                             }
                         }
@@ -485,7 +487,6 @@ fun FlashcardEditorContent(
                     }
                 }
             }
-
         }
     }
 }

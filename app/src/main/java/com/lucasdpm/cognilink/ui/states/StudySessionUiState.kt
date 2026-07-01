@@ -30,10 +30,11 @@ data class StudySessionUiState(
     val showCriticalErrorDialog: Boolean = false,
     val errorMessage: String? = null,
     val cardStartTimeSeconds: Long = 0L,
+    val currentCardLatencyMs: Long = 0L,
     val userId: String? = null
 ) {
-    val isQuestionAnswered: Boolean = selectedAnswers.isNotEmpty()
     val currentFlashcard: Flashcard? = sessionFlashcards.getOrNull(currentFlashcardIndex)
+    val isQuestionAnswered: Boolean = selectedAnswers.isNotEmpty() || feynmanChatMessages.any { it.isFromUser }
     val isLastFlashcard: Boolean = currentFlashcardIndex == sessionFlashcards.size - 1 && sessionFlashcards.isNotEmpty()
     val isSessionFinished: Boolean = currentFlashcardIndex >= sessionFlashcards.size && sessionFlashcards.isNotEmpty()
 }

@@ -10,12 +10,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -27,8 +25,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
@@ -68,6 +64,7 @@ import com.lucasdpm.cognilink.ui.components.flashcard.ManualValidationDialog
 import com.lucasdpm.cognilink.ui.components.flashcard.TrueFalseToggle
 import com.lucasdpm.cognilink.ui.components.input.CustomTextField
 import com.lucasdpm.cognilink.ui.components.utils.FullScreenLoading
+import com.lucasdpm.cognilink.ui.components.utils.buttons.NeonFAB
 import com.lucasdpm.cognilink.ui.components.utils.buttons.SimpleGradientButton
 import com.lucasdpm.cognilink.ui.components.utils.dialogs.BasicCustomAlertDialog
 import com.lucasdpm.cognilink.ui.states.AnswerVisualState
@@ -84,7 +81,6 @@ import com.lucasdpm.cognilink.ui.viewmodels.StudySessionViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
-import kotlin.collections.forEach
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -136,6 +132,7 @@ fun StudySessionScreen(
             onDismissRequest = { viewModel.toggleCloseDialog() },
             onConfirmation = {
                 viewModel.toggleCloseDialog()
+                viewModel.closeCurrentFeynmanSession()
                 scope.launch {
                     delay(120)
                     onNavigateBack()
@@ -188,6 +185,7 @@ fun StudySessionScreen(
                         text = "Voltar ao Início",
                         onClickButton = {
                             viewModel.toggleSessionInsightDialog()
+                            viewModel.closeCurrentFeynmanSession()
                             scope.launch {
                                 delay(100)
                                 onNavigateBack()
@@ -216,6 +214,7 @@ fun StudySessionScreen(
                 aiFeedback = uiState.aiFeedback,
                 sequenceHits = uiState.sequenceHits,
                 isValidating = uiState.isValidating,
+                isOfflineValidationDialogOpen = uiState.isOfflineValidationDialogOpen,
                 feynmanChatMessages = uiState.feynmanChatMessages,
                 isFeynmanTyping = uiState.isFeynmanTyping,
                 feynmanPersonaName = uiState.feynmanPersonaName,
@@ -258,6 +257,7 @@ fun StudySessionContent(
     aiFeedback: String? = null,
     sequenceHits: Int = 0,
     isValidating: Boolean = false,
+    isOfflineValidationDialogOpen: Boolean = false,
     feynmanChatMessages: List<FeynmanChatMessage> = emptyList(),
     isFeynmanTyping: Boolean = false,
     feynmanPersonaName: String? = null,
@@ -296,45 +296,37 @@ fun StudySessionContent(
                         .navigationBarsPadding()
                 ) {
                     if (flashcard.cardType == FlashcardType.CHAT_FEYNMAN && !isQuestionVerified) {
-                        Surface(
-                            shape = RoundedCornerShape(32.dp),
-                            color = White,
-                            shadowElevation = 4.dp,
-                            modifier = Modifier.fillMaxWidth()
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                verticalAlignment = CenterVertically
-                            ) {
-                                CustomTextField(
-                                    modifier = Modifier.weight(1f),
-                                    inputValue = feynmanInputText,
-                                    onInputValueChange = { feynmanInputText = it },
-                                    placeholder = "Explique aqui...",
-                                    enabled = !isFeynmanTyping
-                                )
-                                IconButton(
-                                    onClick = {
-                                        if (feynmanInputText.isNotBlank()) {
-                                            onSendFeynmanMessage(feynmanInputText)
-                                            feynmanInputText = ""
-                                        }
-                                    },
-                                    enabled = feynmanInputText.isNotBlank() && !isFeynmanTyping,
-                                    colors = IconButtonDefaults.iconButtonColors(
-                                        containerColor = DarkNavyBlue,
-                                        contentColor = White,
-                                        disabledContainerColor = VeryLightGray
-                                    ),
-                                    modifier = Modifier.size(48.dp)
-                                ) {
+                            CustomTextField(
+                                modifier = Modifier.weight(1f),
+                                inputValue = feynmanInputText,
+                                onInputValueChange = { feynmanInputText = it },
+                                placeholder = "Explique aqui...",
+                                enabled = !isFeynmanTyping
+                            )
+                            NeonFAB(
+                                onClick = {
+                                    if (feynmanInputText.isNotBlank()) {
+                                        onSendFeynmanMessage(feynmanInputText)
+                                        feynmanInputText = ""
+                                    }
+                                },
+                                enabled = feynmanInputText.isNotBlank() && !isFeynmanTyping,
+                                icon = {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_play_arrow),
                                         contentDescription = "Enviar",
-                                        modifier = Modifier.size(24.dp)
+                                        modifier = Modifier.size(24.dp),
+                                        tint = White
                                     )
-                                }
-                            }
+                                },
+                                size = 48.dp,
+                                neonColor = White
+                            )
                         }
                     } else {
                         SimpleGradientButton(
@@ -476,21 +468,23 @@ fun StudySessionContent(
                                             verticalAlignment = CenterVertically,
                                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                                         ) {
-                                            Icon(
-                                                painterResource(
-                                                    id = if (isAnswerCorrect) {
-                                                        R.drawable.ic_check_circle
+                                            if (!isOfflineValidationDialogOpen) {
+                                                Icon(
+                                                    painterResource(
+                                                        id = if (isAnswerCorrect) {
+                                                            R.drawable.ic_check_circle
+                                                        } else {
+                                                            R.drawable.ic_cancel
+                                                        }
+                                                    ), contentDescription = null,
+                                                    tint = if (isAnswerCorrect) {
+                                                        Green
                                                     } else {
-                                                        R.drawable.ic_cancel
-                                                    }
-                                                ), contentDescription = null,
-                                                tint = if (isAnswerCorrect) {
-                                                    Green
-                                                } else {
-                                                    Red
-                                                },
-                                                modifier = Modifier.size(18.dp)
-                                            )
+                                                        Red
+                                                    },
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
                                             Text(
                                                 text = "Resposta " + if (isAnswerCorrect) {
                                                     "Correta"
@@ -594,7 +588,10 @@ fun StudySessionContent(
                                     ) {
                                         Text(
                                             text = "Conversando com $name",
-                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                            modifier = Modifier.padding(
+                                                horizontal = 12.dp,
+                                                vertical = 6.dp
+                                            ),
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = DarkNavyBlue
@@ -645,7 +642,6 @@ fun StudySessionContent(
                                         }
                                     }
                                 }
-                                Spacer(modifier = Modifier.height(80.dp))
                             }
                         }
                     }

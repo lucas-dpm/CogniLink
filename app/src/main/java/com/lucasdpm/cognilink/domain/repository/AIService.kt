@@ -32,6 +32,10 @@ interface AIService {
         sessionId: String,
         message: String
     ): Result<FeynmanMessageResponse>
+
+    suspend fun closeFeynmanChat(
+        sessionId: String
+    ): Result<Unit>
 }
 
 data class FeynmanChatMessage(
