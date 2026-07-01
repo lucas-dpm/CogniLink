@@ -7,6 +7,8 @@ import com.lucasdpm.cognilink.domain.model.FlashcardType
 import com.lucasdpm.cognilink.domain.repository.AIAnswerFeedback
 import com.lucasdpm.cognilink.domain.repository.AIService
 import com.lucasdpm.cognilink.domain.repository.DocumentAnalysis
+import com.lucasdpm.cognilink.domain.repository.FeynmanMessageResponse
+import com.lucasdpm.cognilink.domain.repository.FeynmanStartResponse
 import com.lucasdpm.cognilink.domain.repository.IAGeneratedAnswer
 import com.lucasdpm.cognilink.domain.repository.IAGeneratedFlashcard
 import io.ktor.client.HttpClient
@@ -127,6 +129,80 @@ class KtorAIService(
             Log.e(TAG, "generateFlashcardsWithIA: Erro ao gerar flashcards", e)
         }
     }
+
+    override suspend fun startFeynmanChat(
+        theme: String,
+        sessionId: String?
+    ): Result<FeynmanStartResponse> {
+        return runCatching {
+            val response = httpClient.post("${baseUrl}/ai/feynman/start") {
+                contentType(ContentType.Application.Json)
+                setBody(FeynmanStartRequest(theme, sessionId))
+            }
+
+            response.ensureSuccess("Erro ao iniciar chat de Feynman")
+
+            val body = response.body<KtorFeynmanStartResponse>()
+
+            FeynmanStartResponse(
+                sessionId = body.sessionId,
+                personaName = body.personaName,
+                initialMessage = body.initialMessage
+            )
+        }.onFailure { e ->
+            Log.e(TAG, "startFeynmanChat: Erro ao iniciar chat", e)
+        }
+    }
+
+    override suspend fun sendFeynmanMessage(
+        sessionId: String,
+        message: String
+    ): Result<FeynmanMessageResponse> {
+        return runCatching {
+            val response = httpClient.post("${baseUrl}/ai/feynman/message") {
+                contentType(ContentType.Application.Json)
+                setBody(FeynmanMessageRequest(message, sessionId))
+            }
+
+            response.ensureSuccess("Erro ao enviar mensagem no chat de Feynman")
+
+            val body = response.body<KtorFeynmanMessageResponse>()
+
+            FeynmanMessageResponse(
+                reply = body.reply,
+                isFinished = body.isFinished,
+                sm2Quality = body.sm2Quality
+            )
+        }.onFailure { e ->
+            Log.e(TAG, "sendFeynmanMessage: Erro ao enviar mensagem", e)
+        }
+    }
+
+    @Serializable
+    private data class FeynmanStartRequest(
+        val theme: String,
+        val sessionId: String?
+    )
+
+    @Serializable
+    private data class KtorFeynmanStartResponse(
+        val sessionId: String,
+        val personaName: String,
+        val initialMessage: String
+    )
+
+    @Serializable
+    private data class FeynmanMessageRequest(
+        val message: String,
+        val sessionId: String
+    )
+
+    @Serializable
+    private data class KtorFeynmanMessageResponse(
+        val reply: String,
+        val isFinished: Boolean,
+        val sm2Quality: Int? = null
+    )
 
     @Serializable
     private data class CompareRequest(

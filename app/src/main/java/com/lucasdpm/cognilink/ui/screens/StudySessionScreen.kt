@@ -6,25 +6,32 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
@@ -33,10 +40,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -50,6 +61,7 @@ import com.lucasdpm.cognilink.data.model.Answer
 import com.lucasdpm.cognilink.data.model.Flashcard
 import com.lucasdpm.cognilink.data.preview.PreviewDataProvider
 import com.lucasdpm.cognilink.domain.model.FlashcardType
+import com.lucasdpm.cognilink.domain.repository.FeynmanChatMessage
 import com.lucasdpm.cognilink.ui.components.flashcard.AIFeedbackSection
 import com.lucasdpm.cognilink.ui.components.flashcard.AnswerSelector
 import com.lucasdpm.cognilink.ui.components.flashcard.FlashcardHeader
@@ -64,6 +76,7 @@ import com.lucasdpm.cognilink.ui.theme.CogniLinkTheme
 import com.lucasdpm.cognilink.ui.theme.DarkGray
 import com.lucasdpm.cognilink.ui.theme.DarkNavyBlue
 import com.lucasdpm.cognilink.ui.theme.Green
+import com.lucasdpm.cognilink.ui.theme.LightNavyBlue
 import com.lucasdpm.cognilink.ui.theme.OffWhite
 import com.lucasdpm.cognilink.ui.theme.Red
 import com.lucasdpm.cognilink.ui.theme.VeryLightGray
@@ -203,9 +216,14 @@ fun StudySessionScreen(
                 aiFeedback = uiState.aiFeedback,
                 sequenceHits = uiState.sequenceHits,
                 isValidating = uiState.isValidating,
+                feynmanChatMessages = uiState.feynmanChatMessages,
+                isFeynmanTyping = uiState.isFeynmanTyping,
+                feynmanPersonaName = uiState.feynmanPersonaName,
+                feynmanErrorMessage = uiState.feynmanErrorMessage,
                 onCloseClick = viewModel::toggleCloseDialog,
                 onClickToVerifyQuestion = viewModel::verifyQuestion,
                 onClickToNextFlashcard = viewModel::nextFlashcard,
+                onSendFeynmanMessage = viewModel::sendFeynmanChatMessage
             )
         }
 
@@ -233,13 +251,23 @@ fun StudySessionContent(
     aiFeedback: String? = null,
     sequenceHits: Int = 0,
     isValidating: Boolean = false,
+    feynmanChatMessages: List<FeynmanChatMessage> = emptyList(),
+    isFeynmanTyping: Boolean = false,
+    feynmanPersonaName: String? = null,
+    feynmanErrorMessage: String? = null,
     onCloseClick: () -> Unit = {},
     onClickToVerifyQuestion: () -> Unit = {},
     onClickToNextFlashcard: () -> Unit = {},
+    onSendFeynmanMessage: (String) -> Unit = {}
 ) {
 
     val scrollState = rememberScrollState()
     val isKeyboardVisible = WindowInsets.ime.asPaddingValues().calculateBottomPadding() > 0.dp
+    var feynmanInputText by remember { mutableStateOf("") }
+
+    LaunchedEffect(feynmanChatMessages.size, isFeynmanTyping) {
+        scrollState.animateScrollTo(scrollState.maxValue)
+    }
 
     Scaffold(
         modifier = modifier
@@ -253,31 +281,74 @@ fun StudySessionContent(
             )
         },
         bottomBar = {
-            if (!isKeyboardVisible) {
+            if (!isKeyboardVisible || flashcard.cardType == FlashcardType.CHAT_FEYNMAN) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(24.dp)
                         .navigationBarsPadding()
                 ) {
-                    SimpleGradientButton(
-                        text = when {
-                            isValidating -> "VALIDANDO..."
-                            isQuestionVerified && isLastFlashcard -> "FINALIZAR SESSÃO"
-                            isQuestionVerified -> "PROXÍMO FLASHCARD"
-                            else -> "VERIFICAR RESPOSTA"
-                        },
-                        icon = if (isValidating) null else if (isQuestionVerified) R.drawable.ic_arrow_forward else R.drawable.ic_check,
-                        iconRightSide = true,
-                        isEnabled = isQuestionAnswered && !isValidating,
-                        onClickButton = {
-                            if (isQuestionVerified) {
-                                onClickToNextFlashcard()
-                            } else {
-                                onClickToVerifyQuestion()
+                    if (flashcard.cardType == FlashcardType.CHAT_FEYNMAN && !isQuestionVerified) {
+                        Surface(
+                            shape = RoundedCornerShape(32.dp),
+                            color = White,
+                            shadowElevation = 4.dp,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = CenterVertically
+                            ) {
+                                CustomTextField(
+                                    modifier = Modifier.weight(1f),
+                                    inputValue = feynmanInputText,
+                                    onInputValueChange = { feynmanInputText = it },
+                                    placeholder = "Explique aqui...",
+                                    enabled = !isFeynmanTyping
+                                )
+                                IconButton(
+                                    onClick = {
+                                        if (feynmanInputText.isNotBlank()) {
+                                            onSendFeynmanMessage(feynmanInputText)
+                                            feynmanInputText = ""
+                                        }
+                                    },
+                                    enabled = feynmanInputText.isNotBlank() && !isFeynmanTyping,
+                                    colors = IconButtonDefaults.iconButtonColors(
+                                        containerColor = DarkNavyBlue,
+                                        contentColor = White,
+                                        disabledContainerColor = VeryLightGray
+                                    ),
+                                    modifier = Modifier.size(48.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_arrow_forward),
+                                        contentDescription = "Enviar",
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
                             }
                         }
-                    )
+                    } else if (flashcard.cardType != FlashcardType.CHAT_FEYNMAN || isQuestionVerified) {
+                        SimpleGradientButton(
+                            text = when {
+                                isValidating -> "VALIDANDO..."
+                                isQuestionVerified && isLastFlashcard -> "FINALIZAR SESSÃO"
+                                isQuestionVerified -> "PROXÍMO FLASHCARD"
+                                else -> "VERIFICAR RESPOSTA"
+                            },
+                            icon = if (isValidating) null else if (isQuestionVerified) R.drawable.ic_arrow_forward else R.drawable.ic_check,
+                            iconRightSide = true,
+                            isEnabled = isQuestionAnswered && !isValidating,
+                            onClickButton = {
+                                if (isQuestionVerified) {
+                                    onClickToNextFlashcard()
+                                } else {
+                                    onClickToVerifyQuestion()
+                                }
+                            }
+                        )
+                    }
                 }
             }
         },
@@ -506,13 +577,129 @@ fun StudySessionContent(
                         }
 
                         FlashcardType.CHAT_FEYNMAN -> {
+                            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                                feynmanPersonaName?.let { name ->
+                                    Surface(
+                                        shape = RoundedCornerShape(16.dp),
+                                        color = LightNavyBlue.copy(alpha = 0.1f),
+                                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                                    ) {
+                                        Text(
+                                            text = "Conversando com $name",
+                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = DarkNavyBlue
+                                        )
+                                    }
+                                }
 
+                                feynmanChatMessages.forEach { message ->
+                                    FeynmanChatBubble(message = message)
+                                }
+
+                                if (isFeynmanTyping) {
+                                    FeynmanTypingIndicator(feynmanPersonaName ?: "IA")
+                                }
+
+                                if (feynmanErrorMessage != null) {
+                                    Text(
+                                        text = feynmanErrorMessage,
+                                        color = Red,
+                                        fontSize = 12.sp,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                                
+                                if (isQuestionVerified) {
+                                    Surface(
+                                        color = Green.copy(alpha = 0.1f),
+                                        shape = RoundedCornerShape(16.dp),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(16.dp),
+                                            verticalAlignment = CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Icon(
+                                                painterResource(id = R.drawable.ic_check_circle),
+                                                contentDescription = null,
+                                                tint = Green,
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                            Text(
+                                                text = "Conceito aprendido! Sessão finalizada.",
+                                                fontWeight = FontWeight.Bold,
+                                                color = DarkNavyBlue
+                                            )
+                                        }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(80.dp))
+                            }
                         }
                     }
                     HintReveal(hints = targetFlashcard.hints)
                 }
             }
         }
+    }
+}
+
+@Composable
+fun FeynmanChatBubble(message: FeynmanChatMessage) {
+    val arrangement = if (message.isFromUser) Arrangement.End else Arrangement.Start
+    val bubbleColor = if (message.isFromUser) DarkNavyBlue else White
+    val textColor = if (message.isFromUser) White else DarkGray
+    val shape = if (message.isFromUser) {
+        RoundedCornerShape(20.dp, 20.dp, 4.dp, 20.dp)
+    } else {
+        RoundedCornerShape(20.dp, 20.dp, 20.dp, 4.dp)
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = arrangement
+    ) {
+        Surface(
+            shape = shape,
+            color = bubbleColor,
+            shadowElevation = 1.dp,
+            modifier = Modifier.widthIn(max = 280.dp)
+        ) {
+            Text(
+                text = message.text,
+                color = textColor,
+                modifier = Modifier.padding(12.dp),
+                fontSize = 14.sp,
+                lineHeight = 20.sp
+            )
+        }
+    }
+}
+
+@Composable
+fun FeynmanTypingIndicator(personaName: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(CircleShape)
+                .background(DarkGray.copy(alpha = 0.5f))
+        )
+        Spacer(modifier = Modifier.size(4.dp))
+        Text(
+            text = "$personaName está pensando...",
+            fontSize = 12.sp,
+            color = DarkGray,
+            fontWeight = FontWeight.Medium
+        )
     }
 }
 

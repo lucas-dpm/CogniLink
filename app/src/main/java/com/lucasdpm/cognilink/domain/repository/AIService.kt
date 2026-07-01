@@ -22,7 +22,34 @@ interface AIService {
         type: String,
         quantity: Int
     ): Result<List<IAGeneratedFlashcard>>
+
+    suspend fun startFeynmanChat(
+        theme: String,
+        sessionId: String? = null
+    ): Result<FeynmanStartResponse>
+
+    suspend fun sendFeynmanMessage(
+        sessionId: String,
+        message: String
+    ): Result<FeynmanMessageResponse>
 }
+
+data class FeynmanChatMessage(
+    val text: String,
+    val isFromUser: Boolean
+)
+
+data class FeynmanStartResponse(
+    val sessionId: String,
+    val personaName: String,
+    val initialMessage: String
+)
+
+data class FeynmanMessageResponse(
+    val reply: String,
+    val isFinished: Boolean,
+    val sm2Quality: Int? = null
+)
 
 data class DocumentAnalysis(
     val mainTheme: String,

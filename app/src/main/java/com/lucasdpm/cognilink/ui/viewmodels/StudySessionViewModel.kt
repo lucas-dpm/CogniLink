@@ -22,6 +22,8 @@ import kotlinx.coroutines.launch
 
 import com.lucasdpm.cognilink.domain.model.ValidationResult
 import com.lucasdpm.cognilink.domain.model.ValidationType
+import com.lucasdpm.cognilink.domain.repository.AIService
+import com.lucasdpm.cognilink.domain.repository.FeynmanChatMessage
 import com.lucasdpm.cognilink.domain.usecase.CalculateSM2UseCase
 import com.lucasdpm.cognilink.domain.usecase.UpdateUserStatsUseCase
 import com.lucasdpm.cognilink.domain.usecase.ValidateBasicAnswerUseCase
@@ -32,6 +34,7 @@ class StudySessionViewModel(
     private val calculateSM2UseCase: CalculateSM2UseCase,
     private val updateUserStatsUseCase: UpdateUserStatsUseCase,
     private val notificationService: AppNotificationService,
+    private val aiService: AIService,
 ) : ViewModel() {
 
     companion object {
@@ -105,6 +108,9 @@ class StudySessionViewModel(
                         cardStartTimeSeconds = it.secondsElapsed
                     )
                 }
+
+                // Iniciar chat de Feynman se o primeiro card for desse tipo
+                checkAndStartFeynmanChat()
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
                 _uiState.update { 
@@ -145,9 +151,85 @@ class StudySessionViewModel(
                     currentFlashcardIndex = nextIndex,
                     selectedAnswers = emptyMap(),
                     isQuestionVerified = false,
-                    cardStartTimeSeconds = it.secondsElapsed
+                    cardStartTimeSeconds = it.secondsElapsed,
+                    feynmanChatMessages = emptyList(),
+                    feynmanSessionId = null,
+                    feynmanPersonaName = null,
+                    isFeynmanTyping = false,
+                    feynmanErrorMessage = null
                 )
             }
+            checkAndStartFeynmanChat()
+        }
+    }
+
+    private fun checkAndStartFeynmanChat() {
+        val currentFlashcard = _uiState.value.currentFlashcard ?: return
+        if (currentFlashcard.cardType == FlashcardType.CHAT_FEYNMAN) {
+            viewModelScope.launch {
+                _uiState.update { it.copy(isFeynmanTyping = true) }
+                aiService.startFeynmanChat(currentFlashcard.question)
+                    .onSuccess { response ->
+                        _uiState.update {
+                            it.copy(
+                                feynmanSessionId = response.sessionId,
+                                feynmanPersonaName = response.personaName,
+                                feynmanChatMessages = listOf(
+                                    FeynmanChatMessage(response.initialMessage, false)
+                                ),
+                                isFeynmanTyping = false
+                            )
+                        }
+                    }
+                    .onFailure { e ->
+                        _uiState.update {
+                            it.copy(
+                                isFeynmanTyping = false,
+                                feynmanErrorMessage = "Erro ao iniciar chat: ${e.message}"
+                            )
+                        }
+                    }
+            }
+        }
+    }
+
+    fun sendFeynmanChatMessage(message: String) {
+        val sessionId = _uiState.value.feynmanSessionId ?: return
+        val currentFlashcard = _uiState.value.currentFlashcard ?: return
+
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    feynmanChatMessages = it.feynmanChatMessages + FeynmanChatMessage(message, true),
+                    isFeynmanTyping = true
+                )
+            }
+
+            aiService.sendFeynmanMessage(sessionId, message)
+                .onSuccess { response ->
+                    _uiState.update {
+                        it.copy(
+                            feynmanChatMessages = it.feynmanChatMessages + FeynmanChatMessage(response.reply, false),
+                            isFeynmanTyping = false
+                        )
+                    }
+
+                    if (response.isFinished) {
+                        val latencyMs = (_uiState.value.secondsElapsed - _uiState.value.cardStartTimeSeconds) * 1000L
+                        updateFlashcardStats(currentFlashcard.id, true, latencyMs, response.sm2Quality ?: 4)
+                        _uiState.update { it.copy(isQuestionVerified = true, isAnswerCorrect = true) }
+                    }
+                }
+                .onFailure { e ->
+                    _uiState.update {
+                        it.copy(
+                            isFeynmanTyping = false,
+                            feynmanErrorMessage = if (e.message?.contains("Sessão não encontrada") == true) 
+                                "Sessão expirada. Recomece o flashcard." 
+                            else "Erro ao enviar mensagem: ${e.message}"
+                        )
+                    }
+                }
         }
     }
 
@@ -258,14 +340,19 @@ class StudySessionViewModel(
         _uiState.update { it.copy(isCloseDialogOpen = !it.isCloseDialogOpen) }
     }
 
-    private fun updateFlashcardStats(flashcardId: String, isCorrect: Boolean, latencyMs: Long) {
+    private fun updateFlashcardStats(
+        flashcardId: String,
+        isCorrect: Boolean,
+        latencyMs: Long,
+        forcedQuality: Int? = null
+    ) {
         viewModelScope.launch {
             try {
                 val currentFlashcardWithStats = repository.getFlashcardById(flashcardId)
                 val currentStats = currentFlashcardWithStats?.stats ?: FlashcardStats(flashcardId = flashcardId)
 
                 // Cálculo da qualidade baseado no acerto e latência
-                val quality = when {
+                val quality = forcedQuality ?: when {
                     !isCorrect -> 0
                     latencyMs < 3000L -> 5
                     latencyMs < 8000L -> 4
