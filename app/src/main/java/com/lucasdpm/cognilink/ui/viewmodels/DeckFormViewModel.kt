@@ -15,7 +15,6 @@ import com.lucasdpm.cognilink.data.repository.FlashcardRepository
 import com.lucasdpm.cognilink.data.repository.StudyContextRepository
 import com.lucasdpm.cognilink.domain.model.DifficultyLevel
 import com.lucasdpm.cognilink.domain.service.AppNotificationService
-import com.lucasdpm.cognilink.domain.service.GeofenceManager
 import com.lucasdpm.cognilink.ui.states.DeckFormUiState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -39,7 +38,6 @@ class DeckFormViewModel(
     private val deckRepository: DeckRepository,
     private val flashcardRepository: FlashcardRepository,
     private val studyContextRepository: StudyContextRepository,
-    private val geofenceManager: GeofenceManager,
     private val fusedLocationProviderClient: FusedLocationProviderClient,
     private val notificationService: AppNotificationService
 ) : ViewModel() {

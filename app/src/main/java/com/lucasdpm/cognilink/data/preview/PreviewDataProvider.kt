@@ -15,7 +15,6 @@ object PreviewDataProvider {
     const val DECK_ID_2 = "deck-historia-002"
     const val FLASHCARD_ID_1 = "fc-coroutine-101"
     const val FLASHCARD_ID_2 = "fc-flow-102"
-    const val FLASHCARD_ID_3 = "fc-ww1-201"
 
     /**
      * Objeto de Usuário fake

@@ -8,7 +8,6 @@ import com.lucasdpm.cognilink.data.model.Answer
 import com.lucasdpm.cognilink.data.model.FlashcardStats
 import com.lucasdpm.cognilink.data.repository.FlashcardRepository
 import com.lucasdpm.cognilink.domain.model.FlashcardType
-import com.lucasdpm.cognilink.domain.service.AppNotificationService
 import com.lucasdpm.cognilink.ui.states.StudySessionUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,7 +32,6 @@ class StudySessionViewModel(
     private val validateBasicAnswerUseCase: ValidateBasicAnswerUseCase,
     private val calculateSM2UseCase: CalculateSM2UseCase,
     private val updateUserStatsUseCase: UpdateUserStatsUseCase,
-    private val notificationService: AppNotificationService,
     private val aiService: AIService,
 ) : ViewModel() {
 

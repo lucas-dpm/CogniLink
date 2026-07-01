@@ -322,14 +322,14 @@ fun StudySessionContent(
                                     modifier = Modifier.size(48.dp)
                                 ) {
                                     Icon(
-                                        painter = painterResource(id = R.drawable.ic_arrow_forward),
+                                        painter = painterResource(id = R.drawable.ic_play_arrow),
                                         contentDescription = "Enviar",
                                         modifier = Modifier.size(24.dp)
                                     )
                                 }
                             }
                         }
-                    } else if (flashcard.cardType != FlashcardType.CHAT_FEYNMAN || isQuestionVerified) {
+                    } else {
                         SimpleGradientButton(
                             text = when {
                                 isValidating -> "VALIDANDO..."
@@ -346,7 +346,8 @@ fun StudySessionContent(
                                 } else {
                                     onClickToVerifyQuestion()
                                 }
-                            }
+                            },
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
