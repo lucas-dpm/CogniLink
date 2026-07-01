@@ -1,6 +1,9 @@
 package com.lucasdpm.cognilink.ui.components.utils.buttons
 
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.lucasdpm.cognilink.R
 import com.lucasdpm.cognilink.ui.theme.OffWhite
@@ -12,9 +15,13 @@ fun DeleteButton(
     onClick: () -> Unit,
 ) {
     NeonFAB(
-        icon = R.drawable.ic_delete,
-        iconColor = Red,
-        buttonDescription = "Deletar",
+        icon = {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_delete),
+                contentDescription = null,
+                tint = Color.White
+            )
+        },
         size = size.dp,
         neonColor = Red,
         initialBackgroundColor = OffWhite,
