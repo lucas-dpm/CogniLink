@@ -23,6 +23,7 @@ import com.lucasdpm.cognilink.domain.model.ValidationResult
 import com.lucasdpm.cognilink.domain.model.ValidationType
 import com.lucasdpm.cognilink.domain.repository.AIService
 import com.lucasdpm.cognilink.domain.repository.FeynmanChatMessage
+import com.lucasdpm.cognilink.domain.repository.NetworkMonitor
 import com.lucasdpm.cognilink.domain.usecase.CalculateSM2UseCase
 import com.lucasdpm.cognilink.domain.usecase.UpdateUserStatsUseCase
 import com.lucasdpm.cognilink.domain.usecase.ValidateBasicAnswerUseCase
@@ -33,6 +34,7 @@ class StudySessionViewModel(
     private val calculateSM2UseCase: CalculateSM2UseCase,
     private val updateUserStatsUseCase: UpdateUserStatsUseCase,
     private val aiService: AIService,
+    private val networkMonitor: NetworkMonitor,
 ) : ViewModel() {
 
     companion object {
@@ -173,6 +175,11 @@ class StudySessionViewModel(
     private fun checkAndStartFeynmanChat() {
         val currentFlashcard = _uiState.value.currentFlashcard ?: return
         if (currentFlashcard.cardType == FlashcardType.CHAT_FEYNMAN) {
+            if (!networkMonitor.isOnline()) {
+                Log.d(TAG, "checkAndStartFeynmanChat: Offline, skipping Feynman card")
+                nextFlashcard()
+                return
+            }
             viewModelScope.launch {
                 _uiState.update { it.copy(isFeynmanTyping = true) }
                 aiService.startFeynmanChat(currentFlashcard.question)
